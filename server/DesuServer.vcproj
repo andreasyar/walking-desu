@@ -37,7 +37,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\DesuServer\include"
+				AdditionalIncludeDirectories=".\include"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -50,6 +50,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalLibraryDirectories="ws2_32.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
