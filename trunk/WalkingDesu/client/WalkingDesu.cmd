@@ -1,0 +1,2 @@
+javac WalkingDesu.java
+pause
