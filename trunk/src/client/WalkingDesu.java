@@ -102,7 +102,7 @@ class MyPanel extends JPanel {
                     // игрока) и новая позиция нашего игрока на карте. Так что
                     // методу paintComponent() остаётся только отрисовать карту
                     // и спрайт игрока в новой позиции.
-                    System.out.println("Go to: (" + self.cur.x + ", " + self.cur.y + ") -> (" + (x - mapOfst.width) + ", " + (y - mapOfst.height) + ")");
+                    //System.out.println("Go to: (" + self.cur.x + ", " + self.cur.y + ") -> (" + (x - mapOfst.width) + ", " + (y - mapOfst.height) + ")");
 
                     // Вычислим новое смещение карты.
                     /*if (e.getX() > d.width / 2) {
