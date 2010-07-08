@@ -14,12 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import javax.swing.SwingWorker;
 
 import java.awt.Point;
-import java.awt.Image;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.io.IOException;
-import java.io.File;
-import javax.imageio.ImageIO;
 import java.util.Random;
 
 public class WalkingDesu {
@@ -55,7 +51,7 @@ public class WalkingDesu {
     }
 
     private static class RedrawTask extends SwingWorker<Void, Void> {
-        public final long delay = 20; // 1000 ms / 20 ms = 50 fps
+        public final long delay = 100; // 1000 ms / 200 ms = 10 fps
 
         @Override
         protected Void doInBackground() {
@@ -75,9 +71,9 @@ public class WalkingDesu {
 
 class MyPanel extends JPanel {
 
-    private Dimension mapOfst; // Смещение 0,0 карты относительно 0,0 панели.
+    public Dimension mapOfst; // Смещение 0,0 карты относительно 0,0 панели.
 
-    private Dimension panelDim = null; // Размер этой панели.
+    public Dimension panelDim = null; // Размер этой панели.
 
     private BufferedImage buffImg = null;
     private Graphics buffGraph = null;
@@ -109,7 +105,7 @@ class MyPanel extends JPanel {
                     System.out.println("Go to: (" + self.cur.x + ", " + self.cur.y + ") -> (" + (x - mapOfst.width) + ", " + (y - mapOfst.height) + ")");
 
                     // Вычислим новое смещение карты.
-                    if (e.getX() > d.width / 2) {
+                    /*if (e.getX() > d.width / 2) {
                         mapOfst.width -= e.getX() - d.width / 2;
                     } else {
                         mapOfst.width += d.width / 2 - e.getX();
@@ -119,17 +115,23 @@ class MyPanel extends JPanel {
                         mapOfst.height -= e.getY() - d.height / 2;
                     } else {
                         mapOfst.height += d.height / 2 - e.getY();
-                    }
+                    }*/
 
+                    // Начнем движение.
+                    self.move(System.currentTimeMillis(), x - mapOfst.width, y - mapOfst.height);
                     // Сохраним нашу новую позицию на карте.
-                    self.cur.move(d.width / 2 - mapOfst.width, d.height / 2 - mapOfst.height);
+                    //self.cur.move(d.width / 2 - mapOfst.width, d.height / 2 - mapOfst.height);
                 }
 
                 // Когда мы начинаем движение, боты тоже начинают движение в
                 // случайную точку на карте.
                 Random r = new Random();
+                int tmpW, tmpH;
                 for(int i = 0; i < players.size(); i++) {
-                    players.get(i).cur.move(r.nextInt(m.width), r.nextInt(m.height));
+                    tmpW = r.nextInt(m.width);
+                    tmpH = r.nextInt(m.height);
+                    players.get(i).move(System.currentTimeMillis(), tmpW, tmpH);
+                    //players.get(i).cur.move(tmpW, tmpH);
                 }
             }
         });
@@ -138,7 +140,6 @@ class MyPanel extends JPanel {
             @Override
             public void componentResized(ComponentEvent e){
 
-                // TODO Update player position. Align map offset.
                 Dimension d = e.getComponent().getSize();
 
                 if (buffImg != null
@@ -150,7 +151,7 @@ class MyPanel extends JPanel {
                     buffGraph = buffImg.getGraphics();
                 }
 
-                if (panelDim != null && d != null // TODO Concurency issue
+                if (panelDim != null && d != null && mapOfst != null // TODO Concurency issue
                         && (panelDim.width != d.width || panelDim.height != d.height)) {
                     mapOfst.width += d.width / 2 - panelDim.width / 2;
                     mapOfst.height += d.height / 2 - panelDim.height / 2;
@@ -170,8 +171,8 @@ class MyPanel extends JPanel {
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
+        //players.add(new Player(0, 0));
+        //players.add(new Player(0, 0));
 
         // Поскольку наш игрок всегда находится в центре экрана и в начале
         // его положение на карте (0, 0) то точка (0, 0) карты должны быть в
@@ -200,6 +201,7 @@ class MyPanel extends JPanel {
 
             // TODO На самом деле надо рисовать лишь видимую часть карты
             // которую можно получить с помощью метода getSubimage()
+            //System.out.println("1 Map offset: (" + mapOfst.width + ", " + mapOfst.height + ")");
             buffGraph.drawImage(WDMap.getInstance().getMapImg(), mapOfst.width,
                     mapOfst.height, null);
 
@@ -208,6 +210,14 @@ class MyPanel extends JPanel {
                     self.cur.x + mapOfst.width - self.getSprite().getWidth(null) / 2,
                     self.cur.y + mapOfst.height - self.getSprite().getHeight(null),
                     null);
+
+            // Вычислим новое смещение карты (временно это делается здесь)
+            if (panelDim.width / 2 != mapOfst.width + self.cur.x
+                    || panelDim.height / 2 != mapOfst.height + self.cur.y) {
+                mapOfst.width += panelDim.width / 2 - (self.cur.x + mapOfst.width);
+                mapOfst.height += panelDim.height / 2 - (self.cur.y + mapOfst.height);
+            }
+            //System.out.println("2 Map offset: (" + mapOfst.width + ", " + mapOfst.height + ")");
 
             // Рисуем ботов.
             for(int i = 0; i < players.size(); i++) {
@@ -227,33 +237,59 @@ class MyPanel extends JPanel {
 class Player {
 
     public Point cur; // Точка на карте, где находится игрок.
-    int speed;
-
+    double speed = 0.05;
+    private SpriteSet set;
+    
     // Movment
     boolean isMove;
     long begTime;
     Point beg;
     Point end;
-
-    // Temp
-    private BufferedImage sprite = null;
+    double len;
 
     public Player(int x, int y) {
-        isMove = false;
-        try {
-            sprite = ImageIO.read(new File("img/south_01.png"));
-        } catch (IOException e) {
-            e.printStackTrace(); // TODO Crash
-        }
+        beg = new Point(0, 0);
+        end = new Point(1, 1);
+        set = new SpriteSet();
         cur = new Point(x, y);
+        isMove = false;
     }
 
-    public Image getSprite() {
-        return sprite;
+    public BufferedImage getSprite() {
+        if (isMove()) {
+            return set.getMovement().getDirection(beg, end).getNextMove();
+        } else {
+            return set.getMovement().getDirection(beg, end).getNextStand();
+        }
     }
 
-    public boolean isMove() {
-        return isMove;
+    private boolean isMove() {
+        if (isMove) {
+            long curTime = System.currentTimeMillis();
+            //System.out.println((beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime)));
+            //System.out.println((beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime)));
+            cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
+            cur.y = (int) (beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
+            //System.out.println("We goes from: (" + beg.x + ", " + beg.y + ") -> (" + end.x + ", " + end.y + ") " + "Cur pos is: (" + cur.x + ", " + cur.y + ")");
+            if ((beg.x > cur.x && end.x > cur.x || beg.x < cur.x && end.x < cur.x) && (beg.y > cur.y && end.y > cur.y || beg.y < cur.y && end.y < cur.y)) {
+                cur.x = end.x;
+                cur.y = end.y;
+                isMove = false;
+                return false;
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void move(long _begTime, int x, int y) {
+        //System.out.println("Lets move to: (" + x +  ", " + y + ")");
+        isMove = true;
+        begTime = _begTime;
+        beg.move(cur.x, cur.y);
+        end.move(x, y);
     }
 
 }
