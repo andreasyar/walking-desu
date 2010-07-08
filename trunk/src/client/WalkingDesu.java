@@ -243,7 +243,7 @@ class Player {
         try {
             sprite = ImageIO.read(new File("img/south_01.png"));
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // TODO Crash
         }
         cur = new Point(x, y);
     }
