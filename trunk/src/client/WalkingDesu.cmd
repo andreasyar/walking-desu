@@ -1,2 +1,3 @@
-javac WalkingDesu.java
-pause
+javac WalkingDesu.java Sprites.java
+cd ..
+java client/WalkingDesu

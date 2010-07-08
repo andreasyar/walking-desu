@@ -17,6 +17,10 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Comparator;
+import java.util.Collections;
 
 public class WalkingDesu {
 
@@ -82,6 +86,8 @@ class MyPanel extends JPanel {
     private Player self = null;
     private ArrayList<Player> players;
 
+    private WDTimerTask ttask = null;
+
     public MyPanel() {
 
         addMouseListener(new MouseAdapter(){
@@ -118,7 +124,7 @@ class MyPanel extends JPanel {
                     }*/
 
                     // Начнем движение.
-                    self.move(System.currentTimeMillis(), x - mapOfst.width, y - mapOfst.height);
+                    self.move(ttask.wdtime, x - mapOfst.width, y - mapOfst.height);
                     // Сохраним нашу новую позицию на карте.
                     //self.cur.move(d.width / 2 - mapOfst.width, d.height / 2 - mapOfst.height);
                 }
@@ -128,9 +134,11 @@ class MyPanel extends JPanel {
                 Random r = new Random();
                 int tmpW, tmpH;
                 for(int i = 0; i < players.size(); i++) {
-                    tmpW = r.nextInt(m.width);
-                    tmpH = r.nextInt(m.height);
-                    players.get(i).move(System.currentTimeMillis(), tmpW, tmpH);
+                    if(players.get(i) != self) {
+                        tmpW = r.nextInt(m.width);
+                        tmpH = r.nextInt(m.height);
+                        players.get(i).move(ttask.wdtime, tmpW, tmpH);
+                    }
                     //players.get(i).cur.move(tmpW, tmpH);
                 }
             }
@@ -171,8 +179,12 @@ class MyPanel extends JPanel {
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
-        //players.add(new Player(0, 0));
-        //players.add(new Player(0, 0));
+        players.add(new Player(0, 0));
+        players.add(new Player(0, 0));
+
+        // Нашего игрока нужно тоже добавить в список всех игроков, для
+        // сортировки по Y координате при отрисовке спрайтов.
+        players.add(self);
 
         // Поскольку наш игрок всегда находится в центре экрана и в начале
         // его положение на карте (0, 0) то точка (0, 0) карты должны быть в
@@ -185,6 +197,8 @@ class MyPanel extends JPanel {
         buffDim = new Dimension(buffImg.getWidth(), buffImg.getHeight());
 
         panelDim = getSize();
+
+        ttask = new WDTimerTask();
     }
 
     @Override
@@ -205,12 +219,6 @@ class MyPanel extends JPanel {
             buffGraph.drawImage(WDMap.getInstance().getMapImg(), mapOfst.width,
                     mapOfst.height, null);
 
-            // Рисуем спрайт нашего игрока.
-            buffGraph.drawImage(self.getSprite(),
-                    self.cur.x + mapOfst.width - self.getSprite().getWidth(null) / 2,
-                    self.cur.y + mapOfst.height - self.getSprite().getHeight(null),
-                    null);
-
             // Вычислим новое смещение карты (временно это делается здесь)
             if (panelDim.width / 2 != mapOfst.width + self.cur.x
                     || panelDim.height / 2 != mapOfst.height + self.cur.y) {
@@ -219,9 +227,13 @@ class MyPanel extends JPanel {
             }
             //System.out.println("2 Map offset: (" + mapOfst.width + ", " + mapOfst.height + ")");
 
-            // Рисуем ботов.
+            // Да, придётся отсортировать игроков по возрастанию Y координаты
+            // чтобы "нижелещаие" спрайты не перекрывали вышележащие.
+            // TODO optimization
+            Collections.sort(players, new YAligner());
+            Player p;
             for(int i = 0; i < players.size(); i++) {
-                Player p = players.get(i);
+                p = players.get(i);
                 buffGraph.drawImage(p.getSprite(),
                         p.cur.x + mapOfst.width - p.getSprite().getWidth(null) / 2,
                         p.cur.y + mapOfst.height - p.getSprite().getHeight(null),
@@ -237,7 +249,7 @@ class MyPanel extends JPanel {
 class Player {
 
     public Point cur; // Точка на карте, где находится игрок.
-    double speed = 0.05;
+    double speed = 1;
     private SpriteSet set;
     
     // Movment
@@ -245,7 +257,6 @@ class Player {
     long begTime;
     Point beg;
     Point end;
-    double len;
 
     public Player(int x, int y) {
         beg = new Point(0, 0);
@@ -257,7 +268,8 @@ class Player {
 
     public BufferedImage getSprite() {
         if (isMove()) {
-            return set.getMovement().getDirection(beg, end).getNextMove();
+            //return set.getMovement().getDirection(beg, end).getNextMove();
+            return set.getMovement().getDirection(beg, end).getMoveSpr(beg.distance(cur));
         } else {
             return set.getMovement().getDirection(beg, end).getNextStand();
         }
@@ -265,19 +277,21 @@ class Player {
 
     private boolean isMove() {
         if (isMove) {
-            long curTime = System.currentTimeMillis();
+            long curTime = WDTimerTask.wdtime;
+
             //System.out.println((beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime)));
             //System.out.println((beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime)));
             cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
             cur.y = (int) (beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
             //System.out.println("We goes from: (" + beg.x + ", " + beg.y + ") -> (" + end.x + ", " + end.y + ") " + "Cur pos is: (" + cur.x + ", " + cur.y + ")");
+
             if ((beg.x > cur.x && end.x > cur.x || beg.x < cur.x && end.x < cur.x) && (beg.y > cur.y && end.y > cur.y || beg.y < cur.y && end.y < cur.y)) {
                 cur.x = end.x;
                 cur.y = end.y;
                 isMove = false;
                 return false;
             }
-
+            
             return true;
         } else {
             return false;
@@ -319,4 +333,25 @@ class WDMap {
         return mapImg;
     }
 
+}
+
+class WDTimerTask extends TimerTask {
+
+    public static long wdtime = 0;
+    public Timer timer; // TODO Where gentle stop timer?
+
+    public WDTimerTask() {
+        timer = new Timer();
+        timer.schedule(this, 0, 10); // 1000 / 10 = 100 times per second
+    }
+
+    public void run(){
+        wdtime++;
+    }
+}
+
+class YAligner implements Comparator {
+    public final int compare(Object a, Object b) {
+        return ((Player) a).cur.y > ((Player) b).cur.y ? 1 : 0;
+    }
 }
