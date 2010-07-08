@@ -81,6 +81,12 @@ class MovementDirection {
     private int standIndex = 0;
     private int moveIndex = 0;
 
+    // Проходимый путь делится на Шаги с заданным Периодом. На каждом шаге
+    // происходит смена спрайта на очередной.
+    private final double period = 8.0;
+    private BufferedImage curMoveSpr = null;
+    private int lastStep = 0;
+
     public MovementDirection(String[] standS, String[] moveS) {
         stand = new ArrayList<BufferedImage>();
 
@@ -119,6 +125,25 @@ class MovementDirection {
         }
 
         return move.get(moveIndex++);
+    }
+
+    /**
+     * Возвращает спрайт из анимации движения в зависимости от пройденного пути.
+     * @param len Длина пройденного пути.
+     */
+    public BufferedImage getMoveSpr(double len) {
+        int tmp = (int) (len / period);
+
+        if (tmp == 0) {
+            curMoveSpr = move.get(0);
+            lastStep = tmp;
+        } else if (lastStep != tmp) {
+            // Может не совсем следующий, а следующий кроме 0-го?
+            curMoveSpr = getNextMove();
+            lastStep = tmp;
+        }
+
+        return curMoveSpr;
     }
 
 }
