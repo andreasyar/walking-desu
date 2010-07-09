@@ -14,19 +14,29 @@ import java.awt.event.ComponentAdapter;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Comparator;
 import java.util.Collections;
 import java.lang.reflect.InvocationTargetException;
+import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class WalkingDesu {
 
     private static JFrame f;
     private static MyPanel p;
+    private static ServerInteractTask sit = null;
+    private static String serverIP = null;
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            serverIP = args[0];
+        }
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -43,6 +53,8 @@ public class WalkingDesu {
         p.init();
         (new RedrawTask()).execute();
         WDTimerTask ttask = new WDTimerTask();
+        sit = new ServerInteractTask();
+        sit.execute();
     }
 
     private static void createAndShowGUI() {
@@ -67,6 +79,97 @@ public class WalkingDesu {
                     System.err.println(e.getMessage());
                     return null;
                 }
+            }
+        }
+    }
+
+    public static void addOutCommand(String c) {
+        if (sit != null) {
+            sit.addOutCommand(c);
+        }
+    }
+
+    private static class ServerInteractTask extends SwingWorker<Void, Void> {
+        private ArrayList<String> outCommands = new ArrayList<String>();
+        private ArrayList<String> inCommands = new ArrayList<String>();
+        private Socket serverSocket = null;
+        private PrintWriter out = null;
+        private BufferedReader in = null;
+
+        public void addOutCommand(String c) {
+            outCommands.add(c);
+        }
+
+        @Override
+        protected Void doInBackground() {
+            try {
+                ServerReader sreader = new ServerReader();
+                serverSocket = new Socket(serverIP, 45000);
+                out = new PrintWriter(serverSocket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+
+                outCommands.add("hello");
+                sreader.execute();
+                while (serverSocket.isConnected()) {
+                    while (outCommands.size() > 0) {
+                        out.println(outCommands.get(0));
+                        outCommands.remove(0);
+                    }
+                }
+
+                sreader.cancel(true);
+                out.close();
+                in.close();
+                serverSocket.close();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        private class ServerReader extends SwingWorker<Void, Void> {
+            private String command;
+
+            @Override
+            protected Void doInBackground() {
+                String[] pieces;
+
+                try {
+                    while (serverSocket.isConnected()) {
+                        command = in.readLine();
+                        System.out.println(command);
+                        pieces = command.split(" ");
+                        if (pieces[0].equals("hello")) {
+                            p.selfLogin(Long.parseLong(pieces[1]), Long.parseLong(pieces[2]), Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4]));
+                            System.out.println(p.getSelf().id);
+                        }
+                        if (pieces[0].equals("newplayer")) {
+                            p.addPlayer(Long.parseLong(pieces[1]), Integer.parseInt(pieces[2]), Integer.parseInt(pieces[3]));
+                        }
+                        if (pieces[0].equals("move")) {
+                            long begTime = Long.parseLong(pieces[2]);
+                            if (begTime > WDTimerTask.wdtime) { // Мы слильно опаздываем
+                                WDTimerTask.wdtime = begTime;
+                            }
+                            p.movePlayer(Long.parseLong(pieces[1]), begTime, Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4]));
+                        }
+                        if (pieces[0].equals("timesync")) {
+                            System.out.println("Timesync " + WDTimerTask.wdtime + " -> " + pieces[1]);
+                            WDTimerTask.wdtime = Long.parseLong(pieces[1]);
+                        }
+                        if (pieces[0].equals("delplayer")) {
+                            p.delPlayer(Long.parseLong(pieces[1]));
+                        }
+                    }
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
         }
     }
@@ -100,11 +203,12 @@ class MyPanel extends JPanel {
                 if (x >= mapOfst.width && x <= m.width + mapOfst.width
                         && y >= mapOfst.height && y <= m.height + mapOfst.height) {
                     self.move(WDTimerTask.wdtime, x - mapOfst.width, y - mapOfst.height);
+                    WalkingDesu.addOutCommand("move " + (x - mapOfst.width) + " " + (y - mapOfst.height));
                 }
 
                 // Когда мы начинаем движение, боты тоже начинают движение в
                 // случайную точку на карте.
-                Random r = new Random();
+                /*Random r = new Random();
                 int tmpW, tmpH;
                 for(int i = 0; i < players.size(); i++) {
                     if(players.get(i) != self) {
@@ -112,7 +216,7 @@ class MyPanel extends JPanel {
                         tmpH = r.nextInt(m.height);
                         players.get(i).move(WDTimerTask.wdtime, tmpW, tmpH);
                     }
-                }
+                }*/
             }
         });
 
@@ -144,15 +248,15 @@ class MyPanel extends JPanel {
 
     public void init() {
         // Наш игрок.
-        self = new Player(0, 0);
+        self = new Player(0, 0, 0);
 
         // Добавим ботов.
         players = new ArrayList<Player>();
+        /*players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
+        players.add(new Player(0, 0));*/
 
         // Нашего игрока нужно тоже добавить в список всех игроков, для
         // сортировки по Y координате при отрисовке спрайтов.
@@ -212,9 +316,50 @@ class MyPanel extends JPanel {
         }
     }
 
+    public void addPlayer(long id, int x, int y) {
+        if (players != null) {
+            players.add(new Player(id, x, y));
+        }
+    }
+
+    public void delPlayer(long id) {
+        if (players != null) {
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i).id == id) {
+                    players.remove(i);
+                    return;
+                }
+            }
+        }
+    }
+
+    public void movePlayer(long id, long tstamp, int x, int y) {
+        if (players != null) {
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i).id == id) {
+                    players.get(i).move(tstamp, x, y);
+                    return;
+                }
+            }
+        }
+    }
+
+    public void selfLogin(long id, long tstamp, int x, int y) {
+        if (self != null) {
+            self.id = id;
+            WDTimerTask.wdtime = tstamp;
+            self.cur.move(x, y);
+        }
+    }
+
+    public Player getSelf() {
+        return self;
+    }
 }
 
 class Player {
+
+    long id;
 
     public Point cur; // Точка на карте, где находится игрок.
     double speed = 1;
@@ -237,6 +382,15 @@ class Player {
         isMove = false;
     }
 
+    public Player(long _id, int x, int y) {
+        id = _id;
+        beg = new Point(0, 0);
+        end = new Point(1, 1);
+        set = new SpriteSet();
+        cur = new Point(x, y);
+        isMove = false;
+    }
+
     public BufferedImage getSprite() {
         if (isMove()) {
             resetStandAnimationTimer = true;
@@ -252,14 +406,16 @@ class Player {
         if (isMove) {
             long curTime = WDTimerTask.wdtime;
 
-            cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
-            cur.y = (int) (beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
+            if (curTime > begTime) {
+                cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * Math.abs(curTime - begTime));
+                cur.y = (int) (beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * Math.abs(curTime - begTime));
 
-            if ((beg.x > cur.x && end.x > cur.x || beg.x < cur.x && end.x < cur.x) && (beg.y > cur.y && end.y > cur.y || beg.y < cur.y && end.y < cur.y)) {
-                cur.x = end.x;
-                cur.y = end.y;
-                isMove = false;
-                return false;
+                if ((beg.x > cur.x && end.x > cur.x || beg.x < cur.x && end.x < cur.x) && (beg.y > cur.y && end.y > cur.y || beg.y < cur.y && end.y < cur.y)) {
+                    cur.x = end.x;
+                    cur.y = end.y;
+                    isMove = false;
+                    return false;
+                }
             }
 
             return true;
