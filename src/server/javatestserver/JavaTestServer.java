@@ -47,6 +47,7 @@ public class JavaTestServer {
 
                     Random r = new Random();
                     boolean found = false;
+                    System.out.println(playerIDs.size());
                     for (Long id:playerIDs) {
                         for (SocketProcessor sp:q) {
                             if (sp.playerID == id) {
@@ -54,7 +55,7 @@ public class JavaTestServer {
                             }
                         }
                         if (!found) { // bot
-                            processor.send("newplayer " + id + " " + r.nextInt(1024) + " " + r.nextInt(768));
+                            processor.send("(newplayer " + id + " " + r.nextInt(1024) + " " + r.nextInt(768) + ")");
                         }
                         found = false;
                     }

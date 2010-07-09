@@ -141,6 +141,10 @@ public class WalkingDesu {
                     while (serverSocket.isConnected()) {
                         command = in.readLine();
                         System.out.println(command);
+                        //System.out.println(command.replaceAll("(", ""));
+                        //command = command.replaceAll("(", "");
+                        /*command = command.replaceAll(")", "");
+                        System.out.println(command);*/
                         pieces = command.split(" ");
                         if (pieces[0].equals("hello")) {
                             p.selfLogin(Long.parseLong(pieces[1]), Long.parseLong(pieces[2]), Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4]));
