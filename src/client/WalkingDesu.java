@@ -3,6 +3,7 @@ package client;
 import javax.swing.SwingUtilities;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -10,9 +11,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentAdapter;
-import java.lang.reflect.InvocationTargetException;
-import javax.swing.SwingWorker;
-
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -21,6 +19,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Comparator;
 import java.util.Collections;
+import java.lang.reflect.InvocationTargetException;
 
 public class WalkingDesu {
 
@@ -43,6 +42,7 @@ public class WalkingDesu {
         }
         p.init();
         (new RedrawTask()).execute();
+        WDTimerTask ttask = new WDTimerTask();
     }
 
     private static void createAndShowGUI() {
@@ -55,7 +55,7 @@ public class WalkingDesu {
     }
 
     private static class RedrawTask extends SwingWorker<Void, Void> {
-        public final long delay = 100; // 1000 ms / 200 ms = 10 fps
+        public final long delay = 20; // 1000 ms / 20 ms = 50 fps
 
         @Override
         protected Void doInBackground() {
@@ -86,14 +86,11 @@ class MyPanel extends JPanel {
     private Player self = null;
     private ArrayList<Player> players;
 
-    private WDTimerTask ttask = null;
-
     public MyPanel() {
 
         addMouseListener(new MouseAdapter(){
             @Override
             public void mouseClicked(MouseEvent e){
-                Dimension d = getSize();
                 BufferedImage map = WDMap.getInstance().getMapImg();
                 Dimension m = new Dimension(map.getWidth(), map.getHeight());
                 int x = e.getX();
@@ -102,31 +99,7 @@ class MyPanel extends JPanel {
                 // Если клик был в пределах карты.
                 if (x >= mapOfst.width && x <= m.width + mapOfst.width
                         && y >= mapOfst.height && y <= m.height + mapOfst.height) {
-
-                    // На самом деле тут будет запуск движения. А сейчас мы портуемся.
-                    // То есть сразу вычисляется новое смещение карты (движение нашего
-                    // игрока) и новая позиция нашего игрока на карте. Так что
-                    // методу paintComponent() остаётся только отрисовать карту
-                    // и спрайт игрока в новой позиции.
-                    //System.out.println("Go to: (" + self.cur.x + ", " + self.cur.y + ") -> (" + (x - mapOfst.width) + ", " + (y - mapOfst.height) + ")");
-
-                    // Вычислим новое смещение карты.
-                    /*if (e.getX() > d.width / 2) {
-                        mapOfst.width -= e.getX() - d.width / 2;
-                    } else {
-                        mapOfst.width += d.width / 2 - e.getX();
-                    }
-
-                    if (e.getY() > d.height / 2) {
-                        mapOfst.height -= e.getY() - d.height / 2;
-                    } else {
-                        mapOfst.height += d.height / 2 - e.getY();
-                    }*/
-
-                    // Начнем движение.
-                    self.move(ttask.wdtime, x - mapOfst.width, y - mapOfst.height);
-                    // Сохраним нашу новую позицию на карте.
-                    //self.cur.move(d.width / 2 - mapOfst.width, d.height / 2 - mapOfst.height);
+                    self.move(WDTimerTask.wdtime, x - mapOfst.width, y - mapOfst.height);
                 }
 
                 // Когда мы начинаем движение, боты тоже начинают движение в
@@ -137,9 +110,8 @@ class MyPanel extends JPanel {
                     if(players.get(i) != self) {
                         tmpW = r.nextInt(m.width);
                         tmpH = r.nextInt(m.height);
-                        players.get(i).move(ttask.wdtime, tmpW, tmpH);
+                        players.get(i).move(WDTimerTask.wdtime, tmpW, tmpH);
                     }
-                    //players.get(i).cur.move(tmpW, tmpH);
                 }
             }
         });
@@ -197,8 +169,6 @@ class MyPanel extends JPanel {
         buffDim = new Dimension(buffImg.getWidth(), buffImg.getHeight());
 
         panelDim = getSize();
-
-        ttask = new WDTimerTask();
     }
 
     @Override
@@ -215,7 +185,6 @@ class MyPanel extends JPanel {
 
             // TODO На самом деле надо рисовать лишь видимую часть карты
             // которую можно получить с помощью метода getSubimage()
-            //System.out.println("1 Map offset: (" + mapOfst.width + ", " + mapOfst.height + ")");
             buffGraph.drawImage(WDMap.getInstance().getMapImg(), mapOfst.width,
                     mapOfst.height, null);
 
@@ -225,7 +194,6 @@ class MyPanel extends JPanel {
                 mapOfst.width += panelDim.width / 2 - (self.cur.x + mapOfst.width);
                 mapOfst.height += panelDim.height / 2 - (self.cur.y + mapOfst.height);
             }
-            //System.out.println("2 Map offset: (" + mapOfst.width + ", " + mapOfst.height + ")");
 
             // Да, придётся отсортировать игроков по возрастанию Y координаты
             // чтобы "нижелещаие" спрайты не перекрывали вышележащие.
@@ -251,7 +219,7 @@ class Player {
     public Point cur; // Точка на карте, где находится игрок.
     double speed = 1;
     private SpriteSet set;
-    
+
     // Movment
     boolean isMove;
     long begTime;
@@ -271,7 +239,6 @@ class Player {
 
     public BufferedImage getSprite() {
         if (isMove()) {
-            //return set.getMovement().getDirection(beg, end).getNextMove();
             resetStandAnimationTimer = true;
             return set.getMovement().getDirection(beg, end).getMoveSpr(beg.distance(cur));
         } else {
@@ -285,11 +252,8 @@ class Player {
         if (isMove) {
             long curTime = WDTimerTask.wdtime;
 
-            //System.out.println((beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime)));
-            //System.out.println((beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime)));
             cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
             cur.y = (int) (beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * (curTime - begTime));
-            //System.out.println("We goes from: (" + beg.x + ", " + beg.y + ") -> (" + end.x + ", " + end.y + ") " + "Cur pos is: (" + cur.x + ", " + cur.y + ")");
 
             if ((beg.x > cur.x && end.x > cur.x || beg.x < cur.x && end.x < cur.x) && (beg.y > cur.y && end.y > cur.y || beg.y < cur.y && end.y < cur.y)) {
                 cur.x = end.x;
@@ -297,7 +261,7 @@ class Player {
                 isMove = false;
                 return false;
             }
-            
+
             return true;
         } else {
             return false;
