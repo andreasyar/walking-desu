@@ -39,7 +39,7 @@ class Movement extends Animation {
         north = new MovementDirection(new String[] {"img/north_01.png"}, new String[] {"img/north_01.png", "img/north_02.png"});
         northWest = new MovementDirection(new String[] {"img/north_west_03.png"}, new String[] {"img/north_west_01.png", "img/north_west_02.png"});
         northEast = new MovementDirection(new String[] {"img/north_east_03.png"}, new String[] {"img/north_east_01.png", "img/north_east_02.png"});
-        south = new MovementDirection(new String[] {"img/south_01.png"}, new String[] {"img/south_04.png", "img/south_05.png"});
+        south = new MovementDirection(new String[] {"img/south_01.png", "img/south_02.png", "img/south_03.png", "img/south_02.png"}, new String[] {"img/south_04.png", "img/south_05.png"});
         southWest = new MovementDirection(new String[] {"img/south_west_03.png"}, new String[] {"img/south_west_01.png", "img/south_west_02.png"});
         southEast = new MovementDirection(new String[] {"img/south_east_03.png"}, new String[] {"img/south_east_01.png", "img/south_east_02.png"});
     }
@@ -87,6 +87,12 @@ class MovementDirection {
     private BufferedImage curMoveSpr = null;
     private int lastStep = 0;
 
+    // Аналогично проходимому пути, только опирается на время простоя.
+    private final long timePeriod = 25;
+    private long standBeg = 0;
+    private long lastTimeStep = 0;
+    private BufferedImage curStandSpr = null;
+
     public MovementDirection(String[] standS, String[] moveS) {
         stand = new ArrayList<BufferedImage>();
 
@@ -111,20 +117,30 @@ class MovementDirection {
         }
     }
 
-    public BufferedImage getNextStand() {
-        if (standIndex >= stand.size()) {
+    public BufferedImage getStandSpr(boolean rstTimer, long curTime) {
+        long tmp;
+
+        if (rstTimer) {
+            standBeg = curTime;
+            tmp = 0;
+            curStandSpr = stand.get(0);
+        }
+
+        tmp = (long) ((curTime - standBeg) / timePeriod);
+
+        if (tmp == 0) {
+            lastTimeStep = tmp;
             standIndex = 0;
+            curStandSpr = stand.get(standIndex);
+        } else if (lastTimeStep != tmp) {
+            if (standIndex >= stand.size() || stand.size() == 1) {
+                standIndex = 0;
+            }
+            curStandSpr = stand.get(standIndex++);
+            lastTimeStep = tmp;
         }
 
-        return stand.get(standIndex++);
-    }
-
-    public BufferedImage getNextMove() {
-        if (moveIndex >= move.size()) {
-            moveIndex = 0;
-        }
-
-        return move.get(moveIndex++);
+        return curStandSpr;
     }
 
     /**
@@ -137,9 +153,12 @@ class MovementDirection {
         if (tmp == 0) {
             curMoveSpr = move.get(0);
             lastStep = tmp;
+            moveIndex = 0;
         } else if (lastStep != tmp) {
-            // Может не совсем следующий, а следующий кроме 0-го?
-            curMoveSpr = getNextMove();
+            if (moveIndex >= move.size() || move.size() == 1) {
+                moveIndex = 0;
+            }
+            curMoveSpr = move.get(moveIndex++);
             lastStep = tmp;
         }
 

@@ -176,11 +176,11 @@ class MyPanel extends JPanel {
 
         // Добавим ботов.
         players = new ArrayList<Player>();
+        /*players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
+        players.add(new Player(0, 0));*/
 
         // Нашего игрока нужно тоже добавить в список всех игроков, для
         // сортировки по Y координате при отрисовке спрайтов.
@@ -258,6 +258,9 @@ class Player {
     Point beg;
     Point end;
 
+    // Temp for animation
+    boolean resetStandAnimationTimer = false;
+
     public Player(int x, int y) {
         beg = new Point(0, 0);
         end = new Point(1, 1);
@@ -269,9 +272,12 @@ class Player {
     public BufferedImage getSprite() {
         if (isMove()) {
             //return set.getMovement().getDirection(beg, end).getNextMove();
+            resetStandAnimationTimer = true;
             return set.getMovement().getDirection(beg, end).getMoveSpr(beg.distance(cur));
         } else {
-            return set.getMovement().getDirection(beg, end).getNextStand();
+            BufferedImage tmp = set.getMovement().getDirection(beg, end).getStandSpr(resetStandAnimationTimer, WDTimerTask.wdtime);
+            resetStandAnimationTimer = false;
+            return tmp;
         }
     }
 
