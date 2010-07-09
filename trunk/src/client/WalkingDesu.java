@@ -176,11 +176,11 @@ class MyPanel extends JPanel {
 
         // Добавим ботов.
         players = new ArrayList<Player>();
-        /*players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
         players.add(new Player(0, 0));
-        players.add(new Player(0, 0));*/
+        players.add(new Player(0, 0));
+        players.add(new Player(0, 0));
 
         // Нашего игрока нужно тоже добавить в список всех игроков, для
         // сортировки по Y координате при отрисовке спрайтов.
