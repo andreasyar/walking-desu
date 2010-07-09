@@ -83,7 +83,7 @@ class MovementDirection {
 
     // Проходимый путь делится на Шаги с заданным Периодом. На каждом шаге
     // происходит смена спрайта на очередной.
-    private final double period = 8.0;
+    private final double period = 12.0;
     private BufferedImage curMoveSpr = null;
     private int lastStep = 0;
 
