@@ -272,3 +272,9 @@
 (define (rmailbox) (read-async-channel-mailbox mch))
 (define (setup-on-port port)
   (start-listener-on-port port mch))
+
+(let ((cla (current-command-line-arguments)))
+ (if (= (vector-length cla) 1)
+     (begin (setup-on-port (string->number (vector-ref cla 0)))
+            (processing-loop mch))
+     (printf "usage: mzscheme --script desu.scm portno~%")))
