@@ -3,8 +3,11 @@ package client;
 import javax.swing.SwingUtilities;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JButton;
+import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -14,8 +17,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Comparator;
 import java.util.Collections;
 import java.lang.reflect.InvocationTargetException;
@@ -25,6 +26,20 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.util.Hashtable;
+import java.awt.Graphics2D;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class WalkingDesu {
 
@@ -32,8 +47,13 @@ public class WalkingDesu {
     private static MyPanel p;
     private static ServerInteractTask sit = null;
     private static String serverIP = null;
+    private static JButton b;
+    private static JTextField t;
+
+    public static long serverStartTime;
 
     public static void main(String[] args) {
+        serverStartTime = System.currentTimeMillis();
         if (args.length > 0) {
             serverIP = args[0];
         }
@@ -51,19 +71,30 @@ public class WalkingDesu {
             return;
         }
         p.init();
-        (new RedrawTask()).execute();
-        WDTimerTask ttask = new WDTimerTask();
+        Executor executor = Executors.newCachedThreadPool();
+        executor.execute(new RedrawTask());
         sit = new ServerInteractTask();
-        sit.execute();
+        executor.execute(sit);
+        //(new RedrawTask()).execute();
+        //sit.execute();
     }
 
     private static void createAndShowGUI() {
         p = new MyPanel();
         f = new JFrame("Walking Desu 3");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        b = new JButton("Send");
+        t = new JTextField(50);
+        p.add(b);
+        p.add(t);
         f.add(p);
         f.setSize(800,600);
         f.setVisible(true);
+        
+    }
+
+    public static void setButtonActionListener(Player p) {
+        b.addActionListener(new MyListener(p, t));
     }
 
     private static class RedrawTask extends SwingWorker<Void, Void> {
@@ -90,30 +121,33 @@ public class WalkingDesu {
     }
 
     private static class ServerInteractTask extends SwingWorker<Void, Void> {
-        private ArrayList<String> outCommands = new ArrayList<String>();
+        private final ArrayList<String> outCommands = new ArrayList<String>();
         private ArrayList<String> inCommands = new ArrayList<String>();
         private Socket serverSocket = null;
         private PrintWriter out = null;
         private BufferedReader in = null;
-
-        public void addOutCommand(String c) {
-            outCommands.add(c);
-        }
+        private final Lock lock = new ReentrantLock();
 
         @Override
         protected Void doInBackground() {
             try {
                 ServerReader sreader = new ServerReader();
-                serverSocket = new Socket(serverIP, 45000);
+                serverSocket = new Socket(serverIP, 4040);
                 out = new PrintWriter(serverSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
 
-                outCommands.add("hello");
-                sreader.execute();
+                outCommands.add("(hello)");
+                Executor executor = Executors.newCachedThreadPool();
+                executor.execute(sreader);
                 while (serverSocket.isConnected()) {
-                    while (outCommands.size() > 0) {
-                        out.println(outCommands.get(0));
-                        outCommands.remove(0);
+                    synchronized(outCommands) {
+                        while (outCommands.size() > 0) {
+                            out.println(outCommands.get(0));
+                            outCommands.remove(0);
+                        }
+                        try {
+                            outCommands.wait();
+                        } catch (InterruptedException ignored) {}
                     }
                 }
 
@@ -130,6 +164,17 @@ public class WalkingDesu {
             return null;
         }
 
+        public void addOutCommand(String c) {
+            if (!c.startsWith("(")) {
+                c = "(" + c + ")";
+            }
+            outCommands.add(c);
+            System.out.println("Command added: " + c);
+            synchronized(outCommands) {
+                outCommands.notify();
+            }
+        }
+
         private class ServerReader extends SwingWorker<Void, Void> {
             private String command;
 
@@ -140,11 +185,10 @@ public class WalkingDesu {
                 try {
                     while (serverSocket.isConnected()) {
                         command = in.readLine();
-                        System.out.println(command);
-                        //System.out.println(command.replaceAll("(", ""));
-                        //command = command.replaceAll("(", "");
-                        /*command = command.replaceAll(")", "");
-                        System.out.println(command);*/
+                        System.out.println("Command received: " + command);
+                        if (command.startsWith("(")) {
+                            command = command.substring(1, command.length() - 1); // remove ( )
+                        }
                         pieces = command.split(" ");
                         if (pieces[0].equals("hello")) {
                             p.selfLogin(Long.parseLong(pieces[1]), Long.parseLong(pieces[2]), Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4]));
@@ -155,17 +199,34 @@ public class WalkingDesu {
                         }
                         if (pieces[0].equals("move")) {
                             long begTime = Long.parseLong(pieces[2]);
-                            if (begTime > WDTimerTask.wdtime) { // Мы слильно опаздываем
-                                WDTimerTask.wdtime = begTime;
-                            }
+                            /*if (begTime > Math.abs(System.currentTimeMillis() - serverStartTime)) { // Мы слильно опаздываем
+                                System.out.println("We try to -sync when move: " + begTime + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
+                                serverStartTime -= begTime - Math.abs(System.currentTimeMillis() - serverStartTime);
+                            } else {
+                                System.out.println("We try to +sync when move: " + begTime + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
+                                serverStartTime += begTime - Math.abs(System.currentTimeMillis() - serverStartTime);
+                            }*/
+                            serverStartTime = System.currentTimeMillis() - begTime;
                             p.movePlayer(Long.parseLong(pieces[1]), begTime, Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4]));
                         }
                         if (pieces[0].equals("timesync")) {
-                            System.out.println("Timesync " + WDTimerTask.wdtime + " -> " + pieces[1]);
-                            WDTimerTask.wdtime = Long.parseLong(pieces[1]);
+                            long remoteTimeDiff = Long.parseLong(pieces[1]);
+                            System.out.println("Timesync " + Math.abs(System.currentTimeMillis() - serverStartTime) + " -> " + pieces[1]);
+                            /*if (remoteTimeDiff > Math.abs(System.currentTimeMillis() - serverStartTime)) {
+                                System.out.println("We try to -sync when timesync: " + remoteTimeDiff + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
+                                serverStartTime -= remoteTimeDiff - Math.abs(System.currentTimeMillis() - serverStartTime);
+                            } else {
+                                System.out.println("We try to +sync when timesync: " + remoteTimeDiff + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
+                                serverStartTime += remoteTimeDiff - Math.abs(System.currentTimeMillis() - serverStartTime);
+                            }*/
+                            serverStartTime = System.currentTimeMillis() - remoteTimeDiff;
                         }
                         if (pieces[0].equals("delplayer")) {
                             p.delPlayer(Long.parseLong(pieces[1]));
+                        }
+                        if (pieces[0].equals("text")) {
+                            pieces = command.split(" ", 3);
+                            p.setPlayerText(Long.parseLong(pieces[1]), pieces[2]);
                         }
                     }
                 } catch (UnknownHostException e) {
@@ -206,21 +267,11 @@ class MyPanel extends JPanel {
                 // Если клик был в пределах карты.
                 if (x >= mapOfst.width && x <= m.width + mapOfst.width
                         && y >= mapOfst.height && y <= m.height + mapOfst.height) {
-                    self.move(WDTimerTask.wdtime, x - mapOfst.width, y - mapOfst.height);
-                    WalkingDesu.addOutCommand("move " + (x - mapOfst.width) + " " + (y - mapOfst.height));
+                    self.move(Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime),
+                            x - mapOfst.width, y - mapOfst.height);
+                    WalkingDesu.addOutCommand("move " + (x - mapOfst.width)
+                            + " " + (y - mapOfst.height));
                 }
-
-                // Когда мы начинаем движение, боты тоже начинают движение в
-                // случайную точку на карте.
-                /*Random r = new Random();
-                int tmpW, tmpH;
-                for(int i = 0; i < players.size(); i++) {
-                    if(players.get(i) != self) {
-                        tmpW = r.nextInt(m.width);
-                        tmpH = r.nextInt(m.height);
-                        players.get(i).move(WDTimerTask.wdtime, tmpW, tmpH);
-                    }
-                }*/
             }
         });
 
@@ -254,13 +305,7 @@ class MyPanel extends JPanel {
         // Наш игрок.
         self = new Player(0, 0, 0);
 
-        // Добавим ботов.
         players = new ArrayList<Player>();
-        /*players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
-        players.add(new Player(0, 0));
-        players.add(new Player(0, 0));*/
 
         // Нашего игрока нужно тоже добавить в список всех игроков, для
         // сортировки по Y координате при отрисовке спрайтов.
@@ -277,6 +322,8 @@ class MyPanel extends JPanel {
         buffDim = new Dimension(buffImg.getWidth(), buffImg.getHeight());
 
         panelDim = getSize();
+
+        WalkingDesu.setButtonActionListener(self);
     }
 
     @Override
@@ -308,15 +355,24 @@ class MyPanel extends JPanel {
             // TODO optimization
             Collections.sort(players, new YAligner());
             Player p;
+            BufferedImage textCloud;
             for(int i = 0; i < players.size(); i++) {
                 p = players.get(i);
                 buffGraph.drawImage(p.getSprite(),
                         p.cur.x + mapOfst.width - p.getSprite().getWidth(null) / 2,
                         p.cur.y + mapOfst.height - p.getSprite().getHeight(null),
                         null);
+                textCloud = p.getTextCloud();
+                if (textCloud != null) {
+                    buffGraph.drawImage(textCloud,
+                            p.cur.x + mapOfst.width + p.getSprite().getWidth(null) / 2,
+                            p.cur.y + mapOfst.height - p.getSprite().getHeight(null),
+                            null);
+                }
             }
 
             g.drawImage(buffImg, 0, 0, null);
+            //System.out.println(self.text);
         }
     }
 
@@ -337,6 +393,18 @@ class MyPanel extends JPanel {
         }
     }
 
+    public void setPlayerText(long id, String t) {
+        if (players != null) {
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i).id == id) {
+                    players.get(i).setText(t);
+                    players.get(i).shouldUpdateTextCloud();
+                    return;
+                }
+            }
+        }
+    }
+
     public void movePlayer(long id, long tstamp, int x, int y) {
         if (players != null) {
             for (int i = 0; i < players.size(); i++) {
@@ -351,7 +419,15 @@ class MyPanel extends JPanel {
     public void selfLogin(long id, long tstamp, int x, int y) {
         if (self != null) {
             self.id = id;
-            WDTimerTask.wdtime = tstamp;
+            /*if (tstamp > Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime)) {
+                System.out.println("We try to -sync when login: " + tstamp + " -> " + Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime));
+                WalkingDesu.serverStartTime -= tstamp - Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
+            } else {
+                System.out.println("We try to -sync when login: " + tstamp + " -> " + Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime));
+                WalkingDesu.serverStartTime += tstamp - Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
+            }*/
+            WalkingDesu.serverStartTime = System.currentTimeMillis() - tstamp;
+            System.out.println("We going to: " + x + " " + y);
             self.cur.move(x, y);
         }
     }
@@ -366,7 +442,7 @@ class Player {
     long id;
 
     public Point cur; // Точка на карте, где находится игрок.
-    double speed = 1;
+    double speed = 0.07;
     private SpriteSet set;
 
     // Movment
@@ -377,6 +453,61 @@ class Player {
 
     // Temp for animation
     boolean resetStandAnimationTimer = false;
+
+    // For text cloud
+    BufferedImage textCloud = null;
+    String text = "";
+    boolean updateTextCloud = false;
+
+    public void setText(String t) {
+        text = t;
+    }
+
+    public void shouldUpdateTextCloud() {
+        updateTextCloud = true;
+    }
+
+    public BufferedImage getTextCloud() {
+        if (!updateTextCloud) {
+            return textCloud;
+        }
+        if (text.equals("")) {
+            return null;
+        } else {
+            textCloud = new BufferedImage(150, 100, BufferedImage.TYPE_BYTE_INDEXED);
+            Graphics g = textCloud.getGraphics();
+            //g.setColor(Color.GREEN);
+            //g.fillRect(1, 1, 148, 98);
+
+            LineBreakMeasurer lineMeasurer;
+            int paragraphStart;
+            int paragraphEnd;
+            float breakWidth = 149;
+            float drawPosY = 0;
+            Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
+            Graphics2D g2d = (Graphics2D)g;
+            AttributedCharacterIterator paragraph = (new AttributedString(text)).getIterator();
+            FontRenderContext frc;
+
+            map.put(TextAttribute.FAMILY, "Serif");
+            map.put(TextAttribute.SIZE, new Float(18.0));
+            paragraphStart = paragraph.getBeginIndex();
+            paragraphEnd = paragraph.getEndIndex();
+            frc = g2d.getFontRenderContext();
+            lineMeasurer = new LineBreakMeasurer(paragraph, frc);
+
+            lineMeasurer.setPosition(paragraphStart);
+            while (lineMeasurer.getPosition() < paragraphEnd) {
+                TextLayout layout = lineMeasurer.nextLayout(breakWidth);
+                float drawPosX = layout.isLeftToRight() ? 0 : breakWidth - layout.getAdvance();
+                drawPosY += layout.getAscent();
+                layout.draw(g2d, drawPosX, drawPosY);
+                drawPosY += layout.getDescent() + layout.getLeading();
+            }
+            updateTextCloud = false;
+            return textCloud;
+        }
+    }
 
     public Player(int x, int y) {
         beg = new Point(0, 0);
@@ -400,7 +531,8 @@ class Player {
             resetStandAnimationTimer = true;
             return set.getMovement().getDirection(beg, end).getMoveSpr(beg.distance(cur));
         } else {
-            BufferedImage tmp = set.getMovement().getDirection(beg, end).getStandSpr(resetStandAnimationTimer, WDTimerTask.wdtime);
+            BufferedImage tmp = set.getMovement().getDirection(beg, end).getStandSpr(resetStandAnimationTimer,
+                    Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime));
             resetStandAnimationTimer = false;
             return tmp;
         }
@@ -408,7 +540,7 @@ class Player {
 
     private boolean isMove() {
         if (isMove) {
-            long curTime = WDTimerTask.wdtime;
+            long curTime = Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
 
             if (curTime > begTime) {
                 cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * Math.abs(curTime - begTime));
@@ -429,7 +561,6 @@ class Player {
     }
 
     public void move(long _begTime, int x, int y) {
-        //System.out.println("Lets move to: (" + x +  ", " + y + ")");
         isMove = true;
         begTime = _begTime;
         beg.move(cur.x, cur.y);
@@ -465,23 +596,26 @@ class WDMap {
 
 }
 
-class WDTimerTask extends TimerTask {
-
-    public static long wdtime = 0;
-    public Timer timer; // TODO Where gentle stop timer?
-
-    public WDTimerTask() {
-        timer = new Timer();
-        timer.schedule(this, 0, 10); // 1000 / 10 = 100 times per second
-    }
-
-    public void run(){
-        wdtime++;
-    }
-}
-
 class YAligner implements Comparator {
     public final int compare(Object a, Object b) {
         return ((Player) a).cur.y > ((Player) b).cur.y ? 1 : 0;
+    }
+}
+
+class MyListener implements ActionListener {
+    Player self;
+    JTextField msgField;
+
+    public MyListener(Player p, JTextField tf) {
+        self = p;
+        msgField = tf;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (msgField.getText() != null && !self.text.equals(msgField.getText())) {
+            self.text = msgField.getText().length() > 100 ? msgField.getText().substring(0, 99) : msgField.getText();
+            self.shouldUpdateTextCloud();
+            WalkingDesu.addOutCommand("text " + self.text);
+        }
     }
 }

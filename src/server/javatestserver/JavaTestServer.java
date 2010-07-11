@@ -14,27 +14,33 @@ import java.awt.Point;
 public class JavaTestServer {
     private ServerSocket ss;
     private Thread serverThread;
-    private int port;
-    BlockingQueue<SocketProcessor> q = new LinkedBlockingQueue<SocketProcessor>();
-    private long ids = 1;
+    BlockingQueue<SocketProcessor> clientQueue = new LinkedBlockingQueue<SocketProcessor>();
+
+    private long currentID = 1;
     ArrayList<Long> playerIDs = new ArrayList<Long>();
+
+    private long serverStartTime;
 
     public JavaTestServer(int port) throws IOException {
         ss = new ServerSocket(port);
-        this.port = port;
+        serverStartTime = System.currentTimeMillis();
     }
 
     void run() {
         serverThread = Thread.currentThread();
-        playerIDs.add(ids++);
-        playerIDs.add(ids++);
-        playerIDs.add(ids++);
-        playerIDs.add(ids++);
-        playerIDs.add(ids++);
+
+        /*playerIDs.add(currentID++);
+        playerIDs.add(currentID++);
+        playerIDs.add(currentID++);
+        playerIDs.add(currentID++);
+        playerIDs.add(currentID++);*/
+
         WDBotMoveTask bmt = new WDBotMoveTask();
         WDTimeSync ts = new WDTimeSync();
+
         while (true) {
             Socket s = getNewConn();
+
             if (serverThread.isInterrupted()) {
                 break;
             } else if (s != null){
@@ -43,13 +49,13 @@ public class JavaTestServer {
                     final Thread thread = new Thread(processor);
                     thread.setDaemon(true);
                     thread.start();
-                    q.offer(processor);
+                    clientQueue.offer(processor);
 
                     Random r = new Random();
                     boolean found = false;
                     System.out.println(playerIDs.size());
                     for (Long id:playerIDs) {
-                        for (SocketProcessor sp:q) {
+                        for (SocketProcessor sp:clientQueue) {
                             if (sp.playerID == id) {
                                 found = true;
                             }
@@ -70,42 +76,31 @@ public class JavaTestServer {
         try {
             s = ss.accept();
         } catch (IOException e) {
-            shutdownServer();
+            e.printStackTrace();
+            System.exit(1);
         }
         return s;
     }
 
-    private synchronized void shutdownServer() {
-        for (SocketProcessor s: q) {
-            s.close();
-        }
-        if (!ss.isClosed()) {
-            try {
-                ss.close();
-            } catch (IOException ignored) {}
-        }
-    }
-
     public void sendToAll (String[] msgs) {
         for (String msg:msgs) {
-            for (SocketProcessor sp:q) {
+            for (SocketProcessor sp:clientQueue) {
                 sp.send(msg);
             }
         }
     }
 
-    public void sendToAllOther (String[] msgs, long excl) {
+    public void sendToAllExcept (String[] msgs, long excID) {
         for (String msg:msgs) {
-            for (SocketProcessor sp:q) {
-                if (sp.playerID != excl) {
+            for (SocketProcessor sp:clientQueue) {
+                if (sp.playerID != excID) {
                     sp.send(msg);
                 }
             }
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        WDTimerTask ttask = new WDTimerTask();
+    public static void main(String[] args) throws IOException, InterruptedException {
         new JavaTestServer(45000).run();
     }
 
@@ -120,20 +115,23 @@ public class JavaTestServer {
 
         public void run(){
             Random r = new Random();
-            String[] commands = new String[playerIDs.size() - q.size()];
+            String[] commands = new String[playerIDs.size() - clientQueue.size()];
             boolean found = false;
-            for (int i = 0; i < commands.length; i++) {
-                for (SocketProcessor sp:q) {
+
+            for (int i = 0; i < commands.length; i++, found = false) {
+                for (SocketProcessor sp:clientQueue) {
                     if (sp.playerID != 0 && sp.playerID == playerIDs.get(i)) {
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    commands[i] = "move " + playerIDs.get(i) + " " + WDTimerTask.wdtime + " " + r.nextInt(1024) + " " + r.nextInt(768);
+                    commands[i] = "(move " + playerIDs.get(i) + " "
+                            + (System.currentTimeMillis() - serverStartTime)
+                            + " " + r.nextInt(1024) + " " + r.nextInt(768) + ")";
                 }
-                found = false;
             }
+
             sendToAll(commands);
         }
     }
@@ -144,11 +142,11 @@ public class JavaTestServer {
 
         public WDTimeSync() {
             timer = new Timer();
-            timer.schedule(this, 0, 1000); // each 1 seconds
+            timer.schedule(this, 0, 5000); // each 5 seconds
         }
 
         public void run(){
-            sendToAll(new String[] {"timesync " + WDTimerTask.wdtime});
+            sendToAll(new String[] {"(timesync " + (System.currentTimeMillis() - serverStartTime) + ")"});
         }
     }
 
@@ -156,6 +154,7 @@ public class JavaTestServer {
         Socket s;
         BufferedReader br;
         BufferedWriter bw;
+
         long playerID = 0;
         Point lastPos = new Point(0, 0);
 
@@ -179,23 +178,36 @@ public class JavaTestServer {
                 if (line == null) {
                     close();
                 } else if (line.length() > 0) {
+                    if (line.startsWith("(")) {
+                        line = line.substring(1, line.length() - 1); // remove ( )
+                    }
                     pieces = line.split(" ");
                     if ("hello".equals(pieces[0])) {
                         System.out.println("Received: " + line);
-                        send("hello " + ids + " " + WDTimerTask.wdtime + " " + 0 + " " + 0);
-                        playerID = ids;
-                        playerIDs.add(ids);
-                        sendToAllOther(new String[] {"newplayer " + playerID + " " + 0 + " " + 0}, playerID);
-                        for (SocketProcessor sp:q) {
+                        send("(hello " + currentID + " "
+                                + (System.currentTimeMillis() - serverStartTime)
+                                + " " + 0 + " " + 0 + ")");
+                        playerID = currentID;
+                        playerIDs.add(currentID);
+                        sendToAllExcept(new String[] {"(newplayer " + playerID
+                                + " " + 0 + " " + 0 + ")"}, playerID);
+                        for (SocketProcessor sp:clientQueue) {
                             if (sp.playerID != 0 && sp.playerID != playerID) {
-                                send("newplayer " + sp.playerID + " " + sp.lastPos.x + " " + sp.lastPos.y);
+                                send("(newplayer " + sp.playerID + " "
+                                        + sp.lastPos.x + " " + sp.lastPos.y + ")");
                             }
                         }
-                        ids++;
+                        currentID++;
                     } else if ("move".equals(pieces[0])) {
                         System.out.println("Received: " + line);
-                        sendToAllOther(new String[] {"move " + playerID + " " + WDTimerTask.wdtime + " " + pieces[1] + " " + pieces[2]}, playerID);
+                        sendToAllExcept(new String[] {"(move " + playerID + " "
+                                + (System.currentTimeMillis() - serverStartTime)
+                                + " " + pieces[1] + " " + pieces[2] + ")"}, playerID);
                         lastPos.move(Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
+                    } else if ("text".equals(pieces[0])) {
+                        pieces = line.split(" ", 2);
+                        sendToAllExcept(new String[] {"(text " + playerID + " "
+                                + pieces[1] + ")"}, playerID);
                     } else {
                         System.out.println("Received: " + line);
                     }
@@ -214,14 +226,14 @@ public class JavaTestServer {
         }
 
         public synchronized void close() {
-            q.remove(this);
+            clientQueue.remove(this);
             if (!s.isClosed()) {
                 try {
                     s.close();
                 } catch (IOException ignored) {}
             }
             playerIDs.remove(playerID);
-            sendToAll(new String[] {"delplayer " + playerID});
+            sendToAll(new String[] {"(delplayer " + playerID  + ")"});
         }
 
         @Override
@@ -229,20 +241,5 @@ public class JavaTestServer {
             super.finalize();
             close();
         }
-    }
-}
-
-class WDTimerTask extends TimerTask {
-
-    public static long wdtime = 0;
-    public Timer timer; // TODO Where gentle stop timer?
-
-    public WDTimerTask() {
-        timer = new Timer();
-        timer.schedule(this, 0, 10); // 1000 / 10 = 100 times per second
-    }
-
-    public void run(){
-        wdtime++;
     }
 }
