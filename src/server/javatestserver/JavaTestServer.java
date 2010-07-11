@@ -206,8 +206,8 @@ public class JavaTestServer {
                         lastPos.move(Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
                     } else if ("message".equals(pieces[0])) {
                         pieces = line.split(" ", 2);
-                        sendToAllExcept(new String[] {"(message " + playerID + " \""
-                                + pieces[1] + "\")"}, playerID);
+                        sendToAllExcept(new String[] {"(message " + playerID + " "
+                                + pieces[1] + ")"}, playerID);
                     } else {
                         System.out.println("Received: " + line);
                     }

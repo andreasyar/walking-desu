@@ -7,7 +7,6 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -48,6 +47,7 @@ public class WalkingDesu {
     private static MyPanel p;
     private static ServerInteractTask sit = null;
     private static String serverIP = null;
+    private static int serverPort = 0;
     private static JButton b;
     private static JTextField t;
 
@@ -55,8 +55,12 @@ public class WalkingDesu {
 
     public static void main(String[] args) {
         serverStartTime = System.currentTimeMillis();
-        if (args.length > 0) {
+        if (args.length > 1) {
             serverIP = args[0];
+            serverPort = Integer.parseInt(args[1]);
+        } else {
+            System.out.println("How about server ip and port?");
+            System.exit(1);
         }
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
@@ -133,7 +137,7 @@ public class WalkingDesu {
         protected Void doInBackground() {
             try {
                 ServerReader sreader = new ServerReader();
-                serverSocket = new Socket(serverIP, 4041);
+                serverSocket = new Socket(serverIP, serverPort);
                 out = new PrintWriter(new OutputStreamWriter(serverSocket.getOutputStream(), "UTF-8"), true);
                 in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF-8"));
 
