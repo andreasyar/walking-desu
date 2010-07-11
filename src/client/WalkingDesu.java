@@ -223,9 +223,9 @@ public class WalkingDesu {
                         if (pieces[0].equals("delplayer")) {
                             p.delPlayer(Long.parseLong(pieces[1]));
                         }
-                        if (pieces[0].equals("text")) {
+                        if (pieces[0].equals("message")) {
                             pieces = command.split(" ", 3);
-                            p.setPlayerText(Long.parseLong(pieces[1]), pieces[2]);
+                            p.setPlayerText(Long.parseLong(pieces[1]), pieces[2].substring(1, pieces[2].length() - 1));
                         }
                     }
                 } catch (UnknownHostException e) {
@@ -613,7 +613,7 @@ class MyListener implements ActionListener {
         if (msgField.getText() != null && !self.text.equals(msgField.getText())) {
             self.text = msgField.getText().length() > 100 ? msgField.getText().substring(0, 99) : msgField.getText();
             self.shouldUpdateTextCloud();
-            WalkingDesu.addOutCommand("text " + self.text);
+            WalkingDesu.addOutCommand("message \"" + self.text + "\"");
         }
     }
 }
