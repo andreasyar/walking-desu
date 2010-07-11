@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.Executor;
@@ -133,8 +134,8 @@ public class WalkingDesu {
             try {
                 ServerReader sreader = new ServerReader();
                 serverSocket = new Socket(serverIP, 4041);
-                out = new PrintWriter(serverSocket.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+                out = new PrintWriter(new OutputStreamWriter(serverSocket.getOutputStream(), "UTF-8"), true);
+                in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF-8"));
 
                 outCommands.add("(hello)");
                 Executor executor = Executors.newCachedThreadPool();
