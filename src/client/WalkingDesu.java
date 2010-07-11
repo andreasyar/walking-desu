@@ -132,7 +132,7 @@ public class WalkingDesu {
         protected Void doInBackground() {
             try {
                 ServerReader sreader = new ServerReader();
-                serverSocket = new Socket(serverIP, 4040);
+                serverSocket = new Socket(serverIP, 4041);
                 out = new PrintWriter(serverSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
 
@@ -192,7 +192,6 @@ public class WalkingDesu {
                         pieces = command.split(" ");
                         if (pieces[0].equals("hello")) {
                             p.selfLogin(Long.parseLong(pieces[1]), Long.parseLong(pieces[2]), Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4]));
-                            System.out.println(p.getSelf().id);
                         }
                         if (pieces[0].equals("newplayer")) {
                             p.addPlayer(Long.parseLong(pieces[1]), Integer.parseInt(pieces[2]), Integer.parseInt(pieces[3]));
@@ -427,7 +426,6 @@ class MyPanel extends JPanel {
                 WalkingDesu.serverStartTime += tstamp - Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
             }*/
             WalkingDesu.serverStartTime = System.currentTimeMillis() - tstamp;
-            System.out.println("We going to: " + x + " " + y);
             self.cur.move(x, y);
         }
     }
