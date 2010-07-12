@@ -362,7 +362,6 @@ class MyPanel extends JPanel {
             }
 
             g.drawImage(buffImg, 0, 0, null);
-            //System.out.println(self.text);
         }
     }
 
@@ -456,18 +455,19 @@ class Player {
         if (text.equals("")) {
             return null;
         } else {
-            textCloud = new BufferedImage(150, 100, BufferedImage.TYPE_INT_RGB);
+            textCloud = new BufferedImage(150, 100, BufferedImage.TYPE_4BYTE_ABGR_PRE);
             Graphics g = textCloud.getGraphics();
-            //g.setColor(Color.GREEN);
-            //g.fillRect(1, 1, 148, 98);
 
             LineBreakMeasurer lineMeasurer;
             int paragraphStart;
             int paragraphEnd;
-            float breakWidth = 149;
+            float breakWidth = 149 - 2;
             float drawPosY = 0;
             Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
             Graphics2D g2d = (Graphics2D)g;
+            g2d.setColor(new Color((float)0.1, (float)1.0, (float)0.3, (float)0.7));
+            g2d.fillRoundRect(1, 1, 148, 98, 10, 10);
+            g2d.setColor(Color.BLACK);
             AttributedCharacterIterator paragraph = (new AttributedString(text)).getIterator();
             FontRenderContext frc;
 
@@ -481,7 +481,8 @@ class Player {
             lineMeasurer.setPosition(paragraphStart);
             while (lineMeasurer.getPosition() < paragraphEnd) {
                 TextLayout layout = lineMeasurer.nextLayout(breakWidth);
-                float drawPosX = layout.isLeftToRight() ? 0 : breakWidth - layout.getAdvance();
+                float drawPosX = layout.isLeftToRight()
+                        ? 2 : breakWidth - layout.getAdvance();
                 drawPosY += layout.getAscent();
                 layout.draw(g2d, drawPosX, drawPosY);
                 drawPosY += layout.getDescent() + layout.getLeading();

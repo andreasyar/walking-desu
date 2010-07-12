@@ -89,10 +89,11 @@ class MovementDirection {
     private int lastStep = 0;
 
     // Аналогично проходимому пути, только опирается на время простоя.
-    private final long timePeriod = 250;
+    private final long timePeriod = 75;
     private long standBeg = 0;
     private long lastTimeStep = 0;
     private BufferedImage curStandSpr = null;
+    private int delay = 3000;
 
     public MovementDirection(String[] standS, String[] moveS) {
         stand = new ArrayList<BufferedImage>();
@@ -137,6 +138,18 @@ class MovementDirection {
             standBeg = curTime;
             tmp = 0;
             curStandSpr = stand.get(0);
+        }
+
+        if (curTime - standBeg <= delay) {
+            curStandSpr = stand.get(0);
+            return curStandSpr;
+        }
+
+        if (curTime - standBeg > delay + timePeriod * stand.size()) {
+            standBeg = curTime;
+            tmp = 0;
+            curStandSpr = stand.get(0);
+            return curStandSpr;
         }
 
         tmp = (long) ((curTime - standBeg) / timePeriod);
