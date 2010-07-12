@@ -288,7 +288,7 @@ class MyPanel extends JPanel {
                 if (buffImg != null
                         && (buffImg.getWidth() != d.width || buffImg.getHeight() != d.height)) {
                     buffImg = new BufferedImage(d.width, d.height,
-                            BufferedImage.TYPE_BYTE_INDEXED);
+                            BufferedImage.TYPE_INT_RGB);
                     buffDim = new Dimension(buffImg.getWidth(),
                             buffImg.getHeight());
                     buffGraph = buffImg.getGraphics();
@@ -321,7 +321,7 @@ class MyPanel extends JPanel {
         mapOfst = new Dimension(getWidth() / 2, getHeight() / 2);
 
         // Буфер для рисования (для двойной буферизации).
-        buffImg = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_BYTE_INDEXED);
+        buffImg = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
         buffGraph = buffImg.getGraphics();
         buffDim = new Dimension(buffImg.getWidth(), buffImg.getHeight());
 
@@ -477,7 +477,7 @@ class Player {
         if (text.equals("")) {
             return null;
         } else {
-            textCloud = new BufferedImage(150, 100, BufferedImage.TYPE_BYTE_INDEXED);
+            textCloud = new BufferedImage(150, 100, BufferedImage.TYPE_INT_RGB);
             Graphics g = textCloud.getGraphics();
             //g.setColor(Color.GREEN);
             //g.fillRect(1, 1, 148, 98);
@@ -580,7 +580,7 @@ class WDMap {
     private WDMap(int w, int h) {
         Graphics g;
 
-		mapImg = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_INDEXED);
+		mapImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		g = mapImg.getGraphics();
 		g.setColor(Color.gray);
 		g.fillRect(1, 1, w - 2, h - 2);
