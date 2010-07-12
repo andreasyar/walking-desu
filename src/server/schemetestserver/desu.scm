@@ -107,13 +107,14 @@
          (loop))))))
 
 (define-record-type :connection
-  (new-connection index pin pout point modifer)
+  (new-connection index pin pout point modifer msg)
   connection?
   (index connection-index)
   (pin   connection-in)
   (pout  connection-out)
   (point connection-point-get)
-  (modifer connection-modifer-get connection-modifer-set!))
+  (modifer connection-modifer-get connection-modifer-set!)
+  (msg   connection-msg-get connection-msg-set!))
 (define-record-type :poing
   (make-point x y)
   point?
@@ -157,14 +158,17 @@
     (hash-for-each connection-records-hash
                    (lambda (it-index conn)
                      (force-modifer ctick conn)
-                     (let ((p (connection-point-get conn)))
+                     (let ((p (connection-point-get conn))
+                           (m (connection-msg-get   conn)))
                        (write (list 'newplayer it-index
                                   (point-x-get p) (point-y-get p)) pout)
+                       (newline pout)
+                       (write (list 'message it-index m) pout)
                        (newline pout))))
     (flush-output pout)
     (hash-set! connection-records-hash index (new-connection index pin pout 
                                                              (make-point x y) 
-                                                             empty-modifer))))
+                                                             empty-modifer "desudesu!"))))
 
 (define (delete-connection index)
   (write-all-from index `(delplayer ,index))
@@ -197,6 +201,11 @@
     (connection-modifer-set! conn 
                              (make-move-modifer (connection-point-get conn) tick x y))))
     
+(define (pass-message index msg)
+  (let ((conn (hash-ref connection-records-hash index)))
+    (connection-msg-set! conn msg)
+    (write-all-from index `(message ,index ,msg))))
+
 (define (processing-loop ch)
   (let loop ()
     (let ((it (async-channel-get ch)))
@@ -205,22 +214,11 @@
         ((move) (let ((ctick (get-tick)))
                   (mod-index ctick (cadr it) (caddr it) (cadddr it))
                   (write-all `(,(car it) ,(cadr it) ,ctick ,@(cddr it)))))
-        ((message) (write-all-from (cadr it) `(message ,(cadr it) ,@(cddr it))))
+        ((message) (pass-message (cadr it)  (caddr it)))
+        ;((message) (write-all-from (cadr it) `(message ,(cadr it) ,@(cddr it))))
         ((closed) (delete-connection (cadr it)))
         )
       )(loop)))
-
-;(define (start-thread-on-port port)
-;  (thread
-;   (lambda ()
-;     (let ((lst (tcp-listen port)))
-;       (let loop ()
-;         (let-values (((in out) (tcp-accept lst)))
-;           (printf "*new connect~%")
-;           (write `(hi . ,name) out)
-;           (flush-output out)
-;           (add-peer (get-index) in out)
-;           )(loop))))))
 
 (define (add-connect host port)
   (printf "add peer ~a:~a~%" host port)
@@ -272,9 +270,10 @@
 (define (rmailbox) (read-async-channel-mailbox mch))
 (define (setup-on-port port)
   (start-listener-on-port port mch))
-
-(let ((cla (current-command-line-arguments)))
- (if (= (vector-length cla) 1)
-     (begin (setup-on-port (string->number (vector-ref cla 0)))
-            (processing-loop mch))
-     (printf "usage: mzscheme --script desu.scm portno~%")))
+(define (start)
+  (let ((cla (current-command-line-arguments)))
+    (if (= (vector-length cla) 1)
+        (begin (setup-on-port (string->number (vector-ref cla 0)))
+               (processing-loop mch))
+        (printf "usage: mzscheme --script desu.scm portno~%"))))
+(start)
