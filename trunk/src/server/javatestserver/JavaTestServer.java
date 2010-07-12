@@ -53,7 +53,6 @@ public class JavaTestServer {
 
                     Random r = new Random();
                     boolean found = false;
-                    System.out.println(playerIDs.size());
                     for (Long id:playerIDs) {
                         for (SocketProcessor sp:clientQueue) {
                             if (sp.playerID == id) {
@@ -101,6 +100,7 @@ public class JavaTestServer {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
+        System.out.println("Server starts at port: " + 45000);
         new JavaTestServer(45000).run();
     }
 
@@ -178,12 +178,12 @@ public class JavaTestServer {
                 if (line == null) {
                     close();
                 } else if (line.length() > 0) {
+                    System.out.println("receive: " + line);
                     if (line.startsWith("(")) {
                         line = line.substring(1, line.length() - 1); // remove ( )
                     }
                     pieces = line.split(" ");
                     if ("hello".equals(pieces[0])) {
-                        System.out.println("Received: " + line);
                         send("(hello " + currentID + " "
                                 + (System.currentTimeMillis() - serverStartTime)
                                 + " " + 0 + " " + 0 + ")");
@@ -199,7 +199,6 @@ public class JavaTestServer {
                         }
                         currentID++;
                     } else if ("move".equals(pieces[0])) {
-                        System.out.println("Received: " + line);
                         sendToAllExcept(new String[] {"(move " + playerID + " "
                                 + (System.currentTimeMillis() - serverStartTime)
                                 + " " + pieces[1] + " " + pieces[2] + ")"}, playerID);
@@ -208,14 +207,13 @@ public class JavaTestServer {
                         pieces = line.split(" ", 2);
                         sendToAllExcept(new String[] {"(message " + playerID + " "
                                 + pieces[1] + ")"}, playerID);
-                    } else {
-                        System.out.println("Received: " + line);
                     }
                 }
             }
         }
 
         public synchronized void send(String line) {
+            System.out.println("send: " + line);
             try {
                 bw.write(line);
                 bw.write("\n");

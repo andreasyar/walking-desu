@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jnlp spec="1.0+" 
-    codebase="http://213.150.86.166/WD" 
-    href="WD.jnlp">
+    codebase="http://localhost/WD"
+    href="WD-localhost-scheme.jnlp">
     <information>
         <title>Walking Desu</title>
         <vendor>Sorcsoft</vendor>
@@ -14,8 +14,8 @@
 
     </resources>
     <application-desc name="Walking Desu" main-class="client.WalkingDesu">
-        <argument>213.150.86.166</argument>
-        <argument>45000</argument>
+        <argument>localhost</argument>
+        <argument>45001</argument>
     </application-desc>
     <update check="background"/>
 </jnlp>
