@@ -157,6 +157,7 @@ public class JavaTestServer {
 
         long playerID = 0;
         Point lastPos = new Point(0, 0);
+        String msg = null;
 
         SocketProcessor(Socket socketParam) throws IOException {
             s = socketParam;
@@ -178,7 +179,7 @@ public class JavaTestServer {
                 if (line == null) {
                     close();
                 } else if (line.length() > 0) {
-                    System.out.println("receive: " + line);
+                    System.out.println(s.getInetAddress() + " --> " + line);
                     if (line.startsWith("(")) {
                         line = line.substring(1, line.length() - 1); // remove ( )
                     }
@@ -195,6 +196,10 @@ public class JavaTestServer {
                             if (sp.playerID != 0 && sp.playerID != playerID) {
                                 send("(newplayer " + sp.playerID + " "
                                         + sp.lastPos.x + " " + sp.lastPos.y + ")");
+                                if (sp.msg != null) {
+                                    send("(message " + sp.playerID + " "
+                                            + sp.msg + ")");
+                                }
                             }
                         }
                         currentID++;
@@ -207,13 +212,14 @@ public class JavaTestServer {
                         pieces = line.split(" ", 2);
                         sendToAllExcept(new String[] {"(message " + playerID + " "
                                 + pieces[1] + ")"}, playerID);
+                        msg = pieces[1];
                     }
                 }
             }
         }
 
         public synchronized void send(String line) {
-            System.out.println("send: " + line);
+            System.out.println(s.getInetAddress() + " <-- " + line);
             try {
                 bw.write(line);
                 bw.write("\n");
