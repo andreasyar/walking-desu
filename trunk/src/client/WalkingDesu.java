@@ -257,10 +257,17 @@ class MyPanel extends JPanel {
                 // Если клик был в пределах карты.
                 if (x >= mapOfst.width && x <= m.width + mapOfst.width
                         && y >= mapOfst.height && y <= m.height + mapOfst.height) {
-                    self.move(Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime),
-                            x - mapOfst.width, y - mapOfst.height);
-                    WalkingDesu.addOutCommand("move " + (x - mapOfst.width)
-                            + " " + (y - mapOfst.height));
+                    /*ArrayList<Point> points = new ArrayList<Point>();
+                    points.add(new Point(0, 0));
+                    points.add(new Point(0, 200));
+                    points.add(new Point(200, 200));
+                    points.add(new Point(200, 0));*/
+                    //if (!inpoly(points, x - mapOfst.width, y - mapOfst.height)) {
+                        self.move(Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime),
+                                x - mapOfst.width, y - mapOfst.height);
+                        WalkingDesu.addOutCommand("move " + (x - mapOfst.width)
+                                + " " + (y - mapOfst.height));
+                    //}
                 }
             }
         });
@@ -415,6 +422,45 @@ class MyPanel extends JPanel {
 
     public Player getSelf() {
         return self;
+    }
+
+    private boolean inpoly(ArrayList<Point> points, int xt, int yt) {
+        int xnew,ynew;
+        int xold,yold;
+        int x1,y1;
+        int x2,y2;
+        int i;
+        boolean inside = false;
+        int npoints = points.size();
+
+        if (npoints < 3) {
+            return false;
+        }
+        xold=points.get(npoints - 1).x;
+        yold=points.get(npoints - 1).y;
+        for (i=0 ; i < npoints ; i++) {
+            xnew=points.get(i).x;
+            ynew=points.get(i).y;
+            if (xnew > xold) {
+                x1=xold;
+                x2=xnew;
+                y1=yold;
+                y2=ynew;
+            }
+            else {
+                x1=xnew;
+                x2=xold;
+                y1=ynew;
+                y2=yold;
+            }
+            /* edge "open" at one end */
+            if ((xnew < xt) == (xt <= xold) && ((long)yt-(long)y1)*(long)(x2-x1) < ((long)y2-(long)y1)*(long)(xt-x1)) {
+                inside = !inside;
+            }
+            xold=xnew;
+            yold=ynew;
+        }
+        return inside;
     }
 }
 
