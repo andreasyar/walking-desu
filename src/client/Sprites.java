@@ -3,9 +3,10 @@ package client;
 import java.util.ArrayList;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-//import java.io.File;
+import java.io.File;
 import javax.imageio.ImageIO;
 import java.awt.Point;
+import java.net.URL;
 
 class SpriteSet {
 
@@ -96,11 +97,16 @@ class MovementDirection {
     public MovementDirection(String[] standS, String[] moveS) {
         stand = new ArrayList<BufferedImage>();
         ClassLoader cl = this.getClass().getClassLoader();
+        URL url = null;
 
         for (int i = 0; i < standS.length; i++) {
             try {
-                //stand.add(ImageIO.read(new File(standS[i])));
-                stand.add(ImageIO.read(cl.getResource(standS[i])));
+                url = cl.getResource(standS[i]);
+                if (url != null) {
+                    stand.add(ImageIO.read(url));
+                } else {
+                    stand.add(ImageIO.read(new File(standS[i])));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -111,8 +117,12 @@ class MovementDirection {
 
         for (int i = 0; i < moveS.length; i++) {
             try {
-                //move.add(ImageIO.read(new File(moveS[i])));
-                move.add(ImageIO.read(cl.getResource(moveS[i])));
+                url = cl.getResource(moveS[i]);
+                if (url != null) {
+                    move.add(ImageIO.read(url));
+                } else {
+                    move.add(ImageIO.read(new File(moveS[i])));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
                 System.exit(1);

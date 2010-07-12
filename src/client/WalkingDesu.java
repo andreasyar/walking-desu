@@ -203,26 +203,12 @@ public class WalkingDesu {
                         }
                         if (pieces[0].equals("move")) {
                             long begTime = Long.parseLong(pieces[2]);
-                            /*if (begTime > Math.abs(System.currentTimeMillis() - serverStartTime)) { // Мы слильно опаздываем
-                                System.out.println("We try to -sync when move: " + begTime + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
-                                serverStartTime -= begTime - Math.abs(System.currentTimeMillis() - serverStartTime);
-                            } else {
-                                System.out.println("We try to +sync when move: " + begTime + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
-                                serverStartTime += begTime - Math.abs(System.currentTimeMillis() - serverStartTime);
-                            }*/
                             serverStartTime = System.currentTimeMillis() - begTime;
                             p.movePlayer(Long.parseLong(pieces[1]), begTime, Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4]));
                         }
                         if (pieces[0].equals("timesync")) {
                             long remoteTimeDiff = Long.parseLong(pieces[1]);
                             System.out.println("Timesync " + Math.abs(System.currentTimeMillis() - serverStartTime) + " -> " + pieces[1]);
-                            /*if (remoteTimeDiff > Math.abs(System.currentTimeMillis() - serverStartTime)) {
-                                System.out.println("We try to -sync when timesync: " + remoteTimeDiff + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
-                                serverStartTime -= remoteTimeDiff - Math.abs(System.currentTimeMillis() - serverStartTime);
-                            } else {
-                                System.out.println("We try to +sync when timesync: " + remoteTimeDiff + " -> " + Math.abs(System.currentTimeMillis() - serverStartTime));
-                                serverStartTime += remoteTimeDiff - Math.abs(System.currentTimeMillis() - serverStartTime);
-                            }*/
                             serverStartTime = System.currentTimeMillis() - remoteTimeDiff;
                         }
                         if (pieces[0].equals("delplayer")) {
@@ -423,13 +409,6 @@ class MyPanel extends JPanel {
     public void selfLogin(long id, long tstamp, int x, int y) {
         if (self != null) {
             self.id = id;
-            /*if (tstamp > Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime)) {
-                System.out.println("We try to -sync when login: " + tstamp + " -> " + Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime));
-                WalkingDesu.serverStartTime -= tstamp - Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
-            } else {
-                System.out.println("We try to -sync when login: " + tstamp + " -> " + Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime));
-                WalkingDesu.serverStartTime += tstamp - Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
-            }*/
             WalkingDesu.serverStartTime = System.currentTimeMillis() - tstamp;
             self.cur.move(x, y);
         }
@@ -546,12 +525,19 @@ class Player {
             long curTime = Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
 
             if (curTime > begTime) {
+                //System.out.print("(" + cur.x + ", " + cur.y + ") -> ");
                 cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * Math.abs(curTime - begTime));
                 cur.y = (int) (beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * Math.abs(curTime - begTime));
+                //System.out.println("(" + cur.x + ", " + cur.y + ")");
 
-                if ((beg.x > cur.x && end.x > cur.x || beg.x < cur.x && end.x < cur.x) && (beg.y > cur.y && end.y > cur.y || beg.y < cur.y && end.y < cur.y)) {
+                if (beg.x > end.x && end.x > cur.x
+                        || beg.x < end.x && end.x < cur.x
+                        || beg.y > end.y && end.y > cur.y
+                        || beg.y < end.y && end.y < cur.y) {
+                    //System.out.print("Oops: " + "(" + cur.x + ", " + cur.y + ") fixed to ");
                     cur.x = end.x;
                     cur.y = end.y;
+                    //System.out.println("(" + cur.x + ", " + cur.y + ")");
                     isMove = false;
                     return false;
                 }
