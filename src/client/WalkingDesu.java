@@ -6,6 +6,8 @@ import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
+import javax.swing.JOptionPane;
+import javax.swing.JDialog;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -40,6 +42,10 @@ import java.util.Hashtable;
 import java.awt.Graphics2D;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowAdapter;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 public class WalkingDesu {
 
@@ -75,6 +81,9 @@ public class WalkingDesu {
             System.err.println(e.getMessage());
             return;
         }
+        CustomDialog d = new CustomDialog("lol");
+        d.setSize(new Dimension(400, 200));
+        d.setVisible(true);
         p.init();
         Executor executor = Executors.newCachedThreadPool();
         executor.execute(new RedrawTask());
@@ -82,6 +91,10 @@ public class WalkingDesu {
         executor.execute(sit);
         //(new RedrawTask()).execute();
         //sit.execute();
+    }
+
+    public static JFrame getFrame() {
+        return f;
     }
 
     private static void createAndShowGUI() {
@@ -653,5 +666,106 @@ class MyListener implements ActionListener {
             self.shouldUpdateTextCloud();
             WalkingDesu.addOutCommand("message \"" + self.text + "\"");
         }
+    }
+}
+
+class CustomDialog extends JDialog implements ActionListener, PropertyChangeListener {
+    private String typedText = null;
+    private JTextField textField;
+
+    private String magicWord;
+    private JOptionPane optionPane;
+
+    private String btnString1 = "Enter";
+    private String btnString2 = "Cancel";
+
+    public String getValidatedText() {
+        return typedText;
+    }
+
+    public CustomDialog(String aWord) {
+        super(WalkingDesu.getFrame(), true);
+
+        magicWord = aWord.toUpperCase();
+        setTitle("Quiz");
+
+        textField = new JTextField(10);
+
+        String msgString1 = "What was Dr. SEUSS's real last name?";
+        String msgString2 = "(The answer is \"" + magicWord + "\".)";
+        Object[] array = {msgString1, msgString2, textField};
+
+        Object[] options = {btnString1, btnString2};
+
+        optionPane = new JOptionPane(array, JOptionPane.QUESTION_MESSAGE,
+                JOptionPane.YES_NO_OPTION, null, options, options[0]);
+
+        setContentPane(optionPane);
+
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we) {
+                optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+            }
+        });
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent ce) {
+                textField.requestFocusInWindow();
+            }
+        });
+
+        textField.addActionListener(this);
+
+        optionPane.addPropertyChangeListener(this);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        optionPane.setValue(btnString1);
+    }
+
+    public void propertyChange(PropertyChangeEvent e) {
+        String prop = e.getPropertyName();
+
+        if (isVisible()
+                && (e.getSource() == optionPane)
+                && (JOptionPane.VALUE_PROPERTY.equals(prop)
+                || JOptionPane.INPUT_VALUE_PROPERTY.equals(prop))) {
+            Object value = optionPane.getValue();
+
+            if (value == JOptionPane.UNINITIALIZED_VALUE) {
+                return;
+            }
+
+            optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
+
+            if (btnString1.equals(value)) {
+                typedText = textField.getText();
+                String ucText = typedText.toUpperCase();
+                if (magicWord.equals(ucText)) {
+                    clearAndHide();
+                } else {
+                    textField.selectAll();
+                    JOptionPane.showMessageDialog(CustomDialog.this,
+                            "Sorry, \"" + typedText + "\" "
+                            + "isn't a valid response.\n"
+                            + "Please enter " + magicWord + ".",
+                            "Try again",
+                            JOptionPane.ERROR_MESSAGE);
+                    typedText = null;
+                    textField.requestFocusInWindow();
+                }
+            } else {
+                typedText = null;
+                clearAndHide();
+            }
+        }
+    }
+
+    public void clearAndHide() {
+    textField.setText(null);
+    setVisible(false);
     }
 }
