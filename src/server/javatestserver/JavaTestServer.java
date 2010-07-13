@@ -158,6 +158,7 @@ public class JavaTestServer {
         long playerID = 0;
         Point lastPos = new Point(0, 0);
         String msg = null;
+        String nick = null;
 
         SocketProcessor(Socket socketParam) throws IOException {
             s = socketParam;
@@ -200,6 +201,10 @@ public class JavaTestServer {
                                     send("(message " + sp.playerID + " "
                                             + sp.msg + ")");
                                 }
+                                if (sp.nick != null) {
+                                    send("(nick " + sp.playerID + " "
+                                            + sp.nick + ")");
+                                }
                             }
                         }
                         currentID++;
@@ -213,6 +218,16 @@ public class JavaTestServer {
                         sendToAllExcept(new String[] {"(message " + playerID + " "
                                 + pieces[1] + ")"}, playerID);
                         msg = pieces[1];
+                    } else if ("nick".equals(pieces[0])) {
+                        pieces = line.split(" ", 2);
+                        sendToAllExcept(new String[] {"(nick " + playerID + " "
+                                + pieces[1] + ")"}, playerID);
+                        nick = pieces[1];
+                    } else if ("bolt".equals(pieces[0])) {
+                        pieces = line.split(" ");
+                        sendToAllExcept(new String[] {"(bolt " + playerID + " "
+                                + pieces[1] + " " + (System.currentTimeMillis() - serverStartTime) + ")"}, playerID);
+                        nick = pieces[1];
                     }
                 }
             }
