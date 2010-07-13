@@ -46,6 +46,11 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.TimerTask;
+import java.util.Timer;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyListener;
 
 public class WalkingDesu {
 
@@ -81,14 +86,17 @@ public class WalkingDesu {
             System.err.println(e.getMessage());
             return;
         }
-        CustomDialog d = new CustomDialog("lol");
+        CustomDialog d = new CustomDialog();
         d.setSize(new Dimension(400, 200));
+        d.startTimer();
         d.setVisible(true);
         p.init();
+        p.getSelf().setNick(d.getValidatedText());
         Executor executor = Executors.newCachedThreadPool();
         executor.execute(new RedrawTask());
         sit = new ServerInteractTask();
         executor.execute(sit);
+        p.addKeyListener(new MyPanelKeyListener(p));
         //(new RedrawTask()).execute();
         //sit.execute();
     }
@@ -97,14 +105,32 @@ public class WalkingDesu {
         return f;
     }
 
+    public static MyPanel getPanel() {
+        return p;
+    }
+
     private static void createAndShowGUI() {
         p = new MyPanel();
         f = new JFrame("Walking Desu 3");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         b = new JButton("Send");
         t = new JTextField(50);
+        t.addKeyListener (new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int key = e.getKeyCode();
+                if (key == KeyEvent.VK_ENTER) {
+                    if (p != null && p.getSelf() != null && t.getText() != null && !p.getSelf().text.equals(t.getText())) {
+                        p.getSelf().text = t.getText().length() > 100 ?t.getText().substring(0, 99) : t.getText();
+                        p.getSelf().shouldUpdateTextCloud();
+                        WalkingDesu.addOutCommand("message \"" +  p.getSelf().text + "\"");
+                    }
+                }
+            }
+        });
         p.add(b);
         p.add(t);
+        p.setFocusable(true);
         f.add(p);
         f.setSize(800,600);
         f.setVisible(true);
@@ -113,6 +139,9 @@ public class WalkingDesu {
 
     public static void setButtonActionListener(Player p) {
         b.addActionListener(new MyListener(p, t));
+    }
+
+    public static void setTextfieldKeyListener() {
     }
 
     private static class RedrawTask extends SwingWorker<Void, Void> {
@@ -155,6 +184,7 @@ public class WalkingDesu {
                 in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF-8"));
 
                 outCommands.add("(hello)");
+                outCommands.add("(nick \"" + p.getSelf().getNick() + "\")");
                 Executor executor = Executors.newCachedThreadPool();
                 executor.execute(sreader);
                 while (serverSocket.isConnected()) {
@@ -231,6 +261,19 @@ public class WalkingDesu {
                             pieces = command.split(" ", 3);
                             p.setPlayerText(Long.parseLong(pieces[1]), pieces[2].substring(1, pieces[2].length() - 1));
                         }
+                        if (pieces[0].equals("nick")) {
+                            pieces = command.split(" ", 3);
+                            p.setPlayerNick(Long.parseLong(pieces[1]), pieces[2].substring(1, pieces[2].length() - 1));
+                        }
+                        if (pieces[0].equals("bolt")) {
+                            Player atk = p.getPlayer(Long.parseLong(pieces[1]));
+                            Player tgt = p.getPlayer(Long.parseLong(pieces[2]));
+                            long begTime = Long.parseLong(pieces[3]);
+
+                            if (atk != null && tgt != null) {
+                                p.addBolt(atk, tgt, begTime);
+                            }
+                        }
                     }
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -242,6 +285,42 @@ public class WalkingDesu {
         }
     }
 
+}
+
+class MyPanelKeyListener implements KeyListener {
+    MyPanel p;
+    Player self;
+
+    public MyPanelKeyListener(MyPanel _p) {
+        p = _p;
+        self = p.getSelf();
+    }
+    public void keyTyped(KeyEvent e) {
+        
+    }
+    public void keyReleased(KeyEvent e) {
+        int key = e.getKeyCode();
+        if (key == KeyEvent.VK_SHIFT) {
+            p.disableSelMode();
+        }
+    }
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+        if (key == KeyEvent.VK_ESCAPE) {
+            if (self.selectedPlayer != null) {
+                self.selectedPlayer = null;
+            }
+        } else if (key == KeyEvent.VK_SHIFT) {
+            p.enableleSelMode();
+        } else if (key == KeyEvent.VK_F3) {
+            if (self.selectedPlayer != null && self.allowNuke() && !self.equals(self.selectedPlayer)) {
+                long tmp = Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
+                p.addBolt(self, self.selectedPlayer, tmp);
+                self.setLastNukeTime(tmp);
+                WalkingDesu.addOutCommand("(bolt " + self.selectedPlayer.id + ")");
+            }
+        }
+    }
 }
 
 class MyPanel extends JPanel {
@@ -257,11 +336,46 @@ class MyPanel extends JPanel {
     private Player self = null;
     private ArrayList<Player> players;
 
+    private ArrayList<NukeBolt> bolts;
+    private ArrayList<Integer> deadBolts;
+
+    private boolean selMode = false;
+
+    public void addBolt(Player a, Player t, long bt){
+        bolts.add(new NukeBolt(a, t, bt));
+    }
+
+    public void enableleSelMode() {
+        selMode = true;
+    }
+
+    public void disableSelMode() {
+        selMode = false;
+    }
+
+    public void setleSelMode(boolean sm) {
+        selMode = sm;
+    }
+
+    public boolean getleSelMode() {
+        return selMode;
+    }
+
+    public Player getPlayer(long id) {
+        for (Player p:players) {
+            if (p.id == id) {
+                return p;
+            }
+        }
+        return null;
+    }
+
     public MyPanel() {
 
         addMouseListener(new MouseAdapter(){
             @Override
             public void mouseClicked(MouseEvent e){
+                WalkingDesu.getPanel().requestFocus();
                 BufferedImage map = WDMap.getInstance().getMapImg();
                 Dimension m = new Dimension(map.getWidth(), map.getHeight());
                 int x = e.getX();
@@ -270,17 +384,35 @@ class MyPanel extends JPanel {
                 // Если клик был в пределах карты.
                 if (x >= mapOfst.width && x <= m.width + mapOfst.width
                         && y >= mapOfst.height && y <= m.height + mapOfst.height) {
-                    /*ArrayList<Point> points = new ArrayList<Point>();
-                    points.add(new Point(0, 0));
-                    points.add(new Point(0, 200));
-                    points.add(new Point(200, 200));
-                    points.add(new Point(200, 0));*/
-                    //if (!inpoly(points, x - mapOfst.width, y - mapOfst.height)) {
+                    ArrayList<Point> points = new ArrayList<Point>();
+                    Player p;
+                    BufferedImage spr;
+                    boolean selected = false;
+
+                    if (selMode) {
+                        for(int i = 0; i < players.size(); i++) {
+                            p = players.get(i);
+                            spr = p.getSprite();
+
+                            points.clear();
+                            points.add(new Point(p.cur.x - spr.getWidth() / 2, p.cur.y));
+                            points.add(new Point(p.cur.x - spr.getWidth() / 2, p.cur.y - spr.getHeight()));
+                            points.add(new Point(p.cur.x + spr.getWidth() / 2, p.cur.y - spr.getHeight()));
+                            points.add(new Point(p.cur.x + spr.getWidth() / 2, p.cur.y));
+
+                            if (inpoly(points, x - mapOfst.width, y - mapOfst.height)) {
+                                self.selectedPlayer = p;
+                                selected = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!selected) {
                         self.move(Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime),
                                 x - mapOfst.width, y - mapOfst.height);
                         WalkingDesu.addOutCommand("move " + (x - mapOfst.width)
                                 + " " + (y - mapOfst.height));
-                    //}
+                    }
                 }
             }
         });
@@ -334,6 +466,9 @@ class MyPanel extends JPanel {
         panelDim = getSize();
 
         WalkingDesu.setButtonActionListener(self);
+
+        bolts = new ArrayList<NukeBolt>();
+        deadBolts = new ArrayList<Integer>();
     }
 
     @Override
@@ -366,6 +501,7 @@ class MyPanel extends JPanel {
             Collections.sort(players, new YAligner());
             Player p;
             BufferedImage textCloud;
+            String nick;
             for(int i = 0; i < players.size(); i++) {
                 p = players.get(i);
                 buffGraph.drawImage(p.getSprite(),
@@ -378,6 +514,41 @@ class MyPanel extends JPanel {
                             p.cur.x + mapOfst.width + p.getSprite().getWidth(null) / 2,
                             p.cur.y + mapOfst.height - p.getSprite().getHeight(null),
                             null);
+                }
+                nick = p.getNick();
+                if (nick != null) { // TODO рисовать по центру
+                    buffGraph.drawString(nick,
+                            p.cur.x + mapOfst.width - 20,
+                            p.cur.y + mapOfst.height + 10);
+                }
+            }
+
+            if (self.selectedPlayer != null) {
+                buffGraph.drawString(self.selectedPlayer.getNick(), 10, panelDim.height - 50);
+                buffGraph.drawString("HP: " + self.hitPoints, 10, panelDim.height - 30);
+            }
+
+            if (bolts.size() > 0) {
+                BufferedImage boltSpr;
+                Point boltPos;
+                Dimension atkSprDim;
+                deadBolts.clear();
+
+                for (int i = 0; i < bolts.size(); i++) {
+                    if (bolts.get(i).isFlight()) {
+                        boltSpr = bolts.get(i).getSprite();
+                        boltPos = bolts.get(i).getCurPos();
+                        atkSprDim = bolts.get(i).getAttackerSprDim();
+                        buffGraph.drawImage(boltSpr,
+                            boltPos.x + mapOfst.width,
+                            boltPos.y + mapOfst.height - atkSprDim.height / 2,
+                            null);
+                    } else {
+                        deadBolts.add(i);
+                    }
+                }
+                for (Integer boltIndex:deadBolts) {
+                    bolts.remove(boltIndex.intValue());
                 }
             }
 
@@ -396,7 +567,12 @@ class MyPanel extends JPanel {
             for (int i = 0; i < players.size(); i++) {
                 if (players.get(i).id == id) {
                     players.remove(i);
-                    return;
+                    break;
+                }
+            }
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i).selectedPlayer.id == id) {
+                    players.get(i).selectedPlayer = null;
                 }
             }
         }
@@ -408,6 +584,17 @@ class MyPanel extends JPanel {
                 if (players.get(i).id == id) {
                     players.get(i).setText(t);
                     players.get(i).shouldUpdateTextCloud();
+                    return;
+                }
+            }
+        }
+    }
+
+    public void setPlayerNick(long id, String t) {
+        if (players != null) {
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i).id == id) {
+                    players.get(i).setNick(t);
                     return;
                 }
             }
@@ -477,9 +664,77 @@ class MyPanel extends JPanel {
     }
 }
 
+class NukeBolt {
+    private Player attacker;
+    private Dimension attackerSprDim = new Dimension(0, 0);
+    private Player target;
+
+    private long begTime;
+    private final double speed = 1.0;
+    NukeBoltMovement movement;
+
+    private BufferedImage curSpr;
+    private Point beg = new Point(0, 0);
+    private Point cur = new Point(0, 0);
+    private Point end = new Point(0, 0);
+
+    private boolean flight = true;
+
+    public static final long reuse = 2000;
+
+    public NukeBolt(Player a, Player t, long bt) {
+        attacker = a;
+        target = t;
+        begTime = bt;
+        movement = new NukeBoltMovement(begTime);
+    }
+
+    public BufferedImage getSprite() {
+        curSpr = movement.getSprite(Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime));
+        return curSpr;
+    }
+
+    public Point getCurPos() {
+        beg.move(attacker.cur.x, attacker.cur.y);
+        end.move(target.cur.x, target.cur.y);
+        long curTime = Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime);
+
+        //System.out.print("(" + cur.x + ", " + cur.y + ") -> ");
+        cur.x = (int) (beg.x + ((end.x - beg.x) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * Math.abs(curTime - begTime));
+        cur.y = (int) (beg.y + ((end.y - beg.y) / Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2))) * speed * Math.abs(curTime - begTime));
+        //System.out.println("(" + cur.x + ", " + cur.y + ")");
+
+        if (beg.x > end.x && end.x > cur.x
+                || beg.x < end.x && end.x < cur.x
+                || beg.y > end.y && end.y > cur.y
+                || beg.y < end.y && end.y < cur.y) {
+            //System.out.print("Oops: " + "(" + cur.x + ", " + cur.y + ") fixed to ");
+            cur.x = end.x;
+            cur.y = end.y;
+            //System.out.println("(" + cur.x + ", " + cur.y + ")");
+            flight = false;
+        }
+        return cur;
+    }
+
+    public boolean isFlight() {
+        return flight;
+    }
+
+    public Dimension getAttackerSprDim() {
+        BufferedImage tmp = attacker.getSprite();
+        attackerSprDim.setSize(tmp.getWidth(), tmp.getHeight());
+        return attackerSprDim;
+    }
+}
+
 class Player {
 
     long id;
+    String nick = null;
+    Player selectedPlayer = null;
+    int hitPoints = 100;
+    private long lastNukeTime = 0;
 
     public Point cur; // Точка на карте, где находится игрок.
     double speed = 0.07;
@@ -498,6 +753,30 @@ class Player {
     BufferedImage textCloud = null;
     String text = "";
     boolean updateTextCloud = false;
+
+    public void setLastNukeTime(long time) {
+        lastNukeTime = time;
+    }
+
+    public boolean allowNuke() {
+        return Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime) - lastNukeTime > NukeBolt.reuse ? true : false;
+    }
+
+    public void doHit(int value) {
+        hitPoints -= value;
+        if (hitPoints <= 0) {
+            hitPoints = 100;
+            cur.move(0, 0);
+        }
+    }
+
+    public void setNick(String n) {
+        nick = n;
+    }
+
+    public String getNick () {
+        return nick;
+    }
 
     public void setText(String t) {
         text = t;
@@ -669,30 +948,31 @@ class MyListener implements ActionListener {
     }
 }
 
-class CustomDialog extends JDialog implements ActionListener, PropertyChangeListener {
-    private String typedText = null;
+class CustomDialog extends JDialog implements ActionListener, PropertyChangeListener, KeyListener {
+    private String typedText = "Desu";
     private JTextField textField;
 
-    private String magicWord;
     private JOptionPane optionPane;
 
     private String btnString1 = "Enter";
     private String btnString2 = "Cancel";
 
+    private DefaultNameTask task = null;
+
     public String getValidatedText() {
         return typedText;
     }
 
-    public CustomDialog(String aWord) {
+    public CustomDialog() {
         super(WalkingDesu.getFrame(), true);
 
-        magicWord = aWord.toUpperCase();
-        setTitle("Quiz");
+        setTitle("Choose nick");
 
         textField = new JTextField(10);
+        textField.setText("Desu");
 
-        String msgString1 = "What was Dr. SEUSS's real last name?";
-        String msgString2 = "(The answer is \"" + magicWord + "\".)";
+        String msgString1 = "Select your nick.";
+        String msgString2 = "(It must be 3-10 symbols long.)";
         Object[] array = {msgString1, msgString2, textField};
 
         Object[] options = {btnString1, btnString2};
@@ -718,12 +998,18 @@ class CustomDialog extends JDialog implements ActionListener, PropertyChangeList
         });
 
         textField.addActionListener(this);
+        textField.addKeyListener(this);
 
         optionPane.addPropertyChangeListener(this);
     }
 
     public void actionPerformed(ActionEvent e) {
         optionPane.setValue(btnString1);
+        if (task != null) {
+            task.cancel();
+            task = null;
+            setTitle("Choose nick");
+        }
     }
 
     public void propertyChange(PropertyChangeEvent e) {
@@ -743,29 +1029,70 @@ class CustomDialog extends JDialog implements ActionListener, PropertyChangeList
 
             if (btnString1.equals(value)) {
                 typedText = textField.getText();
-                String ucText = typedText.toUpperCase();
-                if (magicWord.equals(ucText)) {
+                if (typedText.length() >= 3 && typedText.length() <= 10) {
                     clearAndHide();
                 } else {
                     textField.selectAll();
                     JOptionPane.showMessageDialog(CustomDialog.this,
-                            "Sorry, \"" + typedText + "\" "
-                            + "isn't a valid response.\n"
-                            + "Please enter " + magicWord + ".",
+                            "Nick must be 3-10 symbols long.",
                             "Try again",
                             JOptionPane.ERROR_MESSAGE);
-                    typedText = null;
+                    typedText = "Desu";
                     textField.requestFocusInWindow();
+                    if (task != null) {
+                        task.cancel();
+                        task = null;
+                        setTitle("Choose nick");
+                    }
                 }
             } else {
-                typedText = null;
+                if (task != null) {
+                    task.cancel();
+                    task = null;
+                }
+                typedText = "Desu";
                 clearAndHide();
             }
         }
     }
 
+    public void keyTyped(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {}
+    public void keyPressed(KeyEvent e) {
+        if (task != null) {
+            task.cancel();
+            task = null;
+            setTitle("Choose nick");
+        }
+    }
+
     public void clearAndHide() {
-    textField.setText(null);
-    setVisible(false);
+        textField.setText(null);
+        setVisible(false);
+    }
+
+    public void startTimer() {
+        task = new DefaultNameTask();
+    }
+
+    private class DefaultNameTask extends TimerTask {
+
+        public Timer timer; // TODO Where gentle stop timer?
+        private int repeat = 20;
+        private int step = 1000; // 1 sec
+
+        public DefaultNameTask() {
+            timer = new Timer();
+            timer.schedule(this, 0, step);
+        }
+
+        public void run(){
+            if(--repeat < 0) {
+                this.cancel();
+                clearAndHide();
+                return;
+            }
+            setTitle("Choose nick. " + repeat + " ...");
+        }
     }
 }
