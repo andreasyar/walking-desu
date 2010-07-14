@@ -7,10 +7,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Random;
 import java.util.ArrayList;
 import java.awt.Point;
 
+/**
+ * Главный класс тестового ява сервера блуждающей же.
+ */
 public class JavaTestServer {
     private ServerSocket ss;
     private Thread serverThread;
@@ -19,27 +21,22 @@ public class JavaTestServer {
     private long currentID = 1;
     ArrayList<Long> playerIDs = new ArrayList<Long>();
 
-    private long serverStartTime;
+    private static final long serverStartTime = System.currentTimeMillis();
+    private static final int port = 45000;
 
     public JavaTestServer(int port) throws IOException {
         ss = new ServerSocket(port);
-        serverStartTime = System.currentTimeMillis();
     }
 
+    /**
+     * Главный цикл тестового ява сервера.
+     */
     void run() {
         serverThread = Thread.currentThread();
-
-        /*playerIDs.add(currentID++);
-        playerIDs.add(currentID++);
-        playerIDs.add(currentID++);
-        playerIDs.add(currentID++);
-        playerIDs.add(currentID++);*/
-
-        WDBotMoveTask bmt = new WDBotMoveTask();
         WDTimeSync ts = new WDTimeSync();
 
         while (true) {
-            Socket s = getNewConn();
+            Socket s = getNewConnection();
 
             if (serverThread.isInterrupted()) {
                 break;
@@ -50,37 +47,30 @@ public class JavaTestServer {
                     thread.setDaemon(true);
                     thread.start();
                     clientQueue.offer(processor);
-
-                    Random r = new Random();
-                    boolean found = false;
-                    for (Long id:playerIDs) {
-                        for (SocketProcessor sp:clientQueue) {
-                            if (sp.playerID == id) {
-                                found = true;
-                            }
-                        }
-                        if (!found) { // bot
-                            processor.send("(newplayer " + id + " " + r.nextInt(1024) + " " + r.nextInt(768) + ")");
-                        }
-                        found = false;
-                    }
                 }
                 catch (IOException ignored) {}
             }
         }
     }
 
-    private Socket getNewConn() {
-        Socket s = null;
+    /**
+     * Ждет новых подключений к серверу. Возвращает новое подключение.
+     */
+    private Socket getNewConnection() {
+        Socket cs = null;
         try {
-            s = ss.accept();
+            cs = ss.accept();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        return s;
+        return cs;
     }
 
+    /**
+     * Отправляет заданные сообщения всем пользователям.
+     * @param msgs Сообщения.
+     */
     public void sendToAll (String[] msgs) {
         for (String msg:msgs) {
             for (SocketProcessor sp:clientQueue) {
@@ -89,6 +79,12 @@ public class JavaTestServer {
         }
     }
 
+    /**
+     * Отправляет заданные сообщения всем пользователям, за исключем
+     * пользователя с заданным ID.
+     * @param msgs Сообщения.
+     * @param excID ID исключаемого из рассылки игрока.
+     */
     public void sendToAllExcept (String[] msgs, long excID) {
         for (String msg:msgs) {
             for (SocketProcessor sp:clientQueue) {
@@ -100,40 +96,8 @@ public class JavaTestServer {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        System.out.println("Server starts at port: " + 45000);
-        new JavaTestServer(45000).run();
-    }
-
-    private class WDBotMoveTask extends TimerTask {
-
-        public Timer timer; // TODO Where gentle stop timer?
-
-        public WDBotMoveTask() {
-            timer = new Timer();
-            timer.schedule(this, 0, 15000); // each 15 seconds
-        }
-
-        public void run(){
-            Random r = new Random();
-            String[] commands = new String[playerIDs.size() - clientQueue.size()];
-            boolean found = false;
-
-            for (int i = 0; i < commands.length; i++, found = false) {
-                for (SocketProcessor sp:clientQueue) {
-                    if (sp.playerID != 0 && sp.playerID == playerIDs.get(i)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    commands[i] = "(move " + playerIDs.get(i) + " "
-                            + (System.currentTimeMillis() - serverStartTime)
-                            + " " + r.nextInt(1024) + " " + r.nextInt(768) + ")";
-                }
-            }
-
-            sendToAll(commands);
-        }
+        System.out.println("Server starts at port: " + port);
+        new JavaTestServer(port).run();
     }
 
     private class WDTimeSync extends TimerTask {
@@ -146,7 +110,8 @@ public class JavaTestServer {
         }
 
         public void run(){
-            sendToAll(new String[] {"(timesync " + (System.currentTimeMillis() - serverStartTime) + ")"});
+            sendToAll(new String[] {"(timesync "
+                    + (System.currentTimeMillis() - serverStartTime) + ")"});
         }
     }
 
