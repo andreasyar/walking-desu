@@ -103,7 +103,7 @@ public class JavaTestServer {
     public void sendToAll (String[] msgs, long excID) {
         for (String msg:msgs) {
             for (SocketProcessor sp:clientQueue) {
-                if (sp.playerID != excID) {
+                if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID) {
                     sp.send(msg);
                 }
             }
@@ -158,11 +158,6 @@ public class JavaTestServer {
         BufferedReader br;
         BufferedWriter bw;
 
-        long playerID = 0;
-        Point lastPos = new Point(0, 0);
-        String msg = null;
-        String nick = null;
-
         private boolean helloReceived = false;
         private boolean nickReceived = false;
 
@@ -213,12 +208,11 @@ public class JavaTestServer {
                                 sendToAll(new String[] {"(message " + self.getID() + " \"" + line + "\")"}, self.getID());
                             } else if ("bolt".equals(pieces[0])) {
                                 line = line.substring("bolt".length() + 1, line.length());
-                                pieces = line.split(" ");
-                                Player attacker = getPlayer(Long.parseLong(pieces[0]));
-                                Player target = getPlayer(Long.parseLong(pieces[1]));
-                                if (attacker != null && target != null) {
-                                    executor.scheduleAtFixedRate(new NukeAction(new NukeBolt(attacker, target, System.currentTimeMillis() - serverStartTime)), 0L, 10L, TimeUnit.MILLISECONDS);
+                                Player target = getPlayer(Long.parseLong(line));
+                                if (target != null) {
+                                    executor.scheduleAtFixedRate(new NukeAction(new NukeBolt(self, target, System.currentTimeMillis() - serverStartTime)), 0L, 10L, TimeUnit.MILLISECONDS);
                                 }
+                                sendToAll(new String[] {"(bolt " + self.getID() + " " + target.getID() + " " + (System.currentTimeMillis() - serverStartTime) + ")"}, self.getID());
                             }
                         } else if ("nick".equals(pieces[0])) {
                             nickReceived = true;
@@ -228,7 +222,7 @@ public class JavaTestServer {
                             synchronized (players) {
                                 players.add(self);
                             }
-                            send("(hello " + curPlayerID + " " + (System.currentTimeMillis() - serverStartTime) + " " + 0 + " " + 0 + ")");
+                            send("(hello " + self.getID() + " " + (System.currentTimeMillis() - serverStartTime) + " " + 0 + " " + 0 + ")");
                             sendToAll(new String[] {"(newplayer " + self.getID() + " " + 0 + " " + 0 + ")",
                                                     "(nick " + self.getID() + " \"" + self.getNick() + "\")"}, self.getID());
                             synchronized (players) {
@@ -255,60 +249,6 @@ public class JavaTestServer {
                         helloReceived = true;
                     }
                 }
-
-                if (line == null) {
-                    close();
-                } else if (line.length() > 0) {
-                    System.out.println(s.getInetAddress() + " --> " + line);
-                    if (line.startsWith("(")) {
-                        line = line.substring(1, line.length() - 1); // remove ( )
-                    }
-                    pieces = line.split(" ");
-                    if ("hello".equals(pieces[0])) {
-                        send("(hello " + curPlayerID + " "
-                                + (System.currentTimeMillis() - serverStartTime)
-                                + " " + 0 + " " + 0 + ")");
-                        playerID = curPlayerID;
-                        playerIDs.add(curPlayerID);
-                        sendToAll(new String[] {"(newplayer " + playerID
-                                + " " + 0 + " " + 0 + ")"}, playerID);
-                        for (SocketProcessor sp:clientQueue) {
-                            if (sp.playerID != 0 && sp.playerID != playerID) {
-                                send("(newplayer " + sp.playerID + " "
-                                        + sp.lastPos.x + " " + sp.lastPos.y + ")");
-                                if (sp.msg != null) {
-                                    send("(message " + sp.playerID + " "
-                                            + sp.msg + ")");
-                                }
-                                if (sp.nick != null) {
-                                    send("(nick " + sp.playerID + " "
-                                            + sp.nick + ")");
-                                }
-                            }
-                        }
-                        curPlayerID++;
-                    } else if ("move".equals(pieces[0])) {
-                        sendToAll(new String[] {"(move " + playerID + " "
-                                + (System.currentTimeMillis() - serverStartTime)
-                                + " " + pieces[1] + " " + pieces[2] + ")"}, playerID);
-                        lastPos.move(Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
-                    } else if ("message".equals(pieces[0])) {
-                        pieces = line.split(" ", 2);
-                        sendToAll(new String[] {"(message " + playerID + " "
-                                + pieces[1] + ")"}, playerID);
-                        msg = pieces[1];
-                    } else if ("nick".equals(pieces[0])) {
-                        pieces = line.split(" ", 2);
-                        sendToAll(new String[] {"(nick " + playerID + " "
-                                + pieces[1] + ")"}, playerID);
-                        nick = pieces[1];
-                    } else if ("bolt".equals(pieces[0])) {
-                        pieces = line.split(" ");
-                        sendToAll(new String[] {"(bolt " + playerID + " "
-                                + pieces[1] + " " + (System.currentTimeMillis() - serverStartTime) + ")"}, playerID);
-                        nick = pieces[1];
-                    }
-                }
             }
         }
 
@@ -333,14 +273,21 @@ public class JavaTestServer {
                     s.close();
                 } catch (IOException ignored) {}
             }
-            playerIDs.remove(playerID);
-            sendToAll(new String[] {"(delplayer " + playerID  + ")"}, playerID);
+            synchronized (players) {
+                players.remove(self);
+            }
+            sendToAll(new String[] {"(delplayer " + self.getID()  + ")"}, self.getID());
+            self = null;
         }
 
         @Override
         protected void finalize() throws Throwable {
             super.finalize();
             close();
+        }
+
+        public Player getSelfPlayer() {
+            return self;
         }
     }
 }
