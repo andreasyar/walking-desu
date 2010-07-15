@@ -274,6 +274,28 @@ public class WalkingDesu {
                                 p.addBolt(atk, tgt, begTime);
                             }
                         }
+                        if (pieces[0].equals("hit")) {
+                            Player atk = p.getPlayer(Long.parseLong(pieces[1]));
+                            Player tgt = p.getPlayer(Long.parseLong(pieces[2]));
+
+                            if (atk != null && tgt != null) {
+                                tgt.doHit(Integer.parseInt(pieces[3]));
+                            }
+                        }
+                        if (pieces[0].equals("teleport")) {
+                            Player player = p.getPlayer(Long.parseLong(pieces[1]));
+
+                            if (player != null) {
+                                player.teleportTo(Integer.parseInt(pieces[2]), Integer.parseInt(pieces[3]));
+                            }
+                        }
+                        if (pieces[0].equals("heal")) {
+                            Player player = p.getPlayer(Long.parseLong(pieces[1]));
+
+                            if (player != null) {
+                                player.doHeal(Integer.parseInt(pieces[2]));
+                            }
+                        }
                     }
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -524,8 +546,8 @@ class MyPanel extends JPanel {
             }
 
             if (self.selectedPlayer != null) {
-                buffGraph.drawString(self.selectedPlayer.getNick(), 10, panelDim.height - 50);
-                buffGraph.drawString("HP: " + self.hitPoints, 10, panelDim.height - 30);
+                buffGraph.drawString(self.selectedPlayer.getNick() + " (" + self.selectedPlayer.id + ")", 10, panelDim.height - 50);
+                buffGraph.drawString("HP: " + self.selectedPlayer.hitPoints, 10, panelDim.height - 30);
             }
 
             if (bolts.size() > 0) {
@@ -729,6 +751,7 @@ class NukeBolt {
 }
 
 class Player {
+    private static final int maxHitPoints = 100;
 
     long id;
     String nick = null;
@@ -762,12 +785,20 @@ class Player {
         return Math.abs(System.currentTimeMillis() - WalkingDesu.serverStartTime) - lastNukeTime > NukeBolt.reuse ? true : false;
     }
 
-    public void doHit(int value) {
-        hitPoints -= value;
-        if (hitPoints <= 0) {
-            hitPoints = 100;
-            cur.move(0, 0);
+    public void doHit(int dmg) {
+        hitPoints -= dmg;
+        if (hitPoints < 0) {
+            hitPoints = 0;
         }
+    }
+
+    public void doHeal(int val) {
+        hitPoints += val;
+    }
+
+    public void teleportTo(int x, int y) {
+        cur.move(x, y);
+        beg.move(x, y);
     }
 
     public void setNick(String n) {
