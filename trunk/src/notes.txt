@@ -1,0 +1,39 @@
+ArrayList<Unit> units;
+
+for(ListIterator<Unit> li = units.getListIterator(); li.hasNext; ) {
+    Unit u = li.next();
+    Sprite s = u.getSprite();
+    drawImage(s.image, s.x + mapOffset.x, s.y + mapOffset.y);
+}
+
+class Sprite {
+    public BufferedImage image;
+    public int x;
+    public int y;
+}
+
+abstract class Unit {
+    abstract public Sprite getSprite();
+}
+
+class Player {
+    MovementAnimation movement;
+    StandAnimation stand;
+    DirectionalSpriteSet sprites = DirectionalSpriteSet.load("desu");
+
+    public Sprite getSprite() {
+        return isMove() ? movement.getSprite() : stand.getSprite();
+    }
+}
+
+class MovementAnimation {
+    public Sprite getSprite() {}
+}
+
+class StandAnimation {
+    public Sprite getSprite() {}
+}
+
+class DirectionalSpriteSet {
+    private 
+}

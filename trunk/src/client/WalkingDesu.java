@@ -414,6 +414,7 @@ class MyPanel extends JPanel {
                 if (x >= mapOfst.width && x <= m.width + mapOfst.width
                         && y >= mapOfst.height && y <= m.height + mapOfst.height) {
                     ArrayList<Point> points = new ArrayList<Point>();
+                    Polygon poly;
                     Player p;
                     BufferedImage spr;
                     boolean selected = false;
