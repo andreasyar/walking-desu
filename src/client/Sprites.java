@@ -24,10 +24,60 @@ class SpriteSet {
 }
 
 abstract class Animation {
+    protected ArrayList<BufferedImage> sprites;
 
+    public void loadSprites(String[] paths) {
+        ClassLoader cl = this.getClass().getClassLoader();
+        URL url = null;
+
+        for (int i = 0; i < paths.length; i++) {
+            try {
+                url = cl.getResource(paths[i]);
+                if (url != null) {
+                    sprites.add(ImageIO.read(url));
+                } else {
+                    sprites.add(ImageIO.read(new File(paths[i])));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }
+}
+
+class DistanceBasedAnimation extends Animation {
+    // TODO May be privete?
+    protected Point beg;
+    protected Point end;
+    protected double step;
+
+    protected ArrayList<BufferedImage> northSprites = new ArrayList<BufferedImage>();
+    protected ArrayList<BufferedImage> northWestSprites = new ArrayList<BufferedImage>();
+    protected ArrayList<BufferedImage> northEastSprites = new ArrayList<BufferedImage>();
+    protected ArrayList<BufferedImage> southSprites = new ArrayList<BufferedImage>();
+    protected ArrayList<BufferedImage> southWestSprites = new ArrayList<BufferedImage>();
+    protected ArrayList<BufferedImage> southEastSprites = new ArrayList<BufferedImage>();
+
+    public DistanceBasedAnimation(Point beg, Point end, double step) {
+    
+    }
+
+    public BufferedImage getSprite(Point cur) {
+        return null;
+    }
+}
+
+class UnitMovementAnimation extends DistanceBasedAnimation {
+    public UnitMovementAnimation(Point beg, Point end, double step) {
+        super(beg, end, step);
+    }
 }
 
 class NukeBoltMovement extends Animation {
+    public BufferedImage getSprite() {
+        return null;
+    }
     private static final String[] moveS = new String[] {"img/power_of_watering_pot_01.png"};
     private static ArrayList<BufferedImage> move = null;
 
@@ -85,6 +135,9 @@ class NukeBoltMovement extends Animation {
 }
 
 class Movement extends Animation {
+    public BufferedImage getSprite() {
+        return null;
+    }
 
     private MovementDirection north;
     private MovementDirection northWest;
