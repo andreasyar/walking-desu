@@ -17,9 +17,11 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
+import java.util.ListIterator;
 import java.lang.reflect.InvocationTargetException;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
@@ -363,6 +365,11 @@ class MyPanel extends JPanel {
 
     private boolean selMode = false;
 
+    private ArrayList<Polygon> geoData = new ArrayList<Polygon>();
+    private BufferedImage geoDebugLayer = null;
+    private Graphics geoDebugLayerGraph = null;
+    private Dimension geoDebugLayerDim = null;
+
     public void addBolt(Player a, Player t, long bt){
         bolts.add(new NukeBolt(a, t, bt));
     }
@@ -485,12 +492,27 @@ class MyPanel extends JPanel {
         buffGraph = buffImg.getGraphics();
         buffDim = new Dimension(buffImg.getWidth(), buffImg.getHeight());
 
+        geoDebugLayer = new BufferedImage(WDMap.getInstance().getMapImg().getWidth(), WDMap.getInstance().getMapImg().getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
+        geoDebugLayerGraph = geoDebugLayer.getGraphics();
+        //((Graphics2D) geoDebugLayerGraph).setBackground(new Color((float)0.0, (float)0.0, (float)0.0, (float)0.7));
+        /*((Graphics2D) geoDebugLayerGraph).setColor(new Color((float)0.1, (float)1.0, (float)0.3, (float)0.7));
+        ((Graphics2D) geoDebugLayerGraph).fillRect(0, 0, geoDebugLayer.getWidth() - 1, geoDebugLayer.getHeight() - 1);
+        ((Graphics2D) geoDebugLayerGraph).setColor(Color.BLACK);*/
+        geoDebugLayerDim = new Dimension(geoDebugLayer.getWidth(), geoDebugLayer.getHeight());
+
         panelDim = getSize();
 
         WalkingDesu.setButtonActionListener(self);
 
         bolts = new ArrayList<NukeBolt>();
         deadBolts = new ArrayList<Integer>();
+
+        Polygon tmp = new Polygon();
+        tmp.addPoint(100, 100);
+        tmp.addPoint(200, 100);
+        tmp.addPoint(200, 200);
+        tmp.addPoint(100, 200);
+        geoData.add(tmp);
     }
 
     @Override
@@ -572,6 +594,14 @@ class MyPanel extends JPanel {
                 for (Integer boltIndex:deadBolts) {
                     bolts.remove(boltIndex.intValue());
                 }
+            }
+
+            if (geoData.size() > 0) {
+                for (Polygon poly:geoData) {
+                    geoDebugLayerGraph.drawPolygon(poly);
+                }
+                buffGraph.drawImage(geoDebugLayer,
+                        mapOfst.width, mapOfst.height, null);
             }
 
             g.drawImage(buffImg, 0, 0, null);
@@ -683,6 +713,44 @@ class MyPanel extends JPanel {
             yold=ynew;
         }
         return inside;
+    }
+
+    // Oh ty algolist.manual.ru
+    private boolean segcross(int x11, int y11, int x12, int y12, int x21, int y21, int x22, int y22) {
+        int maxx1 = Math.max(x11, x12), maxy1 = Math.max(y11, y12);
+        int minx1 = Math.min(x11, x12), miny1 = Math.min(y11, y12);
+        int maxx2 = Math.max(x21, x22), maxy2 = Math.max(y21, y22);
+        int minx2 = Math.min(x21, x22), miny2 = Math.min(y21, y22);
+
+        if (minx1 > maxx2 || maxx1 < minx2 || miny1 > maxy2 || maxy1 < miny2) {
+            return false;  // Один из отрезков целиком лежит слева, справа, выше или ниже второго.
+        }
+
+        int dx1 = x12-x11, dy1 = y12-y11; // Длина проекций первой линии на ось x и y
+        int dx2 = x22-x21, dy2 = y22-y21; // Длина проекций второй линии на ось x и y
+        int dxx = x11-x21, dyy = y11-y21;
+        int div, mul;
+
+        if ((div = (int)((double)dy2*dx1-(double)dx2*dy1)) == 0) {
+            return false; // Отрезки параллельны...
+        }
+        if (div > 0) {
+            if ((mul = (int)((double)dx1*dyy-(double)dy1*dxx)) < 0 || mul > div) {
+                return false; // Первый отрезок пересекается за своими границами...
+            }
+            if ((mul = (int)((double)dx2*dyy-(double)dy2*dxx)) < 0 || mul > div) {
+                return false; // Второй отрезок пересекается за своими границами...
+            }
+        }
+
+        if ((mul = -(int)((double)dx1*dyy-(double)dy1*dxx)) < 0 || mul > -div) {
+            return false; // Первый отрезок пересекается за своими границами...
+        }
+        if ((mul = -(int)((double)dx2*dyy-(double)dy2*dxx)) < 0 || mul > -div) {
+            return false; // Второй отрезок пересекается за своими границами...
+        }
+
+        return true;
     }
 }
 
