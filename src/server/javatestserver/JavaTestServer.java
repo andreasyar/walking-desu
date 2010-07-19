@@ -181,6 +181,8 @@ public class JavaTestServer {
                     line = br.readLine();
                 } catch (IOException e) {
                     close();
+                    // Мы не возвращаем управление, потому что в строке
+                    // таки может что-то быть?
                 }
 
                 if (line == null) {
@@ -279,19 +281,18 @@ public class JavaTestServer {
 
         public synchronized void close() {
             clientQueue.remove(this);
-            if (self == null) {
-                System.out.println("WTF???");
-            }
-            sendToAll(new String[] {"(delplayer " + self.getID()  + ")"}, self.getID());
-            self = null;
-            synchronized (players) {
-                players.remove(self);
-            }
             if (!s.isClosed()) {
                 try {
                     s.close();
                 } catch (IOException ignored) {}
+            } else {
+                return;
             }
+            sendToAll(new String[] {"(delplayer " + self.getID()  + ")"}, self.getID());
+            synchronized (players) {
+                players.remove(self);
+            }
+            self = null;
         }
 
         @Override
