@@ -27,13 +27,19 @@ class Player {
 }
 
 class MovementAnimation {
+    public MovementAnimation(DirectionalSpriteSet set) {}
+
     public Sprite getSprite() {}
 }
 
 class StandAnimation {
+    public StandAnimation(DirectionalSpriteSet set) {}
+
     public Sprite getSprite() {}
 }
 
 class DirectionalSpriteSet {
-    private 
+    private static DirectionalSpriteSet cache = null;
+
+    public static DirectionalSpriteSet load(String name) {}
 }
