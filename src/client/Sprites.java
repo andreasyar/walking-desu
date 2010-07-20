@@ -1,14 +1,15 @@
 package client;
 
-import java.util.ArrayList;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.File;
-import javax.imageio.ImageIO;
-import java.awt.Point;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import javax.imageio.ImageIO;
 
-class SpriteSet {
+/*class SpriteSet {
 
     private ArrayList<Animation> animations;
 
@@ -21,9 +22,162 @@ class SpriteSet {
         return (Movement)animations.get(0);
     }
 
+}*/
+
+class Sprite {
+    public BufferedImage image;
+    public int x;
+    public int y;
 }
 
-abstract class Animation {
+enum Direction {
+    NORTH,
+    NORTH_WEST,
+    NORTH_EAST,
+    SOUTH,
+    SOUTH_WEST,
+    SOUTH_EAST;
+
+    public static Direction getDirection(Point beg, Point end) {
+        int diffX = end.x - beg.x;
+        int diffY = end.y - beg.y;
+
+        if (diffX > 0 && diffY <= 0 && diffX > -diffY) {
+            return NORTH_EAST;
+        } else if (diffX > 0 && diffY < 0 && diffX <= -diffY) {
+            return NORTH;
+        } else if (diffX <= 0 && diffY < 0 && diffX > diffY) {
+            return NORTH;
+        } else if (diffX < 0 && diffY < 0 && diffX <= diffY) {
+            return NORTH_WEST;
+        } else if (diffX < 0 && diffY >= 0 && -diffX > diffY) {
+            return SOUTH_WEST;
+        } else if (diffX < 0 && diffY > 0 && -diffX <= diffY) {
+            return SOUTH;
+        } else if (diffX >= 0 && diffY > 0 && diffX < diffY) {
+            return SOUTH;
+        } else if (diffX > 0 && diffY > 0 && diffX >= diffY) {
+            return SOUTH_EAST;
+        } else if (diffX == 0 && diffY == 0) {
+            return SOUTH; // TODO wtf?
+        } else {
+            return null;
+        }
+    }
+}
+
+class MovementAnimation {
+    private DirectionalSpriteSet set;
+    private Movement mov;
+
+    private Point beg;
+    private double step;
+    private Direction direct;
+    private int period;
+    private int sprIndex;
+    private double stepCount;
+
+    public MovementAnimation(String spriteSet, Movement mov) {
+        this.set = DirectionalSpriteSet.load(spriteSet + "_walk");
+        this.mov = mov;
+    }
+
+    public final Sprite getSprite(Point cur) {
+        double tmpCount = beg.distance(cur) / step;
+        Sprite tmpSpr;
+
+        if (stepCount < tmpCount) {
+            stepCount = tmpCount;
+            sprIndex = (int) stepCount % period;
+            System.out.println("sprIndex: " + sprIndex);
+        }
+        tmpSpr = set.getSprite(direct, sprIndex);
+        return tmpSpr;
+    }
+
+    public void run(Point beg, Point end, double step) {
+        direct = Direction.getDirection(beg, end);
+        period = set.getSpriteCount(direct);
+        this.beg = beg;
+        this.step = step;
+        sprIndex = 0;
+        stepCount = 0.0;
+    }
+}
+
+class StandAnimation {
+    private DirectionalSpriteSet set;
+
+    public StandAnimation(DirectionalSpriteSet set) {}
+
+    public final Sprite getSprite() {
+        Sprite tmp = set.getSprite(Direction.NORTH, 0);
+        tmp.x = 0;
+        tmp.y = 0;
+        return tmp;
+    }
+
+    public void run() {}
+}
+
+class DirectionalSpriteSet {
+    private static HashMap<String, DirectionalSpriteSet> cache = new HashMap<String, DirectionalSpriteSet>();
+    private HashMap<Direction, ArrayList<BufferedImage>> sprites = new HashMap<Direction, ArrayList<BufferedImage>>();
+    private Sprite curSpr = new Sprite();
+
+    public static DirectionalSpriteSet load(String name) {
+        if (cache.containsKey(name)) {
+            return (DirectionalSpriteSet) cache.get(name);
+        } else {
+            DirectionalSpriteSet set = new DirectionalSpriteSet(name);
+            cache.put(name, set);
+            return set;
+        }
+    }
+
+    private DirectionalSpriteSet(String name) {
+        for (Direction d:Direction.values()) {
+            sprites.put(d, new ArrayList<BufferedImage>());
+        }
+
+        loadSprFiles(new String[] {"img/" + name + "/north_01.png", "img/" + name + "/north_02.png", });
+        loadSprFiles(new String[] {"img/" + name + "/north_east_01.png", "img/" + name + "/north_east_02.png", });
+        loadSprFiles(new String[] {"img/" + name + "/north_west_01.png", "img/" + name + "/north_west_02.png", });
+        loadSprFiles(new String[] {"img/" + name + "/south_04.png", "img/" + name + "/south_05.png", });
+        loadSprFiles(new String[] {"img/" + name + "/south_east_01.png", "img/" + name + "/south_east_02.png", });
+        loadSprFiles(new String[] {"img/" + name + "/south_west_01.png", "img/" + name + "/south_west_02.png", });
+    }
+
+    public Sprite getSprite(Direction d, int index) {
+        curSpr.image = sprites.get(d).get(index);
+        return curSpr;
+    }
+
+    public int getSpriteCount(Direction d) {
+        return sprites.get(d).size();
+    }
+
+    private void loadSprFiles(String[] paths) {
+        ClassLoader cl = this.getClass().getClassLoader();
+        URL url = null;
+
+        for (int i = 0; i < paths.length; i++) {
+            try {
+                url = cl.getResource(paths[i]);
+                if (url != null) {
+                    sprites.get(Direction.NORTH).add(ImageIO.read(url));
+                } else {
+                    sprites.get(Direction.NORTH).add(ImageIO.read(new File(paths[i])));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }
+}
+
+/*abstract class Animation {
     protected ArrayList<BufferedImage> sprites;
 
     public void loadSprites(String[] paths) {
@@ -60,7 +214,7 @@ class DistanceBasedAnimation extends Animation {
     protected ArrayList<BufferedImage> southEastSprites = new ArrayList<BufferedImage>();
 
     public DistanceBasedAnimation(Point beg, Point end, double step) {
-    
+
     }
 
     public BufferedImage getSprite(Point cur) {
@@ -72,9 +226,9 @@ class UnitMovementAnimation extends DistanceBasedAnimation {
     public UnitMovementAnimation(Point beg, Point end, double step) {
         super(beg, end, step);
     }
-}
+}*/
 
-class NukeBoltMovement extends Animation {
+/*class NukeBoltMovement extends Animation {
     public BufferedImage getSprite() {
         return null;
     }
@@ -132,9 +286,9 @@ class NukeBoltMovement extends Animation {
 
         return curMoveSpr;
     }
-}
+}*/
 
-class Movement extends Animation {
+/*class Movement extends Animation {
     public BufferedImage getSprite() {
         return null;
     }
@@ -182,9 +336,9 @@ class Movement extends Animation {
         }
     }
 
-}
+}*/
 
-class MovementDirection {
+/*class MovementDirection {
 
     private ArrayList<BufferedImage> stand;
     private ArrayList<BufferedImage> move;
@@ -279,10 +433,6 @@ class MovementDirection {
         return curStandSpr;
     }
 
-    /**
-     * Возвращает спрайт из анимации движения в зависимости от пройденного пути.
-     * @param len Длина пройденного пути.
-     */
     public BufferedImage getMoveSpr(double len) {
         int tmp = (int) (len / period);
 
@@ -301,4 +451,4 @@ class MovementDirection {
         return curMoveSpr;
     }
 
-}
+}*/
