@@ -68,12 +68,12 @@ enum Direction {
 
 class MovementAnimation {
     private DirectionalSpriteSet set;
+    private Direction direct;
+    private int period;
     private Movement mov;
 
     private Point beg;
     private double step;
-    private Direction direct;
-    private int period;
     private int sprIndex;
     private double stepCount;
 
@@ -107,17 +107,67 @@ class MovementAnimation {
 
 class StandAnimation {
     private DirectionalSpriteSet set;
+    private Direction direct;
+    private int period;
 
-    public StandAnimation(DirectionalSpriteSet set) {}
+    private final long step = 75;
+    private int delay = 3000;
+    private long begTime = 0;
+    private long lastTimeStep = 0;
 
-    public final Sprite getSprite() {
-        Sprite tmp = set.getSprite(Direction.NORTH, 0);
-        tmp.x = 0;
-        tmp.y = 0;
-        return tmp;
+    public StandAnimation(String spriteSet) {
+        this.set = DirectionalSpriteSet.load(spriteSet + "_stand");
     }
 
-    public void run() {}
+    public final Sprite getSprite(long curTime) {
+        long tmpTime;
+        Sprite tmpSpr;
+
+        tmpTime = curTime % (step * period + delay);
+
+        if (tmpTime <= step * period) {
+            // animation
+        } else {
+            // delay
+        }
+
+        if (curTime - begTime <= delay) {
+            tmpSpr = set.getSprite(direct, 0);
+            return tmpSpr;
+        }
+
+        if (curTime - begTime > delay + step * period) {
+            begTime = curTime;
+            tmpTime = 0;
+            tmpSpr = set.getSprite(direct, 0);
+            return tmpSpr;
+        }
+
+        tmpTime = (long) ((curTime - begTime) / step);
+
+        if (tmpTime == 0) {
+            lastTimeStep = tmpTime;
+            standIndex = 0;
+            curStandSpr = stand.get(standIndex);
+        } else if (lastTimeStep != tmpTime) {
+            if (standIndex >= stand.size() || stand.size() == 1) {
+                standIndex = 0;
+            }
+            curStandSpr = stand.get(standIndex++);
+            lastTimeStep = tmpTime;
+        }
+
+        Sprite tmp = set.getSprite(Direction.NORTH, 0);
+        tmpTime.x = 0;
+        tmpTime.y = 0;
+        return tmpTime;
+    }
+
+    public void run(Direction direct, long begTime) {
+        this.begTime = begTime;
+        this.direct = direct;
+        period = set.getSpriteCount(direct);
+    }
 }
 
 class DirectionalSpriteSet {
