@@ -28,12 +28,24 @@ public class DirectionalSpriteSet {
             sprites.put(d, new ArrayList<BufferedImage>());
         }
 
-        loadSprFiles(new String[] {"img/" + name + "/north_01.png", "img/" + name + "/north_02.png", });
-        loadSprFiles(new String[] {"img/" + name + "/north_east_01.png", "img/" + name + "/north_east_02.png", });
-        loadSprFiles(new String[] {"img/" + name + "/north_west_01.png", "img/" + name + "/north_west_02.png", });
-        loadSprFiles(new String[] {"img/" + name + "/south_04.png", "img/" + name + "/south_05.png", });
-        loadSprFiles(new String[] {"img/" + name + "/south_east_01.png", "img/" + name + "/south_east_02.png", });
-        loadSprFiles(new String[] {"img/" + name + "/south_west_01.png", "img/" + name + "/south_west_02.png", });
+        // TODO WTF IT THIS?
+        if (name.equals("desu_walk")) {
+            loadSprFiles(new String[] {"img/" + name + "/north_01.png", "img/" + name + "/north_02.png"});
+            loadSprFiles(new String[] {"img/" + name + "/north_east_01.png", "img/" + name + "/north_east_02.png"});
+            loadSprFiles(new String[] {"img/" + name + "/north_west_01.png", "img/" + name + "/north_west_02.png"});
+            loadSprFiles(new String[] {"img/" + name + "/south_04.png", "img/" + name + "/south_05.png"});
+            loadSprFiles(new String[] {"img/" + name + "/south_east_01.png", "img/" + name + "/south_east_02.png"});
+            loadSprFiles(new String[] {"img/" + name + "/south_west_01.png", "img/" + name + "/south_west_02.png"});
+        }
+
+        if (name.equals("desu_stand")) {
+            loadSprFiles(new String[] {"img/" + name + "/north_01.png"});
+            loadSprFiles(new String[] {"img/" + name + "/north_east_03.png"});
+            loadSprFiles(new String[] {"img/" + name + "/north_west_03.png"});
+            loadSprFiles(new String[] {"img/" + name + "/south_01.png", "img/" + name + "/south_02.png", "img/" + name + "/south_03.png", "img/" + name + "/south_04.png"});
+            loadSprFiles(new String[] {"img/" + name + "/south_east_03.png"});
+            loadSprFiles(new String[] {"img/" + name + "/south_west_03.png"});
+        }
     }
 
     public Sprite getSprite(Direction d, int index) {
@@ -58,6 +70,7 @@ public class DirectionalSpriteSet {
                     sprites.get(Direction.NORTH).add(ImageIO.read(new File(paths[i])));
                 }
             } catch (IOException e) {
+                System.err.println(paths[i]);
                 e.printStackTrace();
                 System.exit(1);
             }

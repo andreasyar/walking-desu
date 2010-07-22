@@ -1,7 +1,8 @@
 package client;
 
-import java.awt.Graphics;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -9,13 +10,15 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.awt.Point;
+import java.util.ListIterator;
 import javax.swing.JPanel;
 
 public class WanderingJPanel extends JPanel implements KeyListener, MouseListener, ComponentListener {
     private boolean wasShown = false;
 
-    private BufferedImage map = WanderingMap.getMapImg();
-    private Dimension mapDim = new Dimension(map.getWidth(), map.getHeight());
+    private BufferedImage mapImg = WanderingMap.getMapImg();
+    private Dimension mapDim = new Dimension(mapImg.getWidth(), mapImg.getHeight());
     private Dimension mapOfst;
 
     private Dimension panelDim = null;
@@ -26,9 +29,42 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     private boolean selectMode = false;
 
+    private GameField field = GameField.getInstance();
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        if (field.getSelfPlayer() != null && buffDim != null) { // TODO Concurency issue
+
+            // Поле вне карты цвета фона и по краям черная рамочка в 1 пиксел.
+            buffGraph.setColor(getBackground());
+            buffGraph.fillRect(0, 0, buffDim.width - 1, buffDim.height - 1);
+            buffGraph.setColor(Color.BLACK);
+            buffGraph.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
+
+            // TODO На самом деле надо рисовать лишь видимую часть карты
+            // которую можно получить с помощью метода getSubimage()
+            buffGraph.drawImage(mapImg, mapOfst.width, mapOfst.height, null);
+
+            // Вычислим новое смещение карты (временно это делается здесь)
+            Point curPos = field.getSelfPlayer().getCurPos();
+            if (panelDim.width / 2 != mapOfst.width + curPos.x || panelDim.height / 2 != mapOfst.height + curPos.y) {
+                mapOfst.width += panelDim.width / 2 - (curPos.x + mapOfst.width);
+                mapOfst.height += panelDim.height / 2 - (curPos.y + mapOfst.height);
+            }
+
+            // Да, придётся отсортировать игроков по возрастанию Y координаты
+            // чтобы "нижелещаие" спрайты не перекрывали вышележащие.
+            // TODO optimization
+            for(ListIterator<Unit> li = field.getYSortedUnits().listIterator(); li.hasNext(); ) {
+                Unit u = li.next();
+                Sprite s = u.getSprite();
+                buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+            }
+
+            g.drawImage(buffImg, 0, 0, null);
+        }
     }
 
     public void mouseClicked(MouseEvent e) {

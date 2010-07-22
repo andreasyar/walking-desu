@@ -17,23 +17,6 @@ public class WalkingDesu {
         SwingUtilities.invokeLater(gui);
         ServerInteraction.run(executor, args[0], Integer.parseInt(args[1]));
     }
-
-//    public WanderingGUI getGUI() {
-//        while (!gui.builded()) {
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//                return null;
-//            }
-//        }
-//
-//        return gui;
-//    }
-//
-//    public Executor getExecutor() {
-//        return executor;
-//    }
 }
 
 //import javax.swing.SwingUtilities;

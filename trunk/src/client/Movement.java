@@ -3,8 +3,6 @@ package client;
 import java.awt.Point;
 
 public class Movement {
-    private long serverStartTime;
-
     private boolean isMove;
     private Point beg;
     private Point cur = new Point();    // For temporary storage purpose
@@ -13,8 +11,14 @@ public class Movement {
     private long endTime;               // Calculated value
     private double speed;
 
-    public Movement(long serverStartTime) {
-        this.serverStartTime = serverStartTime;
+    public Movement() {
+        isMove = false;
+        this.cur.move(0, 0);
+    }
+
+    public Movement(Point cur) {
+        isMove = false;
+        this.cur.move(cur.x, cur.y);
     }
 
     public void move(Point beg, Point end, long begTime, double speed) {
@@ -36,7 +40,6 @@ public class Movement {
         }
     }
 
-
     public void setSpeed(double speed) {
         if (isMove) {
             this.speed = speed;
@@ -48,7 +51,7 @@ public class Movement {
 
     public Point getCurPos() {
         if (isMove) {
-            long curTime = System.currentTimeMillis() - serverStartTime;
+            long curTime = System.currentTimeMillis() - ServerInteraction.innerTimer;
             double sqrt = Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2));
 
             cur.x = (int) (beg.x + ((end.x - beg.x) / sqrt) * speed * (curTime - begTime));
