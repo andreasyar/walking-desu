@@ -20,6 +20,7 @@ public class GameField {
 
     private GameField() {
         selfPlayer = new Player();
+        units.add(selfPlayer);
     }
 
     public void addPlayer(Player player) {

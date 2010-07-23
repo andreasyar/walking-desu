@@ -3,44 +3,51 @@ package client;
 import java.awt.Point;
 
 abstract public class Unit {
-    protected MovementAnimation moveAnim;
-    protected StandAnimation standAnim;
+    private MovementAnimation moveAnim;
+    private StandAnimation standAnim;
 
-    protected Movement move;
+    private Movement move;
 
-    public Point getCurPos() {
-        return move.getCurPos();
-    }
-
-    protected Unit(int x, int y, Direction d, String set) {
+    public Unit(int x, int y, Direction d, String set) {
         // TODO X Y
         moveAnim = new MovementAnimation(set);
         standAnim = new StandAnimation(set);
-        standAnim.run(d, ServerInteraction.innerTimer);
+        standAnim.run(d, ServerInteraction.serverStartTime);
         move = new Movement();
     }
 
-    protected Unit(String set) {
+    public Unit(String set) {
         moveAnim = new MovementAnimation(set);
         standAnim = new StandAnimation(set);
-        standAnim.run(Direction.SOUTH, ServerInteraction.innerTimer);
+        standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
         move = new Movement();
     }
 
-    protected Unit() {
+    public Unit() {
         moveAnim = new MovementAnimation("desu");
         standAnim = new StandAnimation("desu");
-        standAnim.run(Direction.SOUTH, ServerInteraction.innerTimer);
+        standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
         move = new Movement();
     }
 
     public void changeSpriteSet(String spriteSet) {
         moveAnim = new MovementAnimation(spriteSet);
         standAnim = new StandAnimation(spriteSet);
-        standAnim.run(Direction.SOUTH, ServerInteraction.innerTimer);
+        standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
     }
 
     public Sprite getSprite() {
-        return move.isMove() ? moveAnim.getSprite(move.getCurPos()) : standAnim.getSprite(ServerInteraction.innerTimer, move.getCurPos());
+        return move.isMove() ?
+            moveAnim.getSprite(move.getCurPos()) :
+            standAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, move.getCurPos());
+    }
+
+    public Point getCurPos() {
+        return move.getCurPos();
+    }
+
+    public void move(Point beg, Point end, long begTime, double speed) {
+        move.move(beg, end, begTime, speed);
+        moveAnim.run(beg, end, 10.0);
     }
 }

@@ -5,10 +5,11 @@ import java.awt.Point;
 public class StandAnimation {
     private DirectionalSpriteSet set;
     private Direction direct;
-    private int period;
+    private int period;             // Количество спрайтов в наборе
 
-    private final long step = 75;
-    private int delay = 3000;
+    private final long step = 150;  // Время показа каждого спрайта (или время смены спрайта)
+    private int delay = 3000;       // Задержка до очередного проигрывания
+    private int repeat = 2;         // Число повторов показа всего набора спрайтов
     private long begTime = 0;
     private long endTime = 0;
 
@@ -20,18 +21,25 @@ public class StandAnimation {
         long tmpTime;
         Sprite tmpSpr;
 
-        // Animetion ends. Return the last sprite from stand animation.
+        // Animation ends. Return the last sprite from stand animation.
         if (endTime != 0 && curTime > endTime) {
             tmpSpr = set.getSprite(direct, period - 1);
+            System.out.println();
             tmpSpr.x = curPos.x;
             tmpSpr.y = curPos.y;
             return tmpSpr;
         }
 
-        tmpTime = (curTime - begTime) % (step * period + delay);
+        tmpTime = (curTime - begTime) % (step * period * repeat + delay);
 
-        if (tmpTime <= step * period) {
-            tmpSpr = set.getSprite(direct, (int) (tmpTime % period));
+        if (tmpTime <= step * period * repeat) {
+            int sprIndex = (int) (((tmpTime % (step * period)) / step));
+            if (sprIndex < period) { // TODO Auto of bound protection here.
+                tmpSpr = set.getSprite(direct, sprIndex);
+            } else {
+                tmpSpr = set.getSprite(direct, 0);
+            }
+            //System.out.print(sprIndex);
             tmpSpr.x = curPos.x;
             tmpSpr.y = curPos.y;
             return tmpSpr;
@@ -39,6 +47,7 @@ public class StandAnimation {
             // Now time to delay before new animation cycle. So return last
             // sprite from stand animation.
             tmpSpr = set.getSprite(direct, period - 1);
+            //System.out.println();
             tmpSpr.x = curPos.x;
             tmpSpr.y = curPos.y;
             return tmpSpr;
