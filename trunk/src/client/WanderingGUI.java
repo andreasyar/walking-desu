@@ -20,6 +20,8 @@ public class WanderingGUI implements Runnable {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800,600);
         frame.setVisible(true);
+        panel.setVisible(false);
+        panel.setVisible(true);
         builded = true;
     }
 

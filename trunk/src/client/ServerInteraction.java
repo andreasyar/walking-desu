@@ -12,7 +12,7 @@ import java.util.concurrent.Executor;
 import javax.swing.SwingWorker;
 
 public class ServerInteraction {
-    public static long innerTimer = 0;
+    public static long serverStartTime = 0;
 
     private static ServerInteraction instance = null;
 

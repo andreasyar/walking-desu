@@ -31,6 +31,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     private GameField field = GameField.getInstance();
 
+    public WanderingJPanel() {
+        addMouseListener(this);
+        addComponentListener(this);
+        addKeyListener(this);
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -73,7 +79,9 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         int y = e.getY();
 
         // Если клик был в пределах карты.
-        if (x >= mapOfst.width && x <= mapDim.width + mapOfst.width && y >= mapOfst.height && y <= mapDim.height + mapOfst.height) {}
+        if (x >= mapOfst.width && x <= mapDim.width + mapOfst.width && y >= mapOfst.height && y <= mapDim.height + mapOfst.height) {
+            field.getSelfPlayer().move((Point) field.getSelfPlayer().getCurPos().clone(), new Point(x - mapOfst.width, y - mapOfst.height), System.currentTimeMillis() - ServerInteraction.serverStartTime, 0.07);
+        }
     }
 
     public void mousePressed(MouseEvent e) {}

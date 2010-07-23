@@ -22,6 +22,7 @@ public class Movement {
     }
 
     public void move(Point beg, Point end, long begTime, double speed) {
+        System.out.println("GOGO");
         isMove = true;
         this.beg = beg;
         this.end = end;
@@ -51,9 +52,10 @@ public class Movement {
 
     public Point getCurPos() {
         if (isMove) {
-            long curTime = System.currentTimeMillis() - ServerInteraction.innerTimer;
+            long curTime = System.currentTimeMillis() - ServerInteraction.serverStartTime;
             double sqrt = Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2));
 
+            System.out.println(beg.x);
             cur.x = (int) (beg.x + ((end.x - beg.x) / sqrt) * speed * (curTime - begTime));
             cur.y = (int) (beg.y + ((end.y - beg.y) / sqrt) * speed * (curTime - begTime));
 
