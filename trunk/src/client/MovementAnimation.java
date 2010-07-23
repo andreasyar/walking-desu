@@ -23,8 +23,8 @@ public class MovementAnimation {
             stepCount = tmpCount;
         }
         tmpSpr = set.getSprite(direct, (int) stepCount % period);
-        tmpSpr.x = cur.x;
-        tmpSpr.y = cur.y;
+        tmpSpr.x = cur.x - tmpSpr.image.getWidth() / 2;
+        tmpSpr.y = cur.y - tmpSpr.image.getHeight();
         return tmpSpr;
     }
 

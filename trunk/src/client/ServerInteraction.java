@@ -30,6 +30,14 @@ public class ServerInteraction {
         return instance;
     }
 
+    public static ServerInteraction getInstance() throws Exception {
+        if (instance == null) {
+            throw new Exception("Interaction not started yet!"); // TODO Revork interaction startup.
+        }
+
+        return instance;
+    }
+
     private ServerInteraction(Executor executor, String ip, int port) {
         try {
             serverSocket = new Socket(ip, port);
