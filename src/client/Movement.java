@@ -68,4 +68,8 @@ public class Movement {
         }
         return cur;
     }
+
+    public long getEndTime() {
+        return endTime;
+    }
 }

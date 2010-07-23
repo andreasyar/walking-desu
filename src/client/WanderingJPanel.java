@@ -30,11 +30,18 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private boolean selectMode = false;
 
     private GameField field = GameField.getInstance();
+    private ServerInteraction inter;
 
     public WanderingJPanel() {
         addMouseListener(this);
         addComponentListener(this);
         addKeyListener(this);
+        try {
+        inter = ServerInteraction.getInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     @Override

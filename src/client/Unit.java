@@ -49,6 +49,6 @@ abstract public class Unit {
     public void move(Point beg, Point end, long begTime, double speed) {
         move.move(beg, end, begTime, speed);
         moveAnim.run(beg, end, 10.0);
-        standAnim.run(moveAnim.getDirection(), begTime);
+        standAnim.run(moveAnim.getDirection(), move.getEndTime());
     }
 }
