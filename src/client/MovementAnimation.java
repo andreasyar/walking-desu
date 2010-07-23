@@ -21,7 +21,6 @@ public class MovementAnimation {
 
         if (stepCount < tmpCount) {
             stepCount = tmpCount;
-            System.out.println("sprIndex: " + (int) stepCount % period);
         }
         tmpSpr = set.getSprite(direct, (int) stepCount % period);
         tmpSpr.x = cur.x;
@@ -35,5 +34,9 @@ public class MovementAnimation {
         this.beg = beg;
         this.step = step;
         stepCount = 0.0;
+    }
+
+    public Direction getDirection() {
+        return direct;
     }
 }
