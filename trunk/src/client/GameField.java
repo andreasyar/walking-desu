@@ -3,29 +3,36 @@ package client;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.ListIterator;
 
 public class GameField {
-    private static GameField instance = null;
-
     private Player selfPlayer;
     private final ArrayList<Unit> units = new ArrayList<Unit>();
 
-    public static GameField getInstance() {
-        if (instance == null) {
-            instance = new GameField();
+    public GameField() {}
+
+    public Player getPlayer(long id) {
+        synchronized (units) {
+            for (ListIterator li = units.listIterator(); li.hasNext();) {
+                Player p = (Player) li.next();
+                if (p.getID() == id) {
+                    return p;
+                }
+            }
         }
 
-        return instance;
-    }
-
-    private GameField() {
-        selfPlayer = new Player();
-        units.add(selfPlayer);
+        return null;
     }
 
     public void addPlayer(Player player) {
         synchronized (units) {
             units.add(player);
+        }
+    }
+
+    public void delPlayer(long id) {
+        synchronized (units) {
+            units.remove(getPlayer(id));
         }
     }
 
@@ -49,6 +56,13 @@ public class GameField {
 
     public Player getSelfPlayer() {
         return selfPlayer;
+    }
+
+    public void addSelfPlayer(Player selfPlayer) {
+        this.selfPlayer = selfPlayer;
+        synchronized (units) {
+            units.add(this.selfPlayer);
+        }
     }
 
     private class YAligner implements Comparator {

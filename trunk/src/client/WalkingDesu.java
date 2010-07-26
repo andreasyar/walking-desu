@@ -1,35 +1,39 @@
 package client;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import javax.swing.SwingUtilities;
 
 public class WalkingDesu {
-    private WanderingGUI gui;
-    private Executor executor = Executors.newCachedThreadPool();
-
     public static void main(String[] args) {
         new WalkingDesu(args);
     }
 
     private WalkingDesu(String[] args) {
-        gui = new WanderingGUI();
-        SwingUtilities.invokeLater(gui);
-        ServerInteraction.run(executor, args[0], Integer.parseInt(args[1]));
-        executor.execute(new RedrawTask(gui));
-    }
+        GameField field = new GameField();
 
-    public WanderingGUI getGUI() {
-        while (!gui.builded()) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                return null;
-            }
+        Executor executor = Executors.newCachedThreadPool();
+        ServerInteraction inter = new ServerInteraction(field, executor, args[0], Integer.parseInt(args[1]));
+
+        WanderingGUI gui = new WanderingGUI(field, inter);
+        try {
+            SwingUtilities.invokeAndWait(gui);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+            System.exit(1);
         }
-
-        return gui;
+        try {
+            inter.run(gui.dialog.getValidatedText());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
+        gui.showPanel();
+        executor.execute(new RedrawTask(gui.panel));
     }
 }
 
