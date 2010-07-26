@@ -8,26 +8,22 @@ abstract public class Unit {
 
     private Movement move;
 
-    public Unit(int x, int y, Direction d, String set) {
-        // TODO X Y
+    private int id;
+    private String nick;
+    private String text;
+
+    protected int maxHitPoints;
+    protected int hitPoints;
+
+    public Unit(int id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
+        this.id = id;
+        this.nick = nick;
+        this.maxHitPoints = maxHitPoints;
+        hitPoints = this.maxHitPoints;
         moveAnim = new MovementAnimation(set);
         standAnim = new StandAnimation(set);
-        standAnim.run(d, ServerInteraction.serverStartTime);
-        move = new Movement();
-    }
-
-    public Unit(String set) {
-        moveAnim = new MovementAnimation(set);
-        standAnim = new StandAnimation(set);
-        standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
-        move = new Movement();
-    }
-
-    public Unit() {
-        moveAnim = new MovementAnimation("desu");
-        standAnim = new StandAnimation("desu");
-        standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
-        move = new Movement();
+        standAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+        move = new Movement(new Point(x, y), speed);
     }
 
     public void changeSpriteSet(String spriteSet) {
@@ -46,9 +42,39 @@ abstract public class Unit {
         return move.getCurPos();
     }
 
-    public void move(Point beg, Point end, long begTime, double speed) {
-        move.move(beg, end, begTime, speed);
+    public void move(Point beg, Point end, long begTime) {
+        move.move(beg, end, begTime);
         moveAnim.run(beg, end, 10.0);
         standAnim.run(moveAnim.getDirection(), move.getEndTime());
+    }
+
+    public long getID() {
+        return id;
+    }
+
+    public String getNick() {
+        return nick;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    abstract public void doHit(int dmg);
+
+    public int getHitPoints() {
+        return hitPoints;
+    }
+
+    public void setSpeed(double speed) {
+        move.setSpeed(speed);
     }
 }

@@ -16,17 +16,17 @@ public class Movement {
         this.cur.move(0, 0);
     }
 
-    public Movement(Point cur) {
+    public Movement(Point cur, double speed) {
         isMove = false;
         this.cur.move(cur.x, cur.y);
+        this.speed = speed;
     }
 
-    public void move(Point beg, Point end, long begTime, double speed) {
+    public void move(Point beg, Point end, long begTime) {
         isMove = true;
         this.beg = beg;
         this.end = end;
         this.begTime = begTime;
-        this.speed = speed;
         endTime = begTime + (long) (beg.distance(end) / speed);
         cur.move(beg.x, beg.y);
     }

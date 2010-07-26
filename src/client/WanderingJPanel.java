@@ -29,19 +29,15 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     private boolean selectMode = false;
 
-    private GameField field = GameField.getInstance();
+    private GameField field;
     private ServerInteraction inter;
 
-    public WanderingJPanel() {
+    public WanderingJPanel(GameField field, ServerInteraction inter) {
         addMouseListener(this);
         addComponentListener(this);
         addKeyListener(this);
-        try {
-        inter = ServerInteraction.getInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        this.field = field;
+        this.inter = inter;
     }
 
     @Override
@@ -74,6 +70,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 Unit u = li.next();
                 Sprite s = u.getSprite();
                 buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
             }
 
             g.drawImage(buffImg, 0, 0, null);
@@ -87,7 +84,9 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
         // Если клик был в пределах карты.
         if (x >= mapOfst.width && x <= mapDim.width + mapOfst.width && y >= mapOfst.height && y <= mapDim.height + mapOfst.height) {
-            field.getSelfPlayer().move((Point) field.getSelfPlayer().getCurPos().clone(), new Point(x - mapOfst.width, y - mapOfst.height), System.currentTimeMillis() - ServerInteraction.serverStartTime, 0.07);
+            Point p = new Point(x - mapOfst.width, y - mapOfst.height);
+            field.getSelfPlayer().move((Point) field.getSelfPlayer().getCurPos().clone(), p, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+            inter.addCommand("(move " + p.x + " " + p.y + ")");
         }
     }
 

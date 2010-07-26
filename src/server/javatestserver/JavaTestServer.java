@@ -90,7 +90,9 @@ public class JavaTestServer {
     public void sendToAll (String[] msgs) {
         for (String msg:msgs) {
             for (SocketProcessor sp:clientQueue) {
-                sp.send(msg);
+                if (sp.loggedIn()) {
+                    sp.send(msg);
+                }
             }
         }
     }
@@ -104,7 +106,7 @@ public class JavaTestServer {
     public void sendToAll (String[] msgs, long excID) {
         for (String msg:msgs) {
             for (SocketProcessor sp:clientQueue) {
-                if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID) {
+                if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID && sp.loggedIn()) {
                     sp.send(msg);
                 }
             }
@@ -161,6 +163,7 @@ public class JavaTestServer {
 
         private boolean helloReceived = false;
         private boolean nickReceived = false;
+        private boolean helloSended = false;
 
         private Player self = null;
 
@@ -225,12 +228,12 @@ public class JavaTestServer {
                             pieces = line.split(" ", 2);
                             pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
                             self = new Player(curPlayerID++, pieces[1]);
+                            send("(hello " + (System.currentTimeMillis() - serverStartTime) + " " + self.getID() + " " + "\"" + self.getNick() + "\"" + " " + self.getHitPoints() + " " + 0.07 + " " + 100 + " " + 100 + " " + "\"SOUTH\""  + " " + "\"desu\"" + ")");
+                            helloSended = true;
                             synchronized (players) {
                                 players.add(self);
                             }
-                            send("(hello " + self.getID() + " " + (System.currentTimeMillis() - serverStartTime) + " " + 0 + " " + 0 + ")");
-                            sendToAll(new String[] {"(newplayer " + self.getID() + " " + 0 + " " + 0 + ")",
-                                                    "(nick " + self.getID() + " \"" + self.getNick() + "\")"}, self.getID());
+                            sendToAll(new String[] {"(newplayer " + (System.currentTimeMillis() - serverStartTime) + " " + self.getID() + " " + "\"" + self.getNick() + "\"" + " " + self.getHitPoints() + " " + 0.07 + " " + 100 + " " + 100 + " " + "\"SOUTH\""  + " " + "\"desu\"" + ")"}, self.getID());
                             synchronized (players) {
                                 Player p;
                                 Point cur;
@@ -240,13 +243,14 @@ public class JavaTestServer {
                                     if (p != self) {
                                         cur = p.getCurPos();
 
-                                        send("(newplayer " + p.getID() + " " + cur.x + " " + cur.y + ")");
+                                        //send("(newplayer " + p.getID() + " " + cur.x + " " + cur.y + ")");
+                                        send("(newplayer " + (System.currentTimeMillis() - serverStartTime) + " " + p.getID() + " " + "\"" + p.getNick() + "\"" + " " + p.getHitPoints() + " " + 0.07 + " " + cur.x + " " + cur.y + " " + "\"SOUTH\""  + " " + "\"desu\"" + ")");
                                         if (p.getText() != null) {
                                             send("(message " + p.getID() + " \"" + p.getText() + "\")");
                                         }
-                                        if (p.getNick() != null) {
+                                        /*if (p.getNick() != null) {
                                             send("(nick " + p.getID() + " \"" + p.getNick() + "\")");
-                                        }
+                                        }*/
                                     }
                                 }
                             }
@@ -288,11 +292,13 @@ public class JavaTestServer {
             } else {
                 return;
             }
-            sendToAll(new String[] {"(delplayer " + self.getID()  + ")"}, self.getID());
-            synchronized (players) {
-                players.remove(self);
+            if (self != null) {
+                sendToAll(new String[] {"(delplayer " + self.getID()  + ")"}, self.getID());
+                synchronized (players) {
+                    players.remove(self);
+                }
+                self = null;
             }
-            self = null;
         }
 
         @Override
@@ -303,6 +309,10 @@ public class JavaTestServer {
 
         public Player getSelfPlayer() {
             return self;
+        }
+
+        public boolean loggedIn() {
+            return helloSended;
         }
     }
 
