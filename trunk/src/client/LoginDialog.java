@@ -1,3 +1,8 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
 package client;
 
 import java.awt.event.ActionEvent;
@@ -17,6 +22,10 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
+/**
+ *
+ * @author Sorc
+ */
 public class LoginDialog extends JDialog implements ActionListener, PropertyChangeListener, KeyListener {
     private String typedText = "Desu";
     private JTextField textField;
@@ -27,10 +36,6 @@ public class LoginDialog extends JDialog implements ActionListener, PropertyChan
     private String btnString2 = "Cancel";
 
     private DefaultNameTask task = null;
-
-    public String getValidatedText() {
-        return typedText;
-    }
 
     public LoginDialog(JFrame frame) {
         super(frame, true);
@@ -70,6 +75,10 @@ public class LoginDialog extends JDialog implements ActionListener, PropertyChan
         textField.addKeyListener(this);
 
         optionPane.addPropertyChangeListener(this);
+    }
+
+    public String getValidatedText() {
+        return typedText;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -125,8 +134,9 @@ public class LoginDialog extends JDialog implements ActionListener, PropertyChan
         }
     }
 
-    public void keyTyped(KeyEvent e) {}
     public void keyReleased(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {}
+
     public void keyPressed(KeyEvent e) {
         if (task != null) {
             task.cancel();
@@ -145,7 +155,6 @@ public class LoginDialog extends JDialog implements ActionListener, PropertyChan
     }
 
     private class DefaultNameTask extends TimerTask {
-
         public Timer timer; // TODO Where gentle stop timer?
         private int repeat = 20;
         private int step = 1000; // 1 sec

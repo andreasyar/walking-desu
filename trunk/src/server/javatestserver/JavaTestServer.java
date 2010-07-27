@@ -228,12 +228,34 @@ public class JavaTestServer {
                             pieces = line.split(" ", 2);
                             pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
                             self = new Player(curPlayerID++, pieces[1]);
-                            send("(hello " + (System.currentTimeMillis() - serverStartTime) + " " + self.getID() + " " + "\"" + self.getNick() + "\"" + " " + self.getHitPoints() + " " + 0.07 + " " + 100 + " " + 100 + " " + "\"SOUTH\""  + " " + "\"desu\"" + ")");
+                            if ("localhost".equals(s.getInetAddress().getHostName())) {
+                                self.setSpriteSet("poring");
+                            } else {
+                                self.setSpriteSet("desu");
+                            }
+                            send("(hello "
+                                    + self.getID() + " "
+                                    + self.getHitPoints() + " "
+                                    + 0.07 + " "
+                                    + 100 + " "
+                                    + 100 + " "
+                                    + (System.currentTimeMillis() - serverStartTime) + " "
+                                    + "\"" + self.getNick() + "\"" + " "
+                                    + "\"SOUTH\""  + " "
+                                    + "\"" + self.getSpriteSet() + "\"" + ")");
                             helloSended = true;
                             synchronized (players) {
                                 players.add(self);
                             }
-                            sendToAll(new String[] {"(newplayer " + (System.currentTimeMillis() - serverStartTime) + " " + self.getID() + " " + "\"" + self.getNick() + "\"" + " " + self.getHitPoints() + " " + 0.07 + " " + 100 + " " + 100 + " " + "\"SOUTH\""  + " " + "\"desu\"" + ")"}, self.getID());
+                            sendToAll(new String[] {"(newplayer "
+                                    + self.getID() + " "
+                                    + self.getHitPoints() + " "
+                                    + 0.07 + " "
+                                    + 100 + " "
+                                    + 100 + " "
+                                    + "\"" + self.getNick() + "\"" + " "
+                                    + "\"SOUTH\""  + " "
+                                    + "\"" + self.getSpriteSet() + "\"" + ")"}, self.getID());
                             synchronized (players) {
                                 Player p;
                                 Point cur;
@@ -243,14 +265,18 @@ public class JavaTestServer {
                                     if (p != self) {
                                         cur = p.getCurPos();
 
-                                        //send("(newplayer " + p.getID() + " " + cur.x + " " + cur.y + ")");
-                                        send("(newplayer " + (System.currentTimeMillis() - serverStartTime) + " " + p.getID() + " " + "\"" + p.getNick() + "\"" + " " + p.getHitPoints() + " " + 0.07 + " " + cur.x + " " + cur.y + " " + "\"SOUTH\""  + " " + "\"desu\"" + ")");
+                                        send("(newplayer "
+                                                + p.getID() + " "
+                                                + p.getHitPoints() + " "
+                                                + 0.07 + " "
+                                                + cur.x + " "
+                                                + cur.y + " "
+                                                + "\"" + p.getNick() + "\"" + " "
+                                                + "\"SOUTH\""  + " "
+                                                + "\"" + p.getSpriteSet() + "\"" + ")");
                                         if (p.getText() != null) {
                                             send("(message " + p.getID() + " \"" + p.getText() + "\")");
                                         }
-                                        /*if (p.getNick() != null) {
-                                            send("(nick " + p.getID() + " \"" + p.getNick() + "\")");
-                                        }*/
                                     }
                                 }
                             }
@@ -359,6 +385,7 @@ abstract class Unit {
     protected String nick;
     protected String text;
     protected int hitPoints;
+    protected String spriteSet;
 
     protected Movement mv;
 
@@ -402,6 +429,14 @@ abstract class Unit {
 
     public Point getCurPos() {
         return mv.getCurPos();
+    }
+
+    public void setSpriteSet(String spriteSet) {
+        this.spriteSet = spriteSet;
+    }
+
+    public String getSpriteSet() {
+        return spriteSet;
     }
 }
 
