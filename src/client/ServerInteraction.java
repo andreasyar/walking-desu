@@ -124,8 +124,43 @@ public class ServerInteraction {
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
             serverStartTime = System.currentTimeMillis() - begTime;
             p.move((Point) p.getCurPos().clone(), new Point(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4])), begTime);
-        } else if (pieces1[0].equals("delplayer")) {
+        } else if ("delplayer".equals(pieces1[0])) {
             field.delPlayer(Long.parseLong(pieces1[1]));
+        } else if ("message".equals(pieces1[0])) {
+            pieces1 = command.split(" ", 3);
+            Player p = field.getPlayer(Long.parseLong(pieces1[1]));
+
+            if (p != null) {
+                p.setText(pieces1[2].substring(1, pieces1[2].length() - 1));
+                p.updateTextCloud();
+            }
+        } else if ("bolt".equals(pieces1[0])) {
+            Unit attacker = field.getPlayer(Long.parseLong(pieces1[1]));
+            Unit target = field.getPlayer(Long.parseLong(pieces1[2]));
+            long begTime = Long.parseLong(pieces1[3]);
+
+            if (attacker != null && target != null) {
+                field.addNuke(attacker, target, begTime);
+            }
+        } else if ("hit".equals(pieces1[0])) {
+            Unit attacker = field.getPlayer(Long.parseLong(pieces1[1]));
+            Unit target = field.getPlayer(Long.parseLong(pieces1[2]));
+
+            if (attacker != null && target != null) {
+                target.doHit(Integer.parseInt(pieces1[3]));
+            }
+        } else if ("teleport".equals(pieces1[0])) {
+            Player p = field.getPlayer(Long.parseLong(pieces1[1]));
+
+            if (p != null) {
+                p.teleportTo(Integer.parseInt(pieces1[2]), Integer.parseInt(pieces1[3]));
+            }
+        } else if ("heal".equals(pieces1[0])) {
+            Player p = field.getPlayer(Long.parseLong(pieces1[1]));
+
+            if (p != null) {
+                p.doHeal(Integer.parseInt(pieces1[2]));
+            }
         }
     }
 

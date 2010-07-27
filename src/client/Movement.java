@@ -14,6 +14,7 @@ public class Movement {
     public Movement() {
         isMove = false;
         this.cur.move(0, 0);
+        this.speed = 0.07;
     }
 
     public Movement(Point cur, double speed) {
@@ -22,7 +23,7 @@ public class Movement {
         this.speed = speed;
     }
 
-    public void move(Point beg, Point end, long begTime) {
+    public void move(final Point beg, final Point end, long begTime) {
         isMove = true;
         this.beg = beg;
         this.end = end;
