@@ -7,14 +7,23 @@ public class StandAnimation {
     private Direction direct;
     private int period;             // Количество спрайтов в наборе
 
-    private final long step = 150;  // Время показа каждого спрайта (или время смены спрайта)
-    private int delay = 3000;       // Задержка до очередного проигрывания
-    private int repeat = 2;         // Число повторов показа всего набора спрайтов
+    private long step;  // Время показа каждого спрайта (или время смены спрайта)
+    private int delay;  // Задержка до очередного проигрывания
+    private int repeat; // Число повторов показа всего набора спрайтов
     private long begTime = 0;
     private long endTime = 0;
 
     public StandAnimation(String spriteSet) {
         this.set = DirectionalSpriteSet.load(spriteSet + "_stand");
+        if ("desu".equals(spriteSet)) {
+            this.step = 150;
+            this.delay = 3000;
+            this.repeat = 2;
+        } else if ("poring".equals(spriteSet)) {
+            this.step = 150;
+            this.delay = 0;
+            this.repeat = 1;
+        }
     }
 
     public final Sprite getSprite(long curTime, Point curPos) {

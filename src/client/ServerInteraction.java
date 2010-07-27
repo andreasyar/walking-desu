@@ -83,48 +83,49 @@ public class ServerInteraction {
     }
 
     private void commandHandler(String command) {
-        String[] pieces;
+        String[] pieces1;
 
         if (command.startsWith("(")) {
             command = command.substring(1, command.length() - 1);
         }
-        pieces = command.split(" ");
+        pieces1 = command.split(" ");
 
-        if ("hello".equals(pieces[0])) {
-            pieces = command.split(" ", 4);
-            serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces[1]);
-            int id = Integer.parseInt(pieces[2]);
-            String nick = pieces[3].substring(1, pieces[3].indexOf("\"", 1));
-            String[] pieces2 = pieces[3].substring(pieces[3].indexOf("\"", 1) + 2, pieces[3].length()).split(" ", 5);
-            int maxHitPoints = Integer.parseInt(pieces2[0]);
-            double speed = Double.parseDouble(pieces2[1]);
-            int x = Integer.parseInt(pieces2[2]);
-            int y = Integer.parseInt(pieces2[3]);
-            Direction d = Direction.valueOf(pieces2[4].substring(1, pieces2[4].indexOf("\"", 1)));
-            String set = pieces2[4].substring(pieces2[4].indexOf("\"", 1) + 3, pieces2[4].length() - 1);
-            field.addSelfPlayer(new Player(id, nick, maxHitPoints, speed, x, y, d, "poring"));
-        } else if ("timesync".equals(pieces[0])) {
-            serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces[1]);
-        } else if ("newplayer".equals(pieces[0])) {
-            pieces = command.split(" ", 4);
-            serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces[1]);
-            int id = Integer.parseInt(pieces[2]);
-            String nick = pieces[3].substring(1, pieces[3].indexOf("\"", 1));
-            String[] pieces2 = pieces[3].substring(pieces[3].indexOf("\"", 1) + 2, pieces[3].length()).split(" ", 5);
-            int maxHitPoints = Integer.parseInt(pieces2[0]);
-            double speed = Double.parseDouble(pieces2[1]);
-            int x = Integer.parseInt(pieces2[2]);
-            int y = Integer.parseInt(pieces2[3]);
-            Direction d = Direction.valueOf(pieces2[4].substring(1, pieces2[4].indexOf("\"", 1)));
-            String set = pieces2[4].substring(pieces2[4].indexOf("\"", 1) + 3, pieces2[4].length() - 1);
-            field.addPlayer(new Player(id, nick, maxHitPoints, speed, x, y, d, set));
-        } else if ("move".equals(pieces[0])) {
-            long begTime = Long.parseLong(pieces[2]);
-            Player p = field.getPlayer(Long.parseLong(pieces[1]));
+        if ("hello".equals(pieces1[0])) {
+            String[] pieces2;
+
+            pieces1 = command.split(" ", 8);
+            pieces2 = pieces1[7].substring(1, pieces1[7].length() - 1).split("\" \"", 3);
+            serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces1[6]);
+            field.addSelfPlayer(new Player(Integer.parseInt(pieces1[1]),
+                    pieces2[0],
+                    Integer.parseInt(pieces1[2]),
+                    Double.parseDouble(pieces1[3]),
+                    Integer.parseInt(pieces1[4]),
+                    Integer.parseInt(pieces1[5]),
+                    Direction.valueOf(pieces2[1]),
+                    pieces2[2]));
+        } else if ("timesync".equals(pieces1[0])) {
+            serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces1[1]);
+        } else if ("newplayer".equals(pieces1[0])) {
+            String[] pieces2;
+
+            pieces1 = command.split(" ", 7);
+            pieces2 = pieces1[6].substring(1, pieces1[6].length() - 1).split("\" \"", 3);
+            field.addPlayer(new Player(Integer.parseInt(pieces1[1]),
+                    pieces2[0],
+                    Integer.parseInt(pieces1[2]),
+                    Double.parseDouble(pieces1[3]),
+                    Integer.parseInt(pieces1[4]),
+                    Integer.parseInt(pieces1[5]),
+                    Direction.valueOf(pieces2[1]),
+                    pieces2[2]));
+        } else if ("move".equals(pieces1[0])) {
+            long begTime = Long.parseLong(pieces1[2]);
+            Player p = field.getPlayer(Long.parseLong(pieces1[1]));
             serverStartTime = System.currentTimeMillis() - begTime;
-            p.move((Point) p.getCurPos().clone(), new Point(Integer.parseInt(pieces[3]), Integer.parseInt(pieces[4])), begTime);
-        } else if (pieces[0].equals("delplayer")) {
-            field.delPlayer(Long.parseLong(pieces[1]));
+            p.move((Point) p.getCurPos().clone(), new Point(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4])), begTime);
+        } else if (pieces1[0].equals("delplayer")) {
+            field.delPlayer(Long.parseLong(pieces1[1]));
         }
     }
 
