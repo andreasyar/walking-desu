@@ -204,16 +204,21 @@ public class JavaTestServer {
                     if (helloReceived) {
                         if (nickReceived) {
                             if ("move".equals(pieces[0])) {
+                                // <editor-fold defaultstate="collapsed" desc="Move message processing">
                                 line = line.substring("move".length() + 1, line.length());
                                 pieces = line.split(" ");
                                 self.move(self.getCurPos(), new Point(Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1])), (System.currentTimeMillis() - serverStartTime));
                                 sendToAll(new String[] {"(move " + self.getID() + " " + (System.currentTimeMillis() - serverStartTime) + " " + pieces[0] + " " + pieces[1] + ")"}, self.getID());
+                                // </editor-fold>
                             } else if ("message".equals(pieces[0])) {
+                                // <editor-fold defaultstate="collapsed" desc="Message message processing">
                                 line = line.substring("message".length() + 1, line.length());
                                 line = line.substring(1, line.length() - 1);
                                 self.setText(line);
                                 sendToAll(new String[] {"(message " + self.getID() + " \"" + line + "\")"}, self.getID());
+                                // </editor-fold>
                             } else if ("bolt".equals(pieces[0])) {
+                                // <editor-fold defaultstate="collapsed" desc="Bolt message processing">
                                 line = line.substring("bolt".length() + 1, line.length());
                                 Player target = getPlayer(Long.parseLong(line));
                                 if (target != null) {
@@ -222,12 +227,17 @@ public class JavaTestServer {
                                     a.setScheduledFuture(f);
                                 }
                                 sendToAll(new String[] {"(bolt " + self.getID() + " " + target.getID() + " " + (System.currentTimeMillis() - serverStartTime) + ")"}, self.getID());
+                                // </editor-fold>
                             }
                         } else if ("nick".equals(pieces[0])) {
+                            // <editor-fold defaultstate="collapsed" desc="Nick message processing">
+                            Point selfCurPos;
+
                             nickReceived = true;
                             pieces = line.split(" ", 2);
                             pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
                             self = new Player(curPlayerID++, pieces[1]);
+                            selfCurPos = self.getCurPos();
                             if ("localhost".equals(s.getInetAddress().getHostName())) {
                                 self.setSpriteSet("poring");
                             } else {
@@ -237,8 +247,8 @@ public class JavaTestServer {
                                     + self.getID() + " "
                                     + self.getHitPoints() + " "
                                     + 0.07 + " "
-                                    + 100 + " "
-                                    + 100 + " "
+                                    + selfCurPos.x + " "
+                                    + selfCurPos.y + " "
                                     + (System.currentTimeMillis() - serverStartTime) + " "
                                     + "\"" + self.getNick() + "\"" + " "
                                     + "\"SOUTH\""  + " "
@@ -251,8 +261,8 @@ public class JavaTestServer {
                                     + self.getID() + " "
                                     + self.getHitPoints() + " "
                                     + 0.07 + " "
-                                    + 100 + " "
-                                    + 100 + " "
+                                    + selfCurPos.x + " "
+                                    + selfCurPos.y + " "
                                     + "\"" + self.getNick() + "\"" + " "
                                     + "\"SOUTH\""  + " "
                                     + "\"" + self.getSpriteSet() + "\"" + ")"}, self.getID());
@@ -287,6 +297,7 @@ public class JavaTestServer {
                             synchronized (players) {
                                 System.out.println("Welcome to WD Java Test Server. Online: " + players.size() + " players (with you).");
                             }
+                            // </editor-fold>
                         }
                     } else if ("hello".equals(pieces[0])) {
                         helloReceived = true;
