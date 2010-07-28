@@ -10,6 +10,7 @@ public class GameField {
     private final ArrayList<Unit> units = new ArrayList<Unit>();
     private final ArrayList<Nuke> nukes = new ArrayList<Nuke>();
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
+    private String tdStatus = null;
 
     public GameField() {}
 
@@ -24,6 +25,14 @@ public class GameField {
         }
 
         return null;
+    }
+
+    public void setTDStatus(String status) {
+        tdStatus = status;
+    }
+
+    public String getTDStatus() {
+        return tdStatus;
     }
 
     public void addPlayer(Player player) {
@@ -45,6 +54,20 @@ public class GameField {
                         }
                     }
                     units.remove(p);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }
+
+    public void delTower(long id) {
+        synchronized (towers) {
+            try {
+                Tower t = getTower(id);
+                if (t != null) {
+                    towers.remove(t);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

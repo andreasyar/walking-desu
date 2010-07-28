@@ -32,6 +32,8 @@ public class JavaTestServer {
     private final ArrayList<NPC> npcs = new ArrayList<NPC>();
     private final ArrayList<Monster> monsters = new ArrayList<Monster>();
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
+    private final int tdMonsterLossLimit = 100;
+    private int tdMonsterLoss = 0;
 
     ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
 
@@ -401,7 +403,7 @@ public class JavaTestServer {
         public void run() {
             if (!canceled) {
                 if (!bolt.isFlight()) {
-                    bolt.getTarget().doHit(10);
+                    //bolt.getTarget().doHit(10);
                     sendToAll(new String[] {"(hit " + bolt.getAttacker().getID() + " " + bolt.getTarget().getID() + " " + ((Tower) bolt.getAttacker()).getDamage() + ")"});
                     /*if (bolt.getTarget().getHitPoints() == 0) {
                         bolt.getTarget().teleportToSpawn();
@@ -433,6 +435,8 @@ public class JavaTestServer {
         private Random rand = new Random();
         private ScheduledFuture future = null;
         private boolean canceled = false;
+        private int curWaveMonLoss;
+        private int strMult;
 
         private long step;
 
@@ -440,6 +444,8 @@ public class JavaTestServer {
             this.spawnDelay = spawnDelay;
             this.monsterCount = monsterCount;
             step = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
+            curWaveMonLoss = 0;
+            strMult = 0;
         }
 
         public void run() {
@@ -451,10 +457,28 @@ public class JavaTestServer {
 
                 if (tmpStep > step) {
                     step = tmpStep;
+                    tdMonsterLoss += curWaveMonLoss;
+                    if (tdMonsterLoss >= tdMonsterLossLimit) {
+                        tdMonsterLoss = 0;
+                        strMult = 1;
+                        synchronized (towers) {
+                            for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
+                                sendToAll(new String[] {"(deltower " + li.next().getID()  + ")"});
+                                li.remove();
+                            }
+                        }
+                    } else if (curWaveMonLoss == 0) {
+                        strMult++;
+                    }
+                    sendToAll(new String[] {"(monsterloss "
+                            + tdMonsterLoss + " "
+                            + tdMonsterLossLimit + " "
+                            + strMult + ")"});
+                    curWaveMonLoss = monsterCount;
                     synchronized (monsters) {
                         for (int i = 0; i < monsterCount; i++) {
                             beg = new Point(500 + rand.nextInt(500), 5 + rand.nextInt(50));
-                            m = new Monster(curPlayerID++, "Monster", 20, beg.x, beg.y, speeds[rand.nextInt(2)]);
+                            m = new Monster(curPlayerID++, "Monster", 20 * strMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                             m.setSpriteSetName("poring");
                             monsters.add(m);
                             sendToAll(new String[] {"(newmonster "
@@ -474,6 +498,9 @@ public class JavaTestServer {
                 synchronized (monsters) {
                     for (ListIterator<Monster> li = monsters.listIterator(); li.hasNext(); ) {
                         m = li.next();
+                        if (m.dead()) {
+                            curWaveMonLoss--;
+                        }
                         if (m.dead() || !m.isMove()) {
                             sendToAll(new String[] {"(delmonster " + m.getID()  + ")"});
                             li.remove();
