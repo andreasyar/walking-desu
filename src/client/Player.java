@@ -3,8 +3,9 @@ package client;
 import java.awt.Point;
 
 public class Player extends Unit {
-    public Player(int id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
+    public Player(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         super(id, nick, maxHitPoints, speed, x, y, d, set);
+        restoreHitPoints();
     }
 
     public void doHit(int dmg) {

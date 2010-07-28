@@ -62,7 +62,6 @@ public class WanderingGUI implements Runnable {
 
                 if (self != null && msgText != null && (self.getText() == null || !self.getText().equals(msgText))) {
                     self.setText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-                    self.updateTextCloud();
                     inter.addCommand("(message \"" +  self.getText() + "\")");
                 }
             }
@@ -84,7 +83,6 @@ public class WanderingGUI implements Runnable {
 
             if (self != null && msgText != null && (self.getText() == null || !self.getText().equals(msgText))) {
                 self.setText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-                self.updateTextCloud();
                 inter.addCommand("(message \"" +  self.getText() + "\")");
             }
         }

@@ -1,4 +1,4 @@
-package client;
+package server.javatestserver;
 
 import java.awt.Point;
 
@@ -50,7 +50,7 @@ public class Movement {
 
     public Point getCurPos() {
         if (isMove) {
-            long curTime = System.currentTimeMillis() - ServerInteraction.serverStartTime;
+            long curTime = System.currentTimeMillis() - JavaTestServer.serverStartTime;
             double sqrt = Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2));
 
             cur.x = (int) (beg.x + ((end.x - beg.x) / sqrt) * speed * (curTime - begTime));

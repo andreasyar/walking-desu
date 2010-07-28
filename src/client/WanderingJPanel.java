@@ -13,9 +13,7 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.Point;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import javax.swing.JPanel;
@@ -82,15 +80,18 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             // Да, придётся отсортировать игроков по возрастанию Y координаты
             // чтобы "нижелещаие" спрайты не перекрывали вышележащие.
             // TODO optimization
-            for (ListIterator<Unit> li = field.getYSortedUnits().listIterator(); li.hasNext(); ) {
-                Unit u = li.next();
-                Sprite s = u.getSprite();
-                BufferedImage textCloud = u.getTextCloud();
+            ArrayList<Unit> units = field.getYSortedUnits();
+            synchronized (units) {
+                for (ListIterator<Unit> li = units.listIterator(); li.hasNext(); ) {
+                    Unit u = li.next();
+                    Sprite s = u.getSprite();
+                    BufferedImage textCloud = u.getTextCloud();
 
-                buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
-                buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
-                if (textCloud != null) {
-                    buffGraph.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
+                    buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                    buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                    if (textCloud != null) {
+                        buffGraph.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
+                    }
                 }
             }
 
@@ -101,6 +102,15 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
                     buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                 }
+            }
+
+            for (ListIterator<Tower> li = field.getTowers().listIterator(); li.hasNext(); ) {
+                Tower t = li.next();
+                Sprite s = t.getSprite();
+
+                //buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                buffGraph.drawString(t.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                buffGraph.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
             }
             
 
@@ -233,6 +243,9 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime);
                 inter.addCommand("(bolt " + self.getSelectedUnit().getID() + ")");
             }
+        } else if (key == KeyEvent.VK_F4) {
+            Point cur =  field.getSelfPlayer().getCurPos();
+            inter.addCommand("(tower " + cur.x + " " + cur.y + ")");
         }
     }
     public void keyReleased(KeyEvent e) {

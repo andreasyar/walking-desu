@@ -13,16 +13,15 @@ import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.Hashtable;
 
-abstract public class Unit {
+public abstract class Unit {
     private MovementAnimation moveAnim;
     private StandAnimation standAnim;
 
-    private Movement move;
+    private Movement mv;
 
-    private int id;
+    private long id;
     private String nick;
 
-    // В начале текст и облако пусты.
     private String text = null;
     private BufferedImage textCloud = null;
 
@@ -30,45 +29,54 @@ abstract public class Unit {
     protected int hitPoints;
 
     protected Unit selectedUnit;
+
     protected Nuke currentNuke;
 
-    public Unit(int id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
+    public Unit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         this.id = id;
         this.nick = nick;
         this.maxHitPoints = maxHitPoints;
-        hitPoints = this.maxHitPoints;
         moveAnim = new MovementAnimation(set);
         standAnim = new StandAnimation(set);
         standAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
-        move = new Movement(new Point(x, y), speed);
-    }
-
-    public void changeSpriteSet(String spriteSet) {
-        moveAnim = new MovementAnimation(spriteSet);
-        standAnim = new StandAnimation(spriteSet);
-        standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
+        mv = new Movement(x, y, speed);
     }
 
     public Sprite getSprite() {
-        return move.isMove() ?
-            moveAnim.getSprite(move.getCurPos()) :
-            standAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, move.getCurPos());
+        return mv.isMove() ?
+            moveAnim.getSprite(mv.getCurPos()) :
+            standAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
+    }
+
+    public void changeSpriteSet(String spriteSetName) {
+        moveAnim = new MovementAnimation(spriteSetName);
+        standAnim = new StandAnimation(spriteSetName);
+        standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
+    }
+
+// <editor-fold defaultstate="collapsed" desc="Movement works">
+    public void move(Point beg, Point end, long begTime) {
+        mv.move(beg, end, begTime);
+        moveAnim.run(beg, end, 10.0);
+        standAnim.run(moveAnim.getDirection(), mv.getEndTime());
+    }
+
+    public double getSpeed() {
+        return mv.getSpeed();
+    }
+
+    public void setSpeed(double speed) {
+        mv.setSpeed(speed);
     }
 
     public Point getCurPos() {
-        return move.getCurPos();
+        return mv.getCurPos();
     }
-
-    public void move(Point beg, Point end, long begTime) {
-        move.move(beg, end, begTime);
-        moveAnim.run(beg, end, 10.0);
-        standAnim.run(moveAnim.getDirection(), move.getEndTime());
-    }
-
+// </editor-fold>
     public long getID() {
         return id;
     }
-
+// <editor-fold defaultstate="collapsed" desc="Nick works">
     public String getNick() {
         return nick;
     }
@@ -76,26 +84,22 @@ abstract public class Unit {
     public void setNick(String nick) {
         this.nick = nick;
     }
-
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="Message works">
     public String getText() {
         return text;
     }
 
     public void setText(String text) {
         this.text = text;
+        updateTextCloud();
     }
 
-    abstract public void doHit(int dmg);
-
-    public int getHitPoints() {
-        return hitPoints;
+    public BufferedImage getTextCloud() {
+        return textCloud;
     }
 
-    public void setSpeed(double speed) {
-        move.setSpeed(speed);
-    }
-
-    public void updateTextCloud() {
+    private void updateTextCloud() {
         if (text == null || text.equals("")) {
             textCloud = null;
         } else {
@@ -133,28 +137,34 @@ abstract public class Unit {
             }
         }
     }
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="HP works">
+    abstract public void doHit(int dmg);
 
-    public BufferedImage getTextCloud() {
-        return textCloud;
+    public int getHitPoints() {
+        return hitPoints;
     }
-
-    public void unselectUnit() {
-        selectedUnit = null;
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="Selected unit works">
+    public Unit getSelectedUnit() {
+        return selectedUnit;
     }
 
     public void selectUnit(Unit unit) {
         selectedUnit = unit;
     }
 
-    public Unit getSelectedUnit() {
-        return selectedUnit;
+    public void unselectUnit() {
+        selectedUnit = null;
+    }
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="Current nuke works">
+    public Nuke getCurrentNuke() {
+        return currentNuke;
     }
 
     public void setCurrentNuke(Nuke currentNuke) {
         this.currentNuke = currentNuke;
     }
-
-    public Nuke getCurrentNuke() {
-        return currentNuke;
-    }
+// </editor-fold>
 }

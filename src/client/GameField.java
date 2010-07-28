@@ -9,6 +9,7 @@ public class GameField {
     private Player selfPlayer;
     private final ArrayList<Unit> units = new ArrayList<Unit>();
     private final ArrayList<Nuke> nukes = new ArrayList<Nuke>();
+    private final ArrayList<Tower> towers = new ArrayList<Tower>();
 
     public GameField() {}
 
@@ -33,14 +34,21 @@ public class GameField {
 
     public void delPlayer(long id) {
         synchronized (units) {
-            Player p = getPlayer(id);
-            Unit u;
-            units.remove(p);
-            for (ListIterator<Unit> li = units.listIterator(); li.hasNext();) {
-                u = li.next();
-                if (u.getSelectedUnit().equals(p)) {
-                    u.unselectUnit();
+            try {
+                Player p = getPlayer(id);
+                if (p != null) {
+                    Unit u;
+                    for (ListIterator<Unit> li = units.listIterator(); li.hasNext();) {
+                        u = li.next();
+                        if (u.getSelectedUnit() != null && u.getSelectedUnit().equals(p)) {
+                            u.unselectUnit();
+                        }
+                    }
+                    units.remove(p);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
             }
         }
     }
@@ -76,15 +84,60 @@ public class GameField {
 
     public void addNuke(Unit self, Unit selectedUnit, long begTime) {
         synchronized (nukes) {
-            Nuke n = new PowerOfWateringPot();
-            nukes.add(n);
-            n.use(self, selectedUnit, begTime);
+            Nuke n = new PowerOfWateringPot(self);
+            n.use(selectedUnit, begTime);
             self.setCurrentNuke(n);
+            nukes.add(n);
         }
     }
 
     public ArrayList<Nuke> getNukes() {
         return nukes;
+    }
+
+    public void addTower(Tower tower) {
+        synchronized (towers) {
+            towers.add(tower);
+        }
+    }
+
+    public Tower getTower(long id) {
+        synchronized (towers) {
+            for (ListIterator li = towers.listIterator(); li.hasNext();) {
+                Tower t = (Tower) li.next();
+                if (t.getID() == id) {
+                    return t;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public ArrayList<Tower> getTowers() {
+        return towers;
+    }
+
+    public Unit getUnit(long id) {
+        synchronized (units) {
+            for (ListIterator<Unit> li = units.listIterator(); li.hasNext();) {
+                Unit p = li.next();
+                if (p.getID() == id) {
+                    return p;
+                }
+            }
+        }
+
+        synchronized (towers) {
+            for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
+                Tower t = li.next();
+                if (t.getID() == id) {
+                    return t;
+                }
+            }
+        }
+
+        return null;
     }
 
     private class YAligner implements Comparator {
