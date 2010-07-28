@@ -57,6 +57,20 @@ public class DirectionalSpriteSet {
             loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/poring_west_01.png", "img/" + name + "/poring_west_02.png", "img/" + name + "/poring_west_03.png", "img/" + name + "/poring_west_04.png"});
             loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/poring_east_01.png", "img/" + name + "/poring_east_02.png", "img/" + name + "/poring_east_03.png", "img/" + name + "/poring_east_04.png"});
             loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/poring_west_01.png", "img/" + name + "/poring_west_02.png", "img/" + name + "/poring_west_03.png", "img/" + name + "/poring_west_04.png"});
+        } else if (name.equals("tower_walk")) {
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/tower.png"});
+        } else if (name.equals("tower_stand")) {
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/tower.png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/tower.png"});
         }
     }
 

@@ -193,7 +193,17 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[4]),
                     Integer.parseInt(pieces1[5]),
                     Direction.SOUTH,
-                    "desu"));
+                    "tower"));
+        } else if ("monsterloss".equals(pieces1[0])) {
+            pieces1 = command.split(" ");
+            field.setTDStatus(Integer.parseInt(pieces1[1]) + "/" + Integer.parseInt(pieces1[2]) + " x" + Integer.parseInt(pieces1[3]));
+        } else if ("deltower".equals(pieces1[0])) {
+            try {
+                field.delTower(Long.parseLong(pieces1[1]));
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
     }
 

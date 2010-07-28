@@ -23,6 +23,10 @@ public class StandAnimation {
             this.step = 150;
             this.delay = 0;
             this.repeat = 1;
+        } else if ("tower".equals(spriteSet)) {
+            this.step = 150;
+            this.delay = 0;
+            this.repeat = 1;
         }
     }
 

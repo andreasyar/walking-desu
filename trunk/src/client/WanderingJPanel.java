@@ -36,9 +36,13 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private Dimension geoDebugLayerDim = null;
 
     private boolean selectMode = false;
+    private boolean showTowerRange = false;
 
     private GameField field;
     private ServerInteraction inter;
+
+    private static long buildDelay = 5000;  // 5 sec
+    private long lastBuildTime = 0;
 
     public WanderingJPanel(GameField field, ServerInteraction inter) {
         addMouseListener(this);
@@ -95,12 +99,15 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 }
             }
 
-            for (ListIterator<Nuke> li = field.getNukes().listIterator(); li.hasNext(); ) {
-                Nuke n = li.next();
-                if (n.isMove()) {
-                    Sprite s = n.getSprite();
+            ArrayList<Nuke> nukes = field.getNukes();
+            synchronized (nukes) {
+                for (ListIterator<Nuke> li = nukes.listIterator(); li.hasNext(); ) {
+                    Nuke n = li.next();
+                    if (n.isMove()) {
+                        Sprite s = n.getSprite();
 
-                    buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                        buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                    }
                 }
             }
 
@@ -108,13 +115,19 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 Tower t = li.next();
                 Sprite s = t.getSprite();
 
-                //buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                 buffGraph.drawString(t.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
-                buffGraph.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
+                if (showTowerRange) {
+                    buffGraph.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
+                }
             }
-            
 
             buffGraph.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
+
+            String tdStatus = field.getTDStatus();
+            if (tdStatus != null) {
+                buffGraph.drawString(tdStatus, panelDim.width / 2, 50);
+            }
 
             g.drawImage(buffImg, 0, 0, null);
         }
@@ -244,13 +257,20 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 inter.addCommand("(bolt " + self.getSelectedUnit().getID() + ")");
             }
         } else if (key == KeyEvent.VK_F4) {
-            Point cur =  field.getSelfPlayer().getCurPos();
-            inter.addCommand("(tower " + cur.x + " " + cur.y + ")");
+            if (System.currentTimeMillis() - ServerInteraction.serverStartTime - lastBuildTime > buildDelay) {
+                Point cur =  field.getSelfPlayer().getCurPos();
+                inter.addCommand("(tower " + cur.x + " " + cur.y + ")");
+                lastBuildTime = System.currentTimeMillis() - ServerInteraction.serverStartTime;
+            }
+        } else if (key == KeyEvent.VK_T) {
+            showTowerRange = true;
         }
     }
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             selectMode = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_T) {
+            showTowerRange = false;
         }
     }
 }
