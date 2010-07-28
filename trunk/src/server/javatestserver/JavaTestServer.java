@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.Iterator;
 import java.awt.Point;
+import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
@@ -25,11 +26,12 @@ public class JavaTestServer {
             = new LinkedBlockingQueue<SocketProcessor>();
 
     private long curPlayerID = 1;
-    private long curActionID = 1;
     ArrayList<Long> playerIDs = new ArrayList<Long>();
 
     private final ArrayList<Player> players = new ArrayList<Player>();
     private final ArrayList<NPC> npcs = new ArrayList<NPC>();
+    private final ArrayList<Monster> monsters = new ArrayList<Monster>();
+    private final ArrayList<Tower> towers = new ArrayList<Tower>();
 
     ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
 
@@ -48,6 +50,11 @@ public class JavaTestServer {
      */
     void run() {
         serverThread = Thread.currentThread();
+
+        MonsterController c = new MonsterController(20 * 1000, 20);
+        c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));
+        TowerController t = new TowerController();
+        t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
 
         while (true) {
             Socket s = getNewConnection();
@@ -228,6 +235,21 @@ public class JavaTestServer {
                                 }
                                 sendToAll(new String[] {"(bolt " + self.getID() + " " + target.getID() + " " + (System.currentTimeMillis() - serverStartTime) + ")"}, self.getID());
                                 // </editor-fold>
+                            } else if ("tower".equals(pieces[0])) {
+                                // <editor-fold defaultstate="collapsed" desc="Tower processing">
+                                pieces = line.split(" ");
+                                Tower t = new Tower(curPlayerID++, "Tower", 200.0, 10, 1000L, Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
+                                sendToAll(new String[] {"(tower "
+                                        + t.getID() + " "
+                                        + t.getRange() + " "
+                                        + t.getDamage() + " "
+                                        + t.getCurPos().x + " "
+                                        + t.getCurPos().y + " "
+                                        + "\"" + t.getNick() + "\"" + ")"});
+                                synchronized (towers) {
+                                    towers.add(t);
+                                }
+                                // </editor-fold>
                             }
                         } else if ("nick".equals(pieces[0])) {
                             // <editor-fold defaultstate="collapsed" desc="Nick message processing">
@@ -236,12 +258,12 @@ public class JavaTestServer {
                             nickReceived = true;
                             pieces = line.split(" ", 2);
                             pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
-                            self = new Player(curPlayerID++, pieces[1]);
+                            self = new Player(curPlayerID++, pieces[1], 100, 0, 0, 0.07);
                             selfCurPos = self.getCurPos();
                             if ("localhost".equals(s.getInetAddress().getHostName())) {
-                                self.setSpriteSet("poring");
+                                self.setSpriteSetName("poring");
                             } else {
-                                self.setSpriteSet("desu");
+                                self.setSpriteSetName("desu");
                             }
                             send("(hello "
                                     + self.getID() + " "
@@ -252,7 +274,7 @@ public class JavaTestServer {
                                     + (System.currentTimeMillis() - serverStartTime) + " "
                                     + "\"" + self.getNick() + "\"" + " "
                                     + "\"SOUTH\""  + " "
-                                    + "\"" + self.getSpriteSet() + "\"" + ")");
+                                    + "\"" + self.getSpriteSetName() + "\"" + ")");
                             helloSended = true;
                             synchronized (players) {
                                 players.add(self);
@@ -265,7 +287,7 @@ public class JavaTestServer {
                                     + selfCurPos.y + " "
                                     + "\"" + self.getNick() + "\"" + " "
                                     + "\"SOUTH\""  + " "
-                                    + "\"" + self.getSpriteSet() + "\"" + ")"}, self.getID());
+                                    + "\"" + self.getSpriteSetName() + "\"" + ")"}, self.getID());
                             synchronized (players) {
                                 Player p;
                                 Point cur;
@@ -283,7 +305,7 @@ public class JavaTestServer {
                                                 + cur.y + " "
                                                 + "\"" + p.getNick() + "\"" + " "
                                                 + "\"SOUTH\""  + " "
-                                                + "\"" + p.getSpriteSet() + "\"" + ")");
+                                                + "\"" + p.getSpriteSetName() + "\"" + ")");
                                         if (p.getText() != null) {
                                             send("(message " + p.getID() + " \"" + p.getText() + "\")");
                                         }
@@ -292,7 +314,21 @@ public class JavaTestServer {
                             }
 
                             // TODO NPC
-                            //
+                            synchronized (towers) {
+                                Tower t;
+
+                                for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
+                                    t = li.next();
+
+                                    send("(tower "
+                                        + t.getID() + " "
+                                        + t.getRange() + " "
+                                        + t.getDamage() + " "
+                                        + t.getCurPos().x + " "
+                                        + t.getCurPos().y + " "
+                                        + "\"" + t.getNick() + "\"" + ")");
+                                }
+                            }
 
                             synchronized (players) {
                                 System.out.println("Welcome to WD Java Test Server. Online: " + players.size() + " players (with you).");
@@ -353,7 +389,7 @@ public class JavaTestServer {
         }
     }
 
-    class NukeAction implements Runnable {
+    private class NukeAction implements Runnable {
         private NukeBolt bolt;
         private ScheduledFuture future = null;
         private boolean canceled = false;
@@ -366,13 +402,13 @@ public class JavaTestServer {
             if (!canceled) {
                 if (!bolt.isFlight()) {
                     bolt.getTarget().doHit(10);
-                    sendToAll(new String[] {"(hit " + bolt.getAttacker().getID() + " " + bolt.getTarget().getID() + " " + 10 + ")"});
-                    if (bolt.getTarget().getHitPoints() == 0) {
+                    sendToAll(new String[] {"(hit " + bolt.getAttacker().getID() + " " + bolt.getTarget().getID() + " " + ((Tower) bolt.getAttacker()).getDamage() + ")"});
+                    /*if (bolt.getTarget().getHitPoints() == 0) {
                         bolt.getTarget().teleportToSpawn();
                         bolt.getTarget().restoreHitPoints();
                         sendToAll(new String[] {"(teleport " + bolt.getTarget().getID() + " " + bolt.getTarget().getCurPos().x + " " + bolt.getTarget().getCurPos().y + ")"});
                         sendToAll(new String[] {"(heal " + bolt.getTarget().getID() + " " + bolt.getTarget().getHitPoints() + ")"});
-                    }
+                    }*/
                     this.cancel();
                 }
             }
@@ -389,192 +425,158 @@ public class JavaTestServer {
             }
         }
     }
-}
 
-abstract class Unit {
-    protected long id;
-    protected String nick;
-    protected String text;
-    protected int hitPoints;
-    protected String spriteSet;
+    private class MonsterController implements Runnable {
+        private long spawnDelay;
+        private int monsterCount;
+        private final double[] speeds = new double[] {0.08, 0.07, 0.06};
+        private Random rand = new Random();
+        private ScheduledFuture future = null;
+        private boolean canceled = false;
 
-    protected Movement mv;
+        private long step;
 
-    public long getID() {
-        return id;
-    }
-
-    public String getNick() {
-        return nick;
-    }
-
-    public void setNick(String nick) {
-        this.nick = nick;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    abstract public void doHit(int dmg);
-
-    public int getHitPoints() {
-        return hitPoints;
-    }
-
-    public boolean isMove() {
-        return mv.isMove();
-    }
-
-    public void move(Point beg, Point end, long begTime, double speed) {
-        mv = new Movement(beg, end, begTime, speed);
-    }
-
-    public void setSpeed(double speed) {
-        mv.setSpeed(speed);
-    }
-
-    public Point getCurPos() {
-        return mv.getCurPos();
-    }
-
-    public void setSpriteSet(String spriteSet) {
-        this.spriteSet = spriteSet;
-    }
-
-    public String getSpriteSet() {
-        return spriteSet;
-    }
-}
-
-class Player extends Unit {
-    private static final double speed = 0.07;
-    private static final int maxHitPoints = 100;
-
-    public Player(long id, String nick) { // TODO Когда создаётся Игрок то какая у него начальная позиция?
-        this.id = id;
-        this.nick = nick;
-        mv = new Movement(new Point(0, 0), new Point(0, 0), System.currentTimeMillis() - JavaTestServer.serverStartTime, speed);
-        hitPoints = maxHitPoints;
-    }
-
-    public void move(Point beg, Point end, long begTime) {
-        mv = new Movement(beg, end, begTime, speed);
-    }
-    
-    public void doHit(int dmg) {
-        hitPoints -= dmg;
-        if (hitPoints < 0) {
-            hitPoints = 0;
+        public MonsterController(long spawnDelay, int monsterCount) {
+            this.spawnDelay = spawnDelay;
+            this.monsterCount = monsterCount;
+            step = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
         }
-    }
 
-    public void restoreHitPoints() {
-        hitPoints = maxHitPoints;
-    }
+        public void run() {
+            if (!canceled) {
+                long tmpStep = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
+                Monster m;
+                Point beg;
+                Point end = new Point(600, 763);
 
-    public void teleportToSpawn() {
-        mv = new Movement(new Point(0, 0), new Point(0, 0), System.currentTimeMillis() - JavaTestServer.serverStartTime, speed);
-    }
-}
-
-class NPC extends Unit {
-
-    public NPC(long id, String nick) {
-        this.id = id;
-        this.nick = nick;
-        hitPoints = 1;
-    }
-
-    public void doHit(int dmg) {}
-}
-
-class Movement {
-    private boolean isMove;
-    private Point beg;
-    private Point cur; // For temporary storage purpose
-    private Point end;
-    private long begTime;
-    private long endTime; // Calculated value
-    private double speed;
-
-    public Movement(Point beg, Point end, long begTime, double speed) {
-        isMove = true;
-        this.beg = beg;
-        this.end = end;
-        this.begTime = begTime;
-        this.speed = speed;
-        endTime = begTime + (long) (beg.distance(end) / speed);
-        cur = (Point) beg.clone();
-    }
-
-    public boolean isMove() {
-        if (!isMove) {
-            return false;
-        } else {
-            cur = getCurPos();
-            return isMove;
-        }
-    }
-
-
-    public void setSpeed(double speed) {
-        if (isMove) {
-            this.speed = speed;
-            endTime = begTime + (long) (beg.distance(end) / speed);
-        } else {
-            this.speed = speed;
-        }
-    }
-
-    public Point getCurPos() {
-        if (isMove) {
-            long curTime = System.currentTimeMillis() - JavaTestServer.serverStartTime;
-            double sqrt = Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2));
-
-            cur.x = (int) (beg.x + ((end.x - beg.x) / sqrt) * speed * (curTime - begTime));
-            cur.y = (int) (beg.y + ((end.y - beg.y) / sqrt) * speed * (curTime - begTime));
-
-            if (beg.x > end.x && end.x > cur.x
-                    || beg.x < end.x && end.x < cur.x
-                    || beg.y > end.y && end.y > cur.y
-                    || beg.y < end.y && end.y < cur.y
-                    || curTime > endTime) {
-                cur.move(end.x, end.y);
-                isMove = false;
+                if (tmpStep > step) {
+                    step = tmpStep;
+                    synchronized (monsters) {
+                        for (int i = 0; i < monsterCount; i++) {
+                            beg = new Point(500 + rand.nextInt(500), 5 + rand.nextInt(50));
+                            m = new Monster(curPlayerID++, "Monster", 20, beg.x, beg.y, speeds[rand.nextInt(2)]);
+                            m.setSpriteSetName("poring");
+                            monsters.add(m);
+                            sendToAll(new String[] {"(newmonster "
+                                    + m.getID() + " "
+                                    + m.getHitPoints() + " "
+                                    + m.getSpeed() + " "
+                                    + m.getCurPos().x + " "
+                                    + m.getCurPos().y + " "
+                                    + "\"" + m.getNick() + "\"" + " "
+                                    + "\"SOUTH\""  + " "
+                                    + "\"" + m.getSpriteSetName() + "\"" + ")"});
+                            m.move(beg, end, System.currentTimeMillis() - JavaTestServer.serverStartTime);
+                            sendToAll(new String[] {"(move " + m.getID() + " " + (System.currentTimeMillis() - serverStartTime) + " " + end.x + " " + end.y + ")"});
+                        }
+                    }
+                }
+                synchronized (monsters) {
+                    for (ListIterator<Monster> li = monsters.listIterator(); li.hasNext(); ) {
+                        m = li.next();
+                        if (m.dead() || !m.isMove()) {
+                            sendToAll(new String[] {"(delmonster " + m.getID()  + ")"});
+                            li.remove();
+                        }
+                    }
+                }
             }
         }
-        return cur;
+
+        public void setScheduledFuture(ScheduledFuture future) {
+            this.future = future;
+        }
+
+        public void cancel() {
+            if (future != null) {
+                future.cancel(true);
+                canceled = true;
+            }
+        }
+    }
+
+    private class TowerController implements Runnable {
+        private ScheduledFuture future = null;
+        private boolean canceled = false;
+
+        public TowerController() {
+        }
+
+        public void run() {
+            if (!canceled) {
+                synchronized (towers) {
+                    Tower t;
+
+                    for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
+                        t = li.next();
+                        //System.out.println("Tower attemp to attack");
+                        if (!attackRandomMonster(t)) {
+                            t.selectMonster(monsters);
+                            attackRandomMonster(t);
+                        }
+                    }
+                }
+            }
+        }
+
+        private boolean attackRandomMonster(Tower t) {
+            if (t.targetInRange()) {
+                if (!t.reuse()) {
+                    t.getTarget().doHit(t.getDamage());
+                    t.setLastAttackTime(System.currentTimeMillis() - JavaTestServer.serverStartTime);
+                    NukeAction a = new NukeAction(new NukeBolt((Unit) t, (Unit) t.getTarget(), System.currentTimeMillis() - serverStartTime));
+                    ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
+                    a.setScheduledFuture(f);
+                    sendToAll(new String[] {"(bolt " + t.getID() + " " + t.getTarget().getID() + " " + (System.currentTimeMillis() - serverStartTime) + ")"});
+                    //System.out.println("Hit target.");
+                    return true;
+                }
+                //System.out.println("Tower reuse.");
+
+                return false;
+            }
+            //System.out.println("Target not in range.");
+
+            return false;
+        }
+
+        public void setScheduledFuture(ScheduledFuture future) {
+            this.future = future;
+        }
+
+        public void cancel() {
+            if (future != null) {
+                future.cancel(true);
+                canceled = true;
+            }
+        }
     }
 }
 
 class NukeBolt {
-    private Player attacker;
-    private Player target;
+    private Unit attacker;
+    private Unit target;
 
     private Movement mv;
 
-    private static final double speed = 1;
-
-    public NukeBolt(Player attacker, Player target, long begTime) {
+    public NukeBolt(Unit attacker, Unit target, long begTime) {
         this.attacker = attacker;
         this.target = target;
-        mv = new Movement(attacker.getCurPos(), target.getCurPos(), begTime, speed);
+
+        Point tmp = attacker.getCurPos();
+        mv = new Movement(tmp.x, tmp.y, 1.0);
+        mv.move(tmp, target.getCurPos(), begTime);
     }
 
     public boolean isFlight() {
         return mv.isMove();
     }
 
-    public Player getAttacker() {
+    public Unit getAttacker() {
         return attacker;
     }
 
-    public Player getTarget() {
+    public Unit getTarget() {
         return target;
     }
 }

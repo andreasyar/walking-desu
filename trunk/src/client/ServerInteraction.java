@@ -123,7 +123,9 @@ public class ServerInteraction {
             long begTime = Long.parseLong(pieces1[2]);
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
             serverStartTime = System.currentTimeMillis() - begTime;
-            p.move((Point) p.getCurPos().clone(), new Point(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4])), begTime);
+            if (p != null) {
+                p.move((Point) p.getCurPos().clone(), new Point(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4])), begTime);
+            }
         } else if ("delplayer".equals(pieces1[0])) {
             field.delPlayer(Long.parseLong(pieces1[1]));
         } else if ("message".equals(pieces1[0])) {
@@ -132,15 +134,19 @@ public class ServerInteraction {
 
             if (p != null) {
                 p.setText(pieces1[2].substring(1, pieces1[2].length() - 1));
-                p.updateTextCloud();
             }
         } else if ("bolt".equals(pieces1[0])) {
-            Unit attacker = field.getPlayer(Long.parseLong(pieces1[1]));
-            Unit target = field.getPlayer(Long.parseLong(pieces1[2]));
-            long begTime = Long.parseLong(pieces1[3]);
+            try {
+                Unit attacker = field.getUnit(Long.parseLong(pieces1[1]));
+                Unit target = field.getUnit(Long.parseLong(pieces1[2]));
+                long begTime = Long.parseLong(pieces1[3]);
 
-            if (attacker != null && target != null) {
-                field.addNuke(attacker, target, begTime);
+                if (attacker != null && target != null) {
+                    field.addNuke(attacker, target, begTime);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
             }
         } else if ("hit".equals(pieces1[0])) {
             Unit attacker = field.getPlayer(Long.parseLong(pieces1[1]));
@@ -161,6 +167,33 @@ public class ServerInteraction {
             if (p != null) {
                 p.doHeal(Integer.parseInt(pieces1[2]));
             }
+        } else if ("newmonster".equals(pieces1[0])) {
+            String[] pieces2;
+
+            pieces1 = command.split(" ", 7);
+            pieces2 = pieces1[6].substring(1, pieces1[6].length() - 1).split("\" \"", 3);
+            field.addPlayer(new Player(Integer.parseInt(pieces1[1]),
+                    pieces2[0],
+                    Integer.parseInt(pieces1[2]),
+                    Double.parseDouble(pieces1[3]),
+                    Integer.parseInt(pieces1[4]),
+                    Integer.parseInt(pieces1[5]),
+                    Direction.valueOf(pieces2[1]),
+                    pieces2[2]));
+        } else if ("delmonster".equals(pieces1[0])) {
+            field.delPlayer(Long.parseLong(pieces1[1]));
+        } else if ("tower".equals(pieces1[0])) {
+            pieces1 = command.split(" ", 7);
+            pieces1[6] = pieces1[6].substring(1, pieces1[6].length() - 1);
+            field.addTower(new Tower(Integer.parseInt(pieces1[1]),
+                    pieces1[6],
+                    Double.parseDouble(pieces1[2]),
+                    Integer.parseInt(pieces1[3]),
+                    0,
+                    Integer.parseInt(pieces1[4]),
+                    Integer.parseInt(pieces1[5]),
+                    Direction.SOUTH,
+                    "desu"));
         }
     }
 

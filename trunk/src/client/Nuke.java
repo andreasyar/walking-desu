@@ -3,14 +3,17 @@ package client;
 import java.awt.Point;
 
 abstract public class Nuke {
-    private Unit attacker;
-    private Unit target;
+    protected Unit attacker;
 
     protected NukeAnimation nukeAnim;
-    protected Movement move;
+    protected Movement mv;
 
     protected long reuse;
     protected long lastUseTime;
+
+    public Nuke(Unit attacker) {
+        this.attacker = attacker;
+    }
 
     public boolean reuse() {
         return Math.abs(System.currentTimeMillis() - ServerInteraction.serverStartTime) - lastUseTime > reuse ? false : true;
@@ -18,24 +21,22 @@ abstract public class Nuke {
 
     public Sprite getSprite() {
         Sprite s = nukeAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime);
-        Point cur = move.getCurPos();
+        Point cur = mv.getCurPos();
         s.x = cur.x;
         s.y = cur.y;
         return s;
     }
 
-    public void use(Unit attacker, Unit target, long begTime) {
-        this.attacker = attacker;
-        this.target = target;
+    public void use(Unit target, long begTime) {
         lastUseTime = begTime;
-        move.move((Point) attacker.getCurPos().clone(), target.getCurPos(), begTime);
+        mv.move((Point) attacker.getCurPos().clone(), target.getCurPos(), begTime);
     }
 
     public Point getCurPos() {
-        return move.getCurPos();
+        return mv.getCurPos();
     }
 
     public boolean isMove() {
-        return move.isMove();
+        return mv.isMove();
     }
 }
