@@ -81,46 +81,56 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 buffGraph.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
             }
 
-            // Да, придётся отсортировать игроков по возрастанию Y координаты
-            // чтобы "нижелещаие" спрайты не перекрывали вышележащие.
-            // TODO optimization
+            // For all units we draw their sprite and nick name.
             ArrayList<Unit> units = field.getYSortedUnits();
             synchronized (units) {
-                for (ListIterator<Unit> li = units.listIterator(); li.hasNext(); ) {
-                    Unit u = li.next();
-                    Sprite s = u.getSprite();
-                    BufferedImage textCloud = u.getTextCloud();
+                Sprite s;
 
+                for (Unit u : units) {
+                    s = u.getSprite();
                     buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                     buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                }
+            }
+
+            // For players we draw text cloud if it.
+            ArrayList<Player> players = field.getPlayers();
+            synchronized (players) {
+                BufferedImage textCloud;
+                Sprite s;
+
+                for (Player p : players) {
+                    s = p.getSprite();
+                    textCloud = p.getTextCloud();
                     if (textCloud != null) {
                         buffGraph.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
                     }
                 }
             }
 
+            // Draw nuke bolts.
             ArrayList<Nuke> nukes = field.getNukes();
             synchronized (nukes) {
-                for (ListIterator<Nuke> li = nukes.listIterator(); li.hasNext(); ) {
-                    Nuke n = li.next();
-                    if (n.isMove()) {
-                        Sprite s = n.getSprite();
+                Sprite s;
 
+                for (Nuke n : nukes) {
+                    if (n.isMove()) {
+                        s = n.getSprite();
                         buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                     }
                 }
             }
 
-            for (ListIterator<Tower> li = field.getTowers().listIterator(); li.hasNext(); ) {
-                Tower t = li.next();
-                Sprite s = t.getSprite();
-
-                buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
-                buffGraph.drawString(t.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
-                if (showTowerRange) {
-                    buffGraph.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
+            // Draw towers range if enabled.
+            if (showTowerRange) {
+                ArrayList<Tower> towers = field.getTowers();
+                synchronized (towers) {
+                    for (Tower t : towers) {
+                        buffGraph.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
+                    }
                 }
             }
+            
 
             buffGraph.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
 
@@ -174,13 +184,19 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 poly.addPoint(cur.x - 1, cur.y - 1);
                 BasicStroke str = new BasicStroke(1);
                 Area c = new Area(poly);
-                for (ListIterator<Polygon> li = WanderingMap.getGeoData().listIterator(); li.hasNext();) {
-                    Polygon curPoly = li.next();
+                boolean canGo = true;
+                for (ListIterator<WanderingPolygon> li = WanderingMap.getGeoData().listIterator(); li.hasNext();) {
+                    WanderingPolygon curPoly = li.next();
                     c.intersect(new Area(curPoly));
-                    if (!curPoly.contains(p) && c.isEmpty()) {
-                        field.getSelfPlayer().move((Point) field.getSelfPlayer().getCurPos().clone(), p, System.currentTimeMillis() - ServerInteraction.serverStartTime);
-                        inter.addCommand("(move " + p.x + " " + p.y + ")");
+                    if (curPoly.getType() == WanderingPolygon.WallType.MONOLITH) {
+                        if (curPoly.contains(p) || !c.isEmpty()) {
+                            canGo = false;
+                        }
                     }
+                }
+                if (canGo) {
+                    field.getSelfPlayer().move((Point) field.getSelfPlayer().getCurPos().clone(), p, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+                    inter.addCommand("(move " + p.x + " " + p.y + ")");
                 }
             }
         }
@@ -231,8 +247,19 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             ((Graphics2D) geoDebugLayerGraph).fillRect(0, 0, geoDebugLayer.getWidth() - 1, geoDebugLayer.getHeight() - 1);
             ((Graphics2D) geoDebugLayerGraph).setColor(Color.BLACK);*/
             geoDebugLayerDim = new Dimension(geoDebugLayer.getWidth(), geoDebugLayer.getHeight());
-            for (ListIterator<Polygon> li = WanderingMap.getGeoData().listIterator(); li.hasNext();) {
-                geoDebugLayerGraph.drawPolygon(li.next());
+            Color c;
+            for (WanderingPolygon poly : WanderingMap.getGeoData()) {
+                geoDebugLayerGraph.drawPolygon(poly);
+                c = geoDebugLayerGraph.getColor();
+                if (poly.getType() == WanderingPolygon.WallType.MONOLITH) {
+                    geoDebugLayerGraph.setColor(Color.BLACK);
+                } else if (poly.getType() == WanderingPolygon.WallType.SPECIAL) {
+                    geoDebugLayerGraph.setColor(Color.BLUE);
+                } else if (poly.getType() == WanderingPolygon.WallType.TRANSPARENT) {
+                    geoDebugLayerGraph.setColor(new Color((float)1.0, (float)1.0, (float)1.0, (float)0.4));
+                }
+                geoDebugLayerGraph.fillPolygon(poly);
+                geoDebugLayerGraph.setColor(c);
             }
         }
     }
