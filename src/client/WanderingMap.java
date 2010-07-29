@@ -2,7 +2,6 @@ package client;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Polygon;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -10,7 +9,7 @@ public class WanderingMap {
     private static WanderingMap map = null;
     private static BufferedImage mapImg;
 
-    private static final ArrayList<Polygon> geoData = new ArrayList<Polygon>();
+    private static final ArrayList<WanderingPolygon> geoData = new ArrayList<WanderingPolygon>();
 
     private WanderingMap(int w, int h) {
         Graphics g;
@@ -31,7 +30,12 @@ public class WanderingMap {
     }
 
     private static void generateGeoData() {
-        Polygon p = new Polygon();
+        WanderingPolygon p = new WanderingPolygon(WanderingPolygon.WallType.MONOLITH) {
+
+            @Override
+            public void trigger(Player player) {
+            }
+        };
         p.addPoint(200, 200);
         p.addPoint(400, 200);
         p.addPoint(400, 400);
@@ -39,9 +43,32 @@ public class WanderingMap {
         p.addPoint(100, 300);
         p.addPoint(200, 300);
         geoData.add(p);
+        p = new WanderingPolygon(WanderingPolygon.WallType.TRANSPARENT) {
+
+            @Override
+            public void trigger(Player player) {
+            }
+        };
+        p.addPoint(100, 500);
+        p.addPoint(200, 500);
+        p.addPoint(200, 600);
+        p.addPoint(100, 600);
+        geoData.add(p);
+        p = new WanderingPolygon(WanderingPolygon.WallType.SPECIAL) {
+
+            @Override
+            public void trigger(Player player) {
+                player.teleportToSpawn();
+            }
+        };
+        p.addPoint(500, 700);
+        p.addPoint(600, 700);
+        p.addPoint(600, 767);
+        p.addPoint(500, 767);
+        geoData.add(p);
     }
 
-    public static ArrayList<Polygon> getGeoData() {
+    public static ArrayList<WanderingPolygon> getGeoData() {
         if (map == null) {
             map = new WanderingMap(1024, 768);
         }

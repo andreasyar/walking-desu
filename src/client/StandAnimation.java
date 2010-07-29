@@ -47,7 +47,10 @@ public class StandAnimation {
 
         if (tmpTime <= step * period * repeat) {
             int sprIndex = (int) (((tmpTime % (step * period)) / step));
-            if (sprIndex < period) { // TODO Auto of bound protection here.
+            if (sprIndex < 0) {
+                System.err.println("Something wery bad happen right now.");
+            }
+            if (sprIndex < period && sprIndex >= 0) {
                 tmpSpr = set.getSprite(direct, sprIndex);
             } else {
                 tmpSpr = set.getSprite(direct, 0);

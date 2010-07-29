@@ -53,7 +53,7 @@ public class JavaTestServer {
     void run() {
         serverThread = Thread.currentThread();
 
-        MonsterController c = new MonsterController(20 * 1000, 20);
+        MonsterController c = new MonsterController(20 * 1000, 5);
         c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));
         TowerController t = new TowerController();
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
@@ -435,17 +435,21 @@ public class JavaTestServer {
         private Random rand = new Random();
         private ScheduledFuture future = null;
         private boolean canceled = false;
+
         private int curWaveMonLoss;
-        private int strMult;
+        private int monStrMult;
+        private int monCountAdd;
 
         private long step;
 
         public MonsterController(long spawnDelay, int monsterCount) {
             this.spawnDelay = spawnDelay;
-            this.monsterCount = monsterCount;
+            //this.monsterCount = monsterCount;
+            this.monsterCount = 0;
             step = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
             curWaveMonLoss = 0;
-            strMult = 0;
+            monStrMult = 0;
+            monCountAdd = 0;
         }
 
         public void run() {
@@ -460,7 +464,9 @@ public class JavaTestServer {
                     tdMonsterLoss += curWaveMonLoss;
                     if (tdMonsterLoss >= tdMonsterLossLimit) {
                         tdMonsterLoss = 0;
-                        strMult = 1;
+                        curWaveMonLoss = 0;
+                        monStrMult = 1;
+                        monCountAdd = 0;
                         synchronized (towers) {
                             for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
                                 sendToAll(new String[] {"(deltower " + li.next().getID()  + ")"});
@@ -468,17 +474,18 @@ public class JavaTestServer {
                             }
                         }
                     } else if (curWaveMonLoss == 0) {
-                        strMult++;
+                        monStrMult++;
+                        monCountAdd += 5;
                     }
                     sendToAll(new String[] {"(monsterloss "
                             + tdMonsterLoss + " "
                             + tdMonsterLossLimit + " "
-                            + strMult + ")"});
-                    curWaveMonLoss = monsterCount;
+                            + monStrMult + ")"});
+                    curWaveMonLoss = 0;
                     synchronized (monsters) {
-                        for (int i = 0; i < monsterCount; i++) {
+                        for (int i = 0; i < monsterCount + monCountAdd; i++) {
                             beg = new Point(500 + rand.nextInt(500), 5 + rand.nextInt(50));
-                            m = new Monster(curPlayerID++, "Monster", 20 * strMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
+                            m = new Monster(curPlayerID++, "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                             m.setSpriteSetName("poring");
                             monsters.add(m);
                             sendToAll(new String[] {"(newmonster "
@@ -496,12 +503,22 @@ public class JavaTestServer {
                     }
                 }
                 synchronized (monsters) {
+                    boolean isDead;
+                    boolean isStop;
+
                     for (ListIterator<Monster> li = monsters.listIterator(); li.hasNext(); ) {
                         m = li.next();
-                        if (m.dead()) {
-                            curWaveMonLoss--;
+                        isDead = m.dead();
+                        isStop = !m.isMove();
+
+                        if (isStop && !isDead) {
+                            curWaveMonLoss++;
+                            sendToAll(new String[] {"(monsterloss "
+                                + (tdMonsterLoss + curWaveMonLoss) + " "
+                                + tdMonsterLossLimit + " "
+                                + monStrMult + ")"});
                         }
-                        if (m.dead() || !m.isMove()) {
+                        if (isDead || isStop) {
                             sendToAll(new String[] {"(delmonster " + m.getID()  + ")"});
                             li.remove();
                         }
