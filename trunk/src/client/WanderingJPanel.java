@@ -45,11 +45,11 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private long lastBuildTime = 0;
 
     public WanderingJPanel(GameField field, ServerInteraction inter) {
+        this.field = field;
+        this.inter = inter;
         addMouseListener(this);
         addComponentListener(this);
         addKeyListener(this);
-        this.field = field;
-        this.inter = inter;
     }
 
     @Override
@@ -85,11 +85,16 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             ArrayList<Unit> units = field.getYSortedUnits();
             synchronized (units) {
                 Sprite s;
+                Point selfPos = field.getSelfPlayer().getCurPos(),
+                      pos;
 
                 for (Unit u : units) {
                     s = u.getSprite();
-                    buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
-                    buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                    pos = u.getCurPos();
+                    if (selfPos.distance(pos) <= 200.0) {
+                        buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                        buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                    }
                 }
             }
 
@@ -104,6 +109,11 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     textCloud = p.getTextCloud();
                     if (textCloud != null) {
                         buffGraph.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
+                    }
+                    if (p.isMove()) {
+                        curPos = p.getCurPos();
+                        buffGraph.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEndPoint().x + mapOfst.width, p.getEndPoint().y + mapOfst.height);
+                        buffGraph.drawOval(curPos.x + mapOfst.width - 200, curPos.y + mapOfst.height - 200, 400, 400);
                     }
                 }
             }

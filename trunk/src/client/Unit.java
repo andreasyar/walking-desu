@@ -61,6 +61,10 @@ public abstract class Unit {
         standAnim.run(moveAnim.getDirection(), mv.getEndTime());
     }
 
+    public boolean isMove() {
+        return mv.isMove();
+    }
+
     public double getSpeed() {
         return mv.getSpeed();
     }
@@ -71,6 +75,10 @@ public abstract class Unit {
 
     public Point getCurPos() {
         return mv.getCurPos();
+    }
+
+    public Point getEndPoint() {
+        return mv.getEndPoint();
     }
 // </editor-fold>
     public long getID() {

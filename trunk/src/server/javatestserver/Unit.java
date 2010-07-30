@@ -42,6 +42,10 @@ public abstract class Unit {
     public Point getCurPos() {
         return mv.getCurPos();
     }
+
+    public Point getDest() {
+        return mv.getDest();
+    }
 // </editor-fold>
     public long getID() {
         return id;

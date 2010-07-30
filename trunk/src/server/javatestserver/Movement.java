@@ -14,6 +14,8 @@ public class Movement {
     public Movement(int x, int y, double speed) {
         isMove = false;
         cur.move(x, y);
+        beg = cur;
+        end = cur;
         this.speed = speed;
     }
 
@@ -70,5 +72,9 @@ public class Movement {
 
     public long getEndTime() {
         return endTime;
+    }
+
+    public Point getDest() {
+        return end;
     }
 }
