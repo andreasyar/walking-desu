@@ -71,4 +71,8 @@ public class Movement {
     public long getEndTime() {
         return endTime;
     }
+
+    public Point getEndPoint() {
+        return end;
+    }
 }
