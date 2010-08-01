@@ -70,11 +70,19 @@ public class Movement {
         return cur;
     }
 
+    public long getBegTime() {
+        return begTime;
+    }
+
     public long getEndTime() {
         return endTime;
     }
 
-    public Point getDest() {
+    public Point getEnd() {
         return end;
+    }
+
+    public Point getBeg() {
+        return beg;
     }
 }

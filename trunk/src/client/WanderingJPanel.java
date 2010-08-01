@@ -91,7 +91,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 for (Unit u : units) {
                     s = u.getSprite();
                     pos = u.getCurPos();
-                    if (selfPos.distance(pos) <= 200.0) {
+                    if (selfPos.distance(pos) <= 500.0) {
                         buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                         buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
                     }
@@ -113,7 +113,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     if (p.isMove()) {
                         curPos = p.getCurPos();
                         buffGraph.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEndPoint().x + mapOfst.width, p.getEndPoint().y + mapOfst.height);
-                        buffGraph.drawOval(curPos.x + mapOfst.width - 200, curPos.y + mapOfst.height - 200, 400, 400);
+                        buffGraph.drawOval(curPos.x + mapOfst.width - 500, curPos.y + mapOfst.height - 500, 1000, 1000);
                     }
                 }
             }

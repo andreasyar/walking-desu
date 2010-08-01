@@ -36,6 +36,7 @@ public class JavaTestServer {
     public static final long serverStartTime = System.currentTimeMillis();
     private static final int port = 45000;
     private TimeSyncTask ts;
+    private VisibleManager vm;
 
     public JavaTestServer(int port) throws IOException {
         ss = new ServerSocket(port);
@@ -48,10 +49,12 @@ public class JavaTestServer {
     void run() {
         serverThread = Thread.currentThread();
 
-        /*MonsterController c = new MonsterController(20 * 1000, 5);
-        c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));*/
+        MonsterController c = new MonsterController(20 * 1000, 5);
+        c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));
         TowerController t = new TowerController();
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
+        vm = new VisibleManager(players, towers, monsters, this);
+        executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
 
         while (true) {
             Socket s = getNewConnection();
@@ -88,17 +91,29 @@ public class JavaTestServer {
     }
 
     /**
-     * Отправляет сообщения заданному игроку.
-     * @param msgs Сообщения.
+     * Отправляет сообщение всем игрокам, у которых заданный юнит находится в
+     * зоне видимости.
+     * @param msg Сообщение
+     * @param unit Юнит
+     */
+    public void sendFromUnit(String msg, Unit unit) {
+        for (SocketProcessor sp : clientQueue) {
+            if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
+                sp.send(msg);
+            }
+        }
+    }
+
+    /**
+     * Отправляет сообщение заданному игроку.
+     * @param msgs Сообщение.
      * @param player Игрок.
      */
-    public void sendTo(String[] msgs, Player player) {
-        for (String msg : msgs) {
-            for (SocketProcessor sp : clientQueue) {
-                if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
-                    sp.send(msg);
-                    return;
-                }
+    public void sendTo(String msg, Player player) {
+        for (SocketProcessor sp : clientQueue) {
+            if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
+                sp.send(msg);
+                return;
             }
         }
     }
@@ -155,39 +170,74 @@ public class JavaTestServer {
     }
 
     private boolean willMeet(Player player1, Player player2, double range) {
+        System.out.println("range = " + range);
         Point player1Pos = player1.getCurPos(),
             player2Pos = player2.getCurPos(),
-            player1Dest = player1.getDest(),
-            player2Dest = player2.getDest();
-        long curTime = System.currentTimeMillis() - serverStartTime;
+            player1Dest = player1.getEnd(),
+            player2Dest = player2.getEnd();
+        long t0 = player1.isMove() ? player1.getBegTime() : System.currentTimeMillis() - serverStartTime;
+        System.out.println("t0 = " + t0);
+        long t0_ = player2.isMove() ? player2.getBegTime() : System.currentTimeMillis() - serverStartTime;
+        System.out.println("t0_ = " + t0_);
+        long tEnd = player1.isMove() ? player1.getEndTime() : t0;
+        System.out.println("tEnd = " + tEnd);
+        long tEnd_ = player2.isMove() ? player2.getEndTime() : t0_;
+        System.out.println("tEnd_ = " + tEnd_);
         double x1 = player1Pos.x;
+        System.out.println("x1 = " + x1);
         double y1 = player1Pos.y;
+        System.out.println("y1 = " + y1);
         double x2 = player1Dest.x;
+        System.out.println("x2 = " + x2);
         double y2 = player1Dest.y;
+        System.out.println("y2 = " + y2);
         double v = player1.isMove() ? player1.getSpeed() : 0.0;
-        double vX = (v * (x2 - x1)) / Math.sqrt(Math.pow(x2 - x1, 2.0) + Math.pow(y2 - y1, 2.0));
-        double vY = (v * (y2 - y1)) / Math.sqrt(Math.pow(x2 - x1, 2.0) + Math.pow(y2 - y1, 2.0));
+        System.out.println("v = " + v);
+        double vX = (v == 0.0 || x1 == x2 && y1 == y2) ? 0.0 : v * (x2 - x1) / Math.sqrt(Math.pow(x2 - x1, 2.0) + Math.pow(y2 - y1, 2.0));
+        System.out.println("vX = " + vX);
+        double vY = (v == 0.0 || x1 == x2 && y1 == y2) ? 0.0 : v * (y2 - y1) / Math.sqrt(Math.pow(x2 - x1, 2.0) + Math.pow(y2 - y1, 2.0));
+        System.out.println("vY = " + vY);
         double x1_ = player2Pos.x;
+        System.out.println("x1_ = " + x1_);
         double y1_ = player2Pos.y;
+        System.out.println("y1_ = " + y1_);
         double x2_ = player2Dest.x;
+        System.out.println("x2_ = " + x2_);
         double y2_ = player2Dest.y;
+        System.out.println("y2_ = " + y2_);
         double v_ = player2.isMove() ? player2.getSpeed() : 0.0;
-        double vX_ = (v_ * (x2_ - x1_)) / Math.sqrt(Math.pow(x2_ - x1_, 2.0) + Math.pow(y2_ - y1_, 2.0));
-        double vY_ = (v_ * (y2_ - y1_)) / Math.sqrt(Math.pow(x2_ - x1_, 2.0) + Math.pow(y2_ - y1_, 2.0));
-        double t0 = curTime;
-        double gamma = x1_ - vX_ * t0 - x1 + vX * t0;
-        double delta = y1_ - vY_ * t0 - y1 + vY * t0;
+        System.out.println("v_ = " + v_);
+        double vX_ = (v_ == 0.0 || x1_ == x2_ && y1_ == y2_) ? 0.0 : (v_ * (x2_ - x1_)) / Math.sqrt(Math.pow(x2_ - x1_, 2.0) + Math.pow(y2_ - y1_, 2.0));
+        System.out.println("vX_ = " + vX_);
+        double vY_ = (v_ == 0.0 || x1_ == x2_ && y1_ == y2_) ? 0.0 : (v_ * (y2_ - y1_)) / Math.sqrt(Math.pow(x2_ - x1_, 2.0) + Math.pow(y2_ - y1_, 2.0));
+        System.out.println("vY_ = " + vY_);
+        double gamma = x1_ - vX_ * t0_ - x1 + vX * t0;
+        System.out.println("gamma = " + gamma);
+        double delta = y1_ - vY_ * t0_ - y1 + vY * t0;
+        System.out.println("delta = " + delta);
         double a = Math.pow(vX_ - vX, 2.0) + Math.pow(vY_ - vY, 2.0);
+        System.out.println("a = " + a);
         double b = 2 * ((vX_ - vX) * gamma + (vY_ - vY) * delta);
+        System.out.println("b = " + b);
         double c = Math.pow(gamma, 2.0) + Math.pow(delta, 2.0) - Math.pow(range, 2.0);
-        if (Math.pow(b, 2.0) - 4 * a * c < 0) {
+        System.out.println("c = " + c);
+        double D = Math.pow(b, 2.0) - 4.0 * a * c;
+        System.out.println("D = " + D);
+        if (D < 0) {
             System.out.println(player1.getID() + " will NOT meet with " + player2.getID());
-            System.out.println(player1Pos + " <-> " + player2Pos);
-            System.out.println(Math.pow(b, 2.0) + " - " + 4  + " * " + a + " * " + c + " = " + (Math.pow(b, 2.0) - 4 * a * c));
             return false;
         } else {
-            System.out.println(player1.getID() + " will meet with " + player2.getID());
-            return true;
+            double t1 = (- b + Math.sqrt(D)) / (2.0 * a);
+            System.out.println("t1 = " + t1);
+            double t2 = (- b - Math.sqrt(D)) / (2.0 * a);
+            System.out.println("t2 = " + t2);
+            if (Math.min(t1, t2) <= Math.min(tEnd, tEnd_) && Math.max(t1, t2) >= Math.max(t0, t0_)) {
+                System.out.println(player1.getID() + " will meet with " + player2.getID());
+                return true;
+            } else {
+                System.out.println(player1.getID() + " will NOT meet with " + player2.getID());
+                return false;
+            }
         }
     }
 
@@ -197,7 +247,7 @@ public class JavaTestServer {
 
         public TimeSyncTask() {
             timer = new Timer();
-            timer.schedule(this, 0, 5000); // each 5 seconds
+            timer.schedule(this, 0, 10000);
         }
 
         public void run() {
@@ -261,16 +311,24 @@ public class JavaTestServer {
                         if (nickReceived) {
                             if ("move".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Move message processing">
-                                line = line.substring("move".length() + 1, line.length());
-                                pieces = line.split(" ");
-                                self.move(self.getCurPos(), new Point(Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1])), (System.currentTimeMillis() - serverStartTime));
-                                String[] msgs = new String[]{"(move " + self.getID() + " " + (System.currentTimeMillis() - serverStartTime) + " " + pieces[0] + " " + pieces[1] + ")"};
-                                for (Player p : players) {
-                                    if (!p.equals(self) && willMeet(self, p, 200) && willMeet(p, self, 200)) {
-                                        sendTo(msgs, p);
-                                    }
+                                Point selfCurPos = self.getCurPos();
+                                try {
+                                    line = line.substring("move".length() + 1, line.length());
+                                    pieces = line.split(" ");
+                                    self.move((Point) selfCurPos.clone(), new Point(Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1])), (System.currentTimeMillis() - serverStartTime));
+                                    //vm.update();
+                                    sendFromUnit("(move "
+                                            + self.getID() + " "
+                                            + (System.currentTimeMillis() - serverStartTime) + " "
+                                            + selfCurPos.x + " "
+                                            + selfCurPos.y + " "
+                                            + pieces[0] + " "
+                                            + pieces[1] + ")", self);
+                                    System.out.println("Move received.");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    System.exit(1);
                                 }
-                                //sendToAll(new String[]{"(move " + self.getID() + " " + (System.currentTimeMillis() - serverStartTime) + " " + pieces[0] + " " + pieces[1] + ")"}, self.getID());
                                 // </editor-fold>
                             } else if ("message".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Message message processing">
@@ -293,17 +351,19 @@ public class JavaTestServer {
                             } else if ("tower".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Tower processing">
                                 pieces = line.split(" ");
+
+                                /* Создадим новую башню и добавим её в список
+                                 * башен.
+                                 */
                                 Tower t = new Tower(curPlayerID++, "Tower", 200.0, 10, 1000L, Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
-                                sendToAll(new String[]{"(tower "
-                                            + t.getID() + " "
-                                            + t.getRange() + " "
-                                            + t.getDamage() + " "
-                                            + t.getCurPos().x + " "
-                                            + t.getCurPos().y + " "
-                                            + "\"" + t.getNick() + "\"" + ")"});
                                 synchronized (towers) {
                                     towers.add(t);
                                 }
+
+                                /* Определим игроков, которые видят новую башню
+                                 * и отправим им сообщение о новой башне.
+                                 */
+                                //vm.update();
                                 // </editor-fold>
                             }
                         } else if ("nick".equals(pieces[0])) {
@@ -333,61 +393,13 @@ public class JavaTestServer {
                             helloSended = true;
                             synchronized (players) {
                                 players.add(self);
-                            }
-                            sendToAll(new String[]{"(newplayer "
-                                        + self.getID() + " "
-                                        + self.getHitPoints() + " "
-                                        + 0.07 + " "
-                                        + selfCurPos.x + " "
-                                        + selfCurPos.y + " "
-                                        + "\"" + self.getNick() + "\"" + " "
-                                        + "\"SOUTH\"" + " "
-                                        + "\"" + self.getSpriteSetName() + "\"" + ")"}, self.getID());
-                            synchronized (players) {
-                                Player p;
-                                Point cur;
-
-                                for (ListIterator<Player> li = players.listIterator(); li.hasNext();) {
-                                    p = li.next();
-                                    if (p != self) {
-                                        cur = p.getCurPos();
-
-                                        send("(newplayer "
-                                                + p.getID() + " "
-                                                + p.getHitPoints() + " "
-                                                + 0.07 + " "
-                                                + cur.x + " "
-                                                + cur.y + " "
-                                                + "\"" + p.getNick() + "\"" + " "
-                                                + "\"SOUTH\"" + " "
-                                                + "\"" + p.getSpriteSetName() + "\"" + ")");
-                                        if (p.getText() != null) {
-                                            send("(message " + p.getID() + " \"" + p.getText() + "\")");
-                                        }
-                                    }
-                                }
-                            }
-
-                            // TODO NPC
-                            synchronized (towers) {
-                                Tower t;
-
-                                for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
-                                    t = li.next();
-
-                                    send("(tower "
-                                            + t.getID() + " "
-                                            + t.getRange() + " "
-                                            + t.getDamage() + " "
-                                            + t.getCurPos().x + " "
-                                            + t.getCurPos().y + " "
-                                            + "\"" + t.getNick() + "\"" + ")");
-                                }
-                            }
-
-                            synchronized (players) {
                                 System.out.println("Welcome to WD Java Test Server. Online: " + players.size() + " players (with you).");
                             }
+
+                            /* Определим игроков, которые видят нового игрока
+                             * и отправим им сообщение о новом игроке.
+                             */
+                            //vm.update();
                             // </editor-fold>
                         }
                     } else if ("hello".equals(pieces[0])) {
@@ -422,8 +434,8 @@ public class JavaTestServer {
                 return;
             }
             if (self != null) {
-                sendToAll(new String[]{"(delplayer " + self.getID() + ")"}, self.getID());
                 synchronized (players) {
+                    vm.removePlayer(self);
                     players.remove(self);
                 }
                 self = null;
@@ -458,14 +470,10 @@ public class JavaTestServer {
         public void run() {
             if (!canceled) {
                 if (!bolt.isFlight()) {
-                    //bolt.getTarget().doHit(10);
-                    sendToAll(new String[]{"(hit " + bolt.getAttacker().getID() + " " + bolt.getTarget().getID() + " " + ((Tower) bolt.getAttacker()).getDamage() + ")"});
-                    /*if (bolt.getTarget().getHitPoints() == 0) {
-                    bolt.getTarget().teleportToSpawn();
-                    bolt.getTarget().restoreHitPoints();
-                    sendToAll(new String[] {"(teleport " + bolt.getTarget().getID() + " " + bolt.getTarget().getCurPos().x + " " + bolt.getTarget().getCurPos().y + ")"});
-                    sendToAll(new String[] {"(heal " + bolt.getTarget().getID() + " " + bolt.getTarget().getHitPoints() + ")"});
-                    }*/
+                    sendToAll(new String[]{"(hit "
+                            + bolt.getAttacker().getID() + " "
+                            + bolt.getTarget().getID() + " "
+                            + ((Tower) bolt.getAttacker()).getDamage() + ")"});
                     this.cancel();
                 }
             }
@@ -507,6 +515,7 @@ public class JavaTestServer {
         }
 
         public void run() {
+            try {
             if (!canceled) {
                 long tmpStep = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
                 Monster m;
@@ -522,8 +531,11 @@ public class JavaTestServer {
                         monStrMult = 1;
                         monCountAdd = 0;
                         synchronized (towers) {
+                            Tower t;
+
                             for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
-                                sendToAll(new String[]{"(deltower " + li.next().getID() + ")"});
+                                t = li.next();
+                                vm.removeTower(t);
                                 li.remove();
                             }
                         }
@@ -536,30 +548,26 @@ public class JavaTestServer {
                                 + tdMonsterLossLimit + " "
                                 + monStrMult + ")"});
                     curWaveMonLoss = 0;
+                    System.out.println(Thread.currentThread().getId() + " WE WANT MONSTERS.");
                     synchronized (monsters) {
+                        System.out.println(Thread.currentThread().getId() + " WE TOOK MONSTERS.");
                         for (int i = 0; i < monsterCount + monCountAdd; i++) {
                             beg = new Point(500 + rand.nextInt(500), 5 + rand.nextInt(50));
                             m = new Monster(curPlayerID++, "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                             m.setSpriteSetName("poring");
                             monsters.add(m);
-                            sendToAll(new String[]{"(newmonster "
-                                        + m.getID() + " "
-                                        + m.getHitPoints() + " "
-                                        + m.getSpeed() + " "
-                                        + m.getCurPos().x + " "
-                                        + m.getCurPos().y + " "
-                                        + "\"" + m.getNick() + "\"" + " "
-                                        + "\"SOUTH\"" + " "
-                                        + "\"" + m.getSpriteSetName() + "\"" + ")"});
                             m.move(beg, end, System.currentTimeMillis() - JavaTestServer.serverStartTime);
-                            sendToAll(new String[]{"(move " + m.getID() + " " + (System.currentTimeMillis() - serverStartTime) + " " + end.x + " " + end.y + ")"});
+                            //vm.update();
                         }
                     }
+                    System.out.println(Thread.currentThread().getId() + " WE RELEASE MONSTERS.");
                 }
+                System.out.println(Thread.currentThread().getId() + " WE WANT MONSTERS.");
                 synchronized (monsters) {
+                    System.out.println(Thread.currentThread().getId() + " WE TOOK MONSTERS.");
                     boolean isDead;
                     boolean isStop;
-
+                    try {
                     for (ListIterator<Monster> li = monsters.listIterator(); li.hasNext();) {
                         m = li.next();
                         isDead = m.dead();
@@ -573,11 +581,20 @@ public class JavaTestServer {
                                         + monStrMult + ")"});
                         }
                         if (isDead || isStop) {
-                            sendToAll(new String[]{"(delmonster " + m.getID() + ")"});
+                            vm.removeMonster(m);
                             li.remove();
                         }
                     }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                 }
+                System.out.println(Thread.currentThread().getId() + " WE RELEASE MONSTERS.");
+            }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
             }
         }
 
@@ -602,19 +619,23 @@ public class JavaTestServer {
         }
 
         public void run() {
+            try {
             if (!canceled) {
                 synchronized (towers) {
                     Tower t;
 
                     for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
                         t = li.next();
-                        //System.out.println("Tower attemp to attack");
                         if (!attackRandomMonster(t)) {
                             t.selectMonster(monsters);
                             attackRandomMonster(t);
                         }
                     }
                 }
+            }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
             }
         }
 
@@ -627,14 +648,11 @@ public class JavaTestServer {
                     ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
                     a.setScheduledFuture(f);
                     sendToAll(new String[]{"(bolt " + t.getID() + " " + t.getTarget().getID() + " " + (System.currentTimeMillis() - serverStartTime) + ")"});
-                    //System.out.println("Hit target.");
                     return true;
                 }
-                //System.out.println("Tower reuse.");
 
                 return false;
             }
-            //System.out.println("Target not in range.");
 
             return false;
         }

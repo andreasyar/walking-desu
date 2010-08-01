@@ -122,9 +122,9 @@ public class ServerInteraction {
         } else if ("move".equals(pieces1[0])) {
             long begTime = Long.parseLong(pieces1[2]);
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
-            serverStartTime = System.currentTimeMillis() - begTime;
+            //DONT DO IT!serverStartTime = System.currentTimeMillis() - begTime;
             if (p != null) {
-                p.move((Point) p.getCurPos().clone(), new Point(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4])), begTime);
+                p.move(new Point(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4])), new Point(Integer.parseInt(pieces1[5]), Integer.parseInt(pieces1[6])), begTime);
             }
         } else if ("delplayer".equals(pieces1[0])) {
             field.delPlayer(Long.parseLong(pieces1[1]));
@@ -136,17 +136,12 @@ public class ServerInteraction {
                 p.setText(pieces1[2].substring(1, pieces1[2].length() - 1));
             }
         } else if ("bolt".equals(pieces1[0])) {
-            try {
-                Unit attacker = field.getUnit(Long.parseLong(pieces1[1]));
-                Unit target = field.getUnit(Long.parseLong(pieces1[2]));
-                long begTime = Long.parseLong(pieces1[3]);
+            Unit attacker = field.getUnit(Long.parseLong(pieces1[1]));
+            Unit target = field.getUnit(Long.parseLong(pieces1[2]));
+            long begTime = Long.parseLong(pieces1[3]);
 
-                if (attacker != null && target != null) {
-                    field.addNuke(attacker, target, begTime);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
+            if (attacker != null && target != null) {
+                field.addNuke(attacker, target, begTime);
             }
         } else if ("hit".equals(pieces1[0])) {
             Unit attacker = field.getPlayer(Long.parseLong(pieces1[1]));
@@ -198,12 +193,7 @@ public class ServerInteraction {
             pieces1 = command.split(" ");
             field.setTDStatus(Integer.parseInt(pieces1[1]) + "/" + Integer.parseInt(pieces1[2]) + " x" + Integer.parseInt(pieces1[3]));
         } else if ("deltower".equals(pieces1[0])) {
-            try {
-                field.delTower(Long.parseLong(pieces1[1]));
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+            field.delTower(Long.parseLong(pieces1[1]));
         }
     }
 
@@ -246,7 +236,12 @@ public class ServerInteraction {
                 while (serverSocket.isConnected()) {
                     command = in.readLine();
                     System.out.println("<-- " + command);
-                    commandHandler(command);
+                    try {
+                        commandHandler(command);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

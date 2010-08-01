@@ -43,8 +43,20 @@ public abstract class Unit {
         return mv.getCurPos();
     }
 
-    public Point getDest() {
-        return mv.getDest();
+    public long getBegTime() {
+        return mv.getBegTime();
+    }
+    
+    public long getEndTime() {
+        return mv.getEndTime();
+    }
+
+    public Point getEnd() {
+        return mv.getEnd();
+    }
+
+    public Point getBeg() {
+        return mv.getBeg();
     }
 // </editor-fold>
     public long getID() {
