@@ -552,13 +552,16 @@ public class JavaTestServer {
                     synchronized (monsters) {
                         System.out.println(Thread.currentThread().getId() + " WE TOOK MONSTERS.");
                         for (int i = 0; i < monsterCount + monCountAdd; i++) {
+                            System.out.println(Thread.currentThread().getId() + " process monster.");
                             beg = new Point(500 + rand.nextInt(500), 5 + rand.nextInt(50));
                             m = new Monster(curPlayerID++, "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                             m.setSpriteSetName("poring");
                             monsters.add(m);
                             m.move(beg, end, System.currentTimeMillis() - JavaTestServer.serverStartTime);
+                            System.out.println(Thread.currentThread().getId() + " done process monster.");
                             //vm.update();
                         }
+                        System.out.println(Thread.currentThread().getId() + " for ends.");
                     }
                     System.out.println(Thread.currentThread().getId() + " WE RELEASE MONSTERS.");
                 }
