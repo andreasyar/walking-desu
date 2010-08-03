@@ -17,6 +17,7 @@ public class VisibleManager implements Runnable {
         this.server = server;
     }
 
+    @Override
     public void run() {
         try {
             JTSLocks.lockPlayers();
@@ -151,21 +152,12 @@ public class VisibleManager implements Runnable {
                     server.sendTo("(delmonster " + m.getID() + ")", p1);
                 }
             }
-            /*if (p1.getID() == 1) {
-                for (Unit u : p1.getVisibleUnitsList()) {
-                    System.out.print(u.getID() + " ");
-                }
-                if (p1.getVisibleUnitsList().size() > 0) {
-                    System.out.println();
-                }
-            }*/
         }
     }
 
     /**
      * Require players lock.
      */
-
     public void removePlayer(Player player) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(player)) {
@@ -177,7 +169,6 @@ public class VisibleManager implements Runnable {
     /**
      * Require players lock.
      */
-
     public void removeTower(Tower tower) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(tower)) {

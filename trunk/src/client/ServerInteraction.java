@@ -5,11 +5,15 @@ import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingWorker;
 
 public class ServerInteraction {
@@ -51,7 +55,7 @@ public class ServerInteraction {
             out.println(command);
             System.out.println("--> " + command);
 
-            try {
+            /*try {
                 command = in.readLine();
                 System.out.println("<-- " + command);
                 commandHandler(command);
@@ -61,10 +65,10 @@ public class ServerInteraction {
             } catch (IOException e) {
                 e.printStackTrace();
                 System.exit(1);
-            }
+            }*/
         }
-        executor.execute(new ServerWriterTask());
         executor.execute(new ServerReaderTask());
+        executor.execute(new ServerWriterTask());
     }
 
     public void addCommand(String command) {
@@ -231,20 +235,35 @@ public class ServerInteraction {
         @Override
         protected Void doInBackground() {
             String command;
+            ObjectInputStream ois;
+            LinkedBlockingQueue<String> messages;
 
             try {
+                ois = new ObjectInputStream(serverSocket.getInputStream());
+
                 while (serverSocket.isConnected()) {
-                    command = in.readLine();
-                    System.out.println("<-- " + command);
-                    try {
-                        commandHandler(command);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.exit(1);
+                    //command = in.readLine();
+                    messages = (LinkedBlockingQueue<String>) ois.readObject();
+                    for (String s : messages) {
+                        command = s;
+                        System.out.println("<-- " + command);
+                        try {
+                            commandHandler(command);
+                            if (field.getSelfPlayer() == null) {
+                                throw new Exception("Self player was not created. May be server was not respond correctly. ");
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.exit(1);
+                        }
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                System.exit(1);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                System.exit(1);
             }
             return null;
         }
