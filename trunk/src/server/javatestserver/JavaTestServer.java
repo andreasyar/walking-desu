@@ -77,9 +77,6 @@ public class JavaTestServer {
         ts.cancel();
     }
 
-    /**
-     * Ждет новых подключений к серверу. Возвращает новое подключение.
-     */
     private Socket getNewConnection() {
         Socket cs = null;
         try {
@@ -91,12 +88,6 @@ public class JavaTestServer {
         return cs;
     }
 
-    /**
-     * Отправляет сообщение всем игрокам, у которых заданный юнит находится в
-     * зоне видимости.
-     * @param msg Сообщение
-     * @param unit Юнит
-     */
     public void sendFromUnit(String msg, Unit unit) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
@@ -106,11 +97,6 @@ public class JavaTestServer {
         }
     }
 
-    /**
-     * Отправляет сообщение заданному игроку.
-     * @param msgs Сообщение.
-     * @param player Игрок.
-     */
     public void sendTo(String msg, Player player) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
@@ -121,10 +107,6 @@ public class JavaTestServer {
         }
     }
 
-    /**
-     * Отправляет заданные сообщения всем пользователям.
-     * @param msgs Сообщения.
-     */
     public void sendToAll(String[] msgs) {
         for (String msg : msgs) {
             for (SocketProcessor sp : clientQueue) {
@@ -136,12 +118,6 @@ public class JavaTestServer {
         }
     }
 
-    /**
-     * Отправляет заданные сообщения всем пользователям, за исключем
-     * пользователя с заданным ID.
-     * @param msgs Сообщения.
-     * @param excID ID исключаемого из рассылки игрока.
-     */
     public void sendToAll(String[] msgs, long excID) {
         for (String msg : msgs) {
             for (SocketProcessor sp : clientQueue) {
@@ -316,7 +292,7 @@ public class JavaTestServer {
                             if ("localhost".equals(s.getInetAddress().getHostName())) {
                                 self.setSpriteSetName("peasant");
                             } else {
-                                self.setSpriteSetName("poring");
+                                self.setSpriteSetName("peon");
                             }
                             addMessage("(hello "
                                     + self.getID() + " "
