@@ -110,7 +110,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     if (textCloud != null) {
                         buffGraph.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
                     }
-                    if (p.isMove()) {
+                    if (showTowerRange && p.isMove()) {
                         curPos = p.getCurPos();
                         buffGraph.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEndPoint().x + mapOfst.width, p.getEndPoint().y + mapOfst.height);
                         buffGraph.drawOval(curPos.x + mapOfst.width - 500, curPos.y + mapOfst.height - 500, 1000, 1000);
@@ -153,6 +153,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         }
     }
 
+    @Override
     public void mouseClicked(MouseEvent e) {
         this.requestFocus();
         int x = e.getX();
@@ -212,11 +213,16 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         }
     }
 
+    @Override
     public void mousePressed(MouseEvent e) {}
+    @Override
     public void mouseReleased(MouseEvent e) {}
+    @Override
     public void mouseEntered(MouseEvent e) {}
+    @Override
     public void mouseExited(MouseEvent e) {}
 
+    @Override
     public void componentResized(ComponentEvent e) {
         Dimension d = e.getComponent().getSize();
 
@@ -234,6 +240,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         panelDim = d;
     }
 
+    @Override
     public void componentShown(ComponentEvent e) {
         if (!wasShown) {
             wasShown = true;
@@ -274,10 +281,14 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         }
     }
 
+    @Override
     public void componentMoved(ComponentEvent e) {}
+    @Override
     public void componentHidden(ComponentEvent e) {}
 
+    @Override
     public void keyTyped(KeyEvent e) {}
+    @Override
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
         if (key == KeyEvent.VK_ESCAPE) {
@@ -303,6 +314,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             showTowerRange = true;
         }
     }
+    @Override
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             selectMode = false;

@@ -27,7 +27,6 @@ public class JavaTestServer {
     ArrayList<Long> playerIDs = new ArrayList<Long>();
     private final ArrayList<Unit> units = new ArrayList<Unit>();
     private final ArrayList<Player> players = new ArrayList<Player>();
-    private final ArrayList<NPC> npcs = new ArrayList<NPC>();
     private final ArrayList<Monster> monsters = new ArrayList<Monster>();
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
     private final int tdMonsterLossLimit = 100;
@@ -55,6 +54,8 @@ public class JavaTestServer {
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
         vm = new VisibleManager(players, towers, monsters, this);
         executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
+        PacketSenderTask pst = new PacketSenderTask(this);
+        executor.scheduleAtFixedRate(pst, 0L, 40L, TimeUnit.MILLISECONDS);
 
         while (true) {
             Socket s = getNewConnection();
@@ -100,6 +101,7 @@ public class JavaTestServer {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
                 sp.send(msg);
+                sp.addMessage(msg);
             }
         }
     }
@@ -113,6 +115,7 @@ public class JavaTestServer {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
                 sp.send(msg);
+                sp.addMessage(msg);
                 return;
             }
         }
@@ -127,6 +130,7 @@ public class JavaTestServer {
             for (SocketProcessor sp : clientQueue) {
                 if (sp.loggedIn()) {
                     sp.send(msg);
+                    sp.addMessage(msg);
                 }
             }
         }
@@ -143,8 +147,17 @@ public class JavaTestServer {
             for (SocketProcessor sp : clientQueue) {
                 if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID && sp.loggedIn()) {
                     sp.send(msg);
+                    sp.addMessage(msg);
                 }
             }
+        }
+    }
+
+    public void sendPackets() {
+        for (SocketProcessor sp : clientQueue) {
+            JTSLocks.lockPacket();
+            sp.sendPacket();
+            JTSLocks.unlockPacket();
         }
     }
 
@@ -175,6 +188,7 @@ public class JavaTestServer {
             timer.schedule(this, 0, 10000);
         }
 
+        @Override
         public void run() {
             sendToAll(new String[]{"(timesync "
                         + (System.currentTimeMillis() - serverStartTime) + ")"});
@@ -197,6 +211,8 @@ public class JavaTestServer {
         private boolean nickReceived = false;
         private boolean helloSended = false;
         private Player self = null;
+        private LinkedBlockingQueue<String> messages = new LinkedBlockingQueue<String>();
+        private ObjectOutputStream oos;
 
         SocketProcessor(Socket socketParam) throws IOException {
             s = socketParam;
@@ -204,8 +220,10 @@ public class JavaTestServer {
                     "UTF-8"));
             bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream(),
                     "UTF-8"));
+            oos = new ObjectOutputStream(s.getOutputStream());
         }
 
+        @Override
         public void run() {
             while (!s.isClosed()) {
                 String line = null;
@@ -267,9 +285,9 @@ public class JavaTestServer {
                                     a.setScheduledFuture(f);
                                 }
                                 sendToAll(new String[]{"(bolt "
-                                        + self.getID() + " "
-                                        + target.getID() + " "
-                                        + (System.currentTimeMillis() - serverStartTime) + ")"}, self.getID());
+                                            + self.getID() + " "
+                                            + target.getID() + " "
+                                            + (System.currentTimeMillis() - serverStartTime) + ")"}, self.getID());
 
                                 // </editor-fold>
                             } else if ("tower".equals(pieces[0])) {
@@ -296,11 +314,11 @@ public class JavaTestServer {
                             self = new Player(curPlayerID++, pieces[1], 100, 0, 0, 0.07);
                             selfCurPos = self.getCurPos();
                             if ("localhost".equals(s.getInetAddress().getHostName())) {
-                                self.setSpriteSetName("poring");
+                                self.setSpriteSetName("peasant");
                             } else {
-                                self.setSpriteSetName("desu");
+                                self.setSpriteSetName("poring");
                             }
-                            send("(hello "
+                            addMessage("(hello "
                                     + self.getID() + " "
                                     + self.getHitPoints() + " "
                                     + 0.07 + " "
@@ -326,7 +344,7 @@ public class JavaTestServer {
         }
 
         public synchronized void send(String line) {
-            if (!line.startsWith("(")) {
+            /*if (!line.startsWith("(")) {
                 line = "(" + line + ")";
             }
             System.out.println(s.getInetAddress() + " <-- " + line);
@@ -336,7 +354,7 @@ public class JavaTestServer {
                 bw.flush();
             } catch (IOException e) {
                 close();
-            }
+            }*/
         }
 
         public synchronized void close() {
@@ -372,6 +390,33 @@ public class JavaTestServer {
         public boolean loggedIn() {
             return helloSended;
         }
+
+        public void addMessage(String s) {
+            JTSLocks.lockPacket();
+            try {
+                messages.put(s);
+            } catch (InterruptedException ignore) {}
+            JTSLocks.unlockPacket();
+        }
+
+        /**
+         * Require packet lock.
+         */
+        public void sendPacket() {
+            try {
+                if (messages.size() > 0) {
+                    for (String line : messages) {
+                        System.out.println(s.getInetAddress() + " <-- " + line);
+                    }
+                    oos.writeObject(messages);
+                    messages.clear();
+                    oos.reset();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+        }
     }
 
     private class NukeAction implements Runnable {
@@ -384,6 +429,7 @@ public class JavaTestServer {
             this.bolt = bolt;
         }
 
+        @Override
         public void run() {
             if (!canceled) {
                 if (!bolt.isFlight()) {
@@ -431,6 +477,7 @@ public class JavaTestServer {
             monCountAdd = 0;
         }
 
+        @Override
         public void run() {
             if (!canceled) {
                 JTSLocks.lockAll();
@@ -519,6 +566,7 @@ public class JavaTestServer {
         public TowerController() {
         }
 
+        @Override
         public void run() {
             if (!canceled) {
                 JTSLocks.lockTowers();

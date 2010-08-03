@@ -9,6 +9,7 @@ public class JTSLocks {
     private static final Lock towersLock = new ReentrantLock();
     private static final Lock playersLock = new ReentrantLock();
     private static final Lock unitsLock = new ReentrantLock();
+    private static final Lock packetLock = new ReentrantLock();
     private static final int debugLevel = 0;
 
     public static void lockAll() {
@@ -100,6 +101,20 @@ public class JTSLocks {
         monstersLock.unlock();
         if (debugLevel == 1) {
             System.out.println(Thread.currentThread().getId() + " thread successfully unlock monsters.");
+        }
+    }
+
+    public static void lockPacket() {
+        packetLock.lock();
+        if (debugLevel == 1) {
+            System.out.println(Thread.currentThread().getId() + " thread successfully lock packet.");
+        }
+    }
+
+    public static void unlockPacket() {
+        packetLock.unlock();
+        if (debugLevel == 1) {
+            System.out.println(Thread.currentThread().getId() + " thread successfully unlock packet.");
         }
     }
 }
