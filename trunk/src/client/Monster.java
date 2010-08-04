@@ -5,6 +5,7 @@ public class Monster extends Unit {
     public Monster(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         super(id, nick, maxHitPoints, speed, x, y, d, set);
         restoreHitPoints();
+        deathAnim = new MonsterDeathAnimation(set);
     }
 
     @Override
