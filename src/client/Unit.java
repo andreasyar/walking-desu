@@ -16,7 +16,7 @@ import java.util.Hashtable;
 public abstract class Unit {
     private MovementAnimation moveAnim;
     private StandAnimation standAnim;
-    //private DeathAnimation deathAnim;
+    protected DeathAnimation deathAnim;
 
     private Movement mv;
 
