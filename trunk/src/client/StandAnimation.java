@@ -42,7 +42,6 @@ public class StandAnimation {
         long tmpTime;
         Sprite tmpSpr;
 
-        System.out.print("1");
         // Animation ends. Return the last sprite from stand animation.
         if (endTime != 0 && curTime > endTime) {
             tmpSpr = set.getSprite(direct, period - 1);
@@ -51,11 +50,9 @@ public class StandAnimation {
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
             return tmpSpr;
         }
-        System.out.print("2");
 
         tmpTime = (curTime - begTime) % (step * period * repeat + delay);
 
-        System.out.print("3");
         if (tmpTime <= step * period * repeat) {
             int sprIndex = (int) (((tmpTime % (step * period)) / step));
             if (sprIndex < 0) {
@@ -71,7 +68,6 @@ public class StandAnimation {
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
             return tmpSpr;
         } else {
-            System.out.print("4");
             // Now time to delay before new animation cycle. So return last
             // sprite from stand animation.
             tmpSpr = set.getSprite(direct, period - 1);
