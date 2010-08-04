@@ -145,6 +145,7 @@ public class ServerInteraction {
             long begTime = Long.parseLong(pieces1[3]);
 
             if (attacker != null && target != null) {
+                attacker.selectUnit(target);
                 field.addNuke(attacker, target, begTime);
             }
         } else if ("hit".equals(pieces1[0])) {
@@ -181,10 +182,12 @@ public class ServerInteraction {
                     pieces2[2]));
         } else if ("delmonster".equals(pieces1[0])) {
             field.delPlayer(Long.parseLong(pieces1[1]));
+        } else if ("deathmonster".equals(pieces1[0])) {
+            field.deathPlayer(Long.parseLong(pieces1[1]));
         } else if ("tower".equals(pieces1[0])) {
             pieces1 = command.split(" ", 7);
             pieces1[6] = pieces1[6].substring(1, pieces1[6].length() - 1);
-            field.addTower(new Tower(Integer.parseInt(pieces1[1]),
+            Tower t = new Tower(Integer.parseInt(pieces1[1]),
                     pieces1[6],
                     Double.parseDouble(pieces1[2]),
                     Integer.parseInt(pieces1[3]),
@@ -192,7 +195,9 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[4]),
                     Integer.parseInt(pieces1[5]),
                     Direction.SOUTH,
-                    "tower"));
+                    "tower");
+            t.setCurrentNuke(new CanonNuke(t));
+            field.addTower(t);
         } else if ("monsterloss".equals(pieces1[0])) {
             pieces1 = command.split(" ");
             field.setTDStatus(Integer.parseInt(pieces1[1]) + "/" + Integer.parseInt(pieces1[2]) + " x" + Integer.parseInt(pieces1[3]));

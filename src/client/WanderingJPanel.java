@@ -126,6 +126,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 for (Nuke n : nukes) {
                     if (n.isMove()) {
                         s = n.getSprite();
+                        System.out.println((s.x + mapOfst.width) + " " + (s.y + mapOfst.height));
                         buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                     }
                 }
