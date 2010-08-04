@@ -14,30 +14,30 @@ public enum Direction {
 
     public static Direction getDirection(Point beg, Point end) {
         double angle = angle(beg, end);
-        System.out.println(angle(beg, end));
+        //System.out.println(angle(beg, end));
         if (angle > 337.5 || angle >= 0.0 && angle <= 22.5) {
-            System.out.println("EAST");
+            //System.out.println("EAST");
             return EAST;
         } else if (angle > 22.5 && angle <= 67.5) {
-            System.out.println("NORTH_EAST");
+            //System.out.println("NORTH_EAST");
             return NORTH_EAST;
         } else if (angle > 67.5 && angle <= 102.5) {
-            System.out.println("NORTH");
+            //System.out.println("NORTH");
             return NORTH;
         } else if (angle > 102.5 && angle <= 157.5) {
-            System.out.println("NORTH_WEST");
+            //System.out.println("NORTH_WEST");
             return NORTH_WEST;
         } else if (angle > 157.5 && angle <= 202.5) {
-            System.out.println("WEST");
+            //System.out.println("WEST");
             return WEST;
         } else if (angle > 202.5 && angle <= 247.5) {
-            System.out.println("SOUTH_WEST");
+            //System.out.println("SOUTH_WEST");
             return SOUTH_WEST;
         } else if (angle > 247.5 && angle <= 292.5) {
-            System.out.println("SOUTH");
+            //System.out.println("SOUTH");
             return SOUTH;
         } else {
-            System.out.println("SOUTH_EAST");
+            //System.out.println("SOUTH_EAST");
             return SOUTH_EAST;
         }
         /*int diffX = end.x - beg.x;

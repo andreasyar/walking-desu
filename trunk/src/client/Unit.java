@@ -16,6 +16,7 @@ import java.util.Hashtable;
 public abstract class Unit {
     private MovementAnimation moveAnim;
     private StandAnimation standAnim;
+    //private DeathAnimation deathAnim;
 
     private Movement mv;
 
@@ -31,6 +32,8 @@ public abstract class Unit {
     protected Unit selectedUnit;
 
     protected Nuke currentNuke;
+
+    protected boolean isDeath;
 
     public Unit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         this.id = id;

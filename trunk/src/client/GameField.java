@@ -19,7 +19,7 @@ public class GameField {
      */
     private String tdStatus = null;
     private static YAligner aligner = new YAligner();
-    private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+    private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
 
     public GameField() {
         GeoDataController gdController = new GeoDataController(WanderingMap.getGeoData(), players);
@@ -120,10 +120,13 @@ public class GameField {
     // <editor-fold defaultstate="collapsed" desc="Nukes works">
 
     public void addNuke(Unit self, Unit selectedUnit, long begTime) {
+        Nuke n;
+
         synchronized (nukes) {
-            Nuke n = new PowerOfWateringPot(self);
-            n.use(selectedUnit, begTime);
-            self.setCurrentNuke(n);
+            n = self.getCurrentNuke();//new PowerOfWateringPot(self);
+            //n.use(selectedUnit, begTime);
+            //self.setCurrentNuke(n);
+            n.use(begTime);
             nukes.add(n);
         }
     }
@@ -186,6 +189,10 @@ public class GameField {
 
     public void setTDStatus(String status) {
         tdStatus = status;
+    }
+
+    public void deathPlayer(long id) {
+        
     }
     // </editor-fold>
 

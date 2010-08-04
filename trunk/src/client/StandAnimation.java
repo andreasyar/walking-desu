@@ -63,7 +63,6 @@ public class StandAnimation {
             } else {
                 tmpSpr = set.getSprite(direct, 0);
             }
-            //System.out.print(sprIndex);
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
             return tmpSpr;
@@ -71,7 +70,6 @@ public class StandAnimation {
             // Now time to delay before new animation cycle. So return last
             // sprite from stand animation.
             tmpSpr = set.getSprite(direct, period - 1);
-            //System.out.println();
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
             return tmpSpr;
