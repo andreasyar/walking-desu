@@ -1,2 +1,2 @@
-javac client\WalkingDesu.java client\Sprites.java
+javac client\*.java
 jar cmf MANIFEST.MF WD.jar img client/*.class
