@@ -4,10 +4,11 @@ public class Monster extends Unit {
 
     public Monster(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         super(id, nick, maxHitPoints, speed, x, y, d, set);
-        restoreHitPoints();
+        hitPoints = maxHitPoints;
         deathAnim = new MonsterDeathAnimation(set);
     }
 
+    // <editor-fold defaultstate="collapsed" desc="HP works">
     @Override
     public void doHit(int dmg) {
         hitPoints -= dmg;
@@ -19,9 +20,5 @@ public class Monster extends Unit {
     public void restoreHitPoints() {
         hitPoints = maxHitPoints;
     }
-
-    public boolean dead() {
-        return hitPoints <= 0;
-    }
-
+    // </editor-fold>
 }

@@ -187,4 +187,15 @@ public class VisibleManager implements Runnable {
             }
         }
     }
+
+    /**
+     * Require players lock.
+     */
+    public void killMonster(Monster monster) {
+        for (Player p : players) {
+            if (p.getVisibleUnitsList().remove(monster)) {
+                server.sendTo("(deathmonster " + monster.getID() + ")", p);
+            }
+        }
+    }
 }

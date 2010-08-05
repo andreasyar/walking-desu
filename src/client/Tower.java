@@ -22,7 +22,7 @@ public class Tower extends NPC {
     }
 
     public boolean targetInRange() {
-        if (target == null || target.getCurPos().distance(getCurPos()) > range || ((Monster) target).dead()) {
+        if (target == null || target.getCurPos().distance(getCurPos()) > range || ((Monster) target).isDead()) {
             target = null;
             return false;
         } else {
@@ -36,7 +36,7 @@ public class Tower extends NPC {
         synchronized (targets) {
             for (ListIterator<Monster> li = targets.listIterator(); li.hasNext();) {
                 target = li.next();
-                if (targetInRange() && !((Monster) target).dead()) {
+                if (targetInRange() && !((Monster) target).isDead()) {
                     found = true;
                     break;
                 }

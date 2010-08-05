@@ -1,19 +1,26 @@
 package client;
 
+import java.awt.Point;
+
 public abstract class DeathAnimation {
 
-    private DirectionalSpriteSet set;
+    protected DirectionalSpriteSet set;
     protected Direction direction;
+    protected boolean done = false;
 
     protected DeathAnimation(String set) {
-        this.set = DirectionalSpriteSet.load(set);
+        this.set = DirectionalSpriteSet.load(set + "_death");
     }
 
-    protected Sprite getSprite(int index) {
-        return set.getSprite(direction, index);
-    }
+    public abstract Sprite getSprite(long curTime, Point curPos);
 
     protected int getSpriteCount() {
         return set.getSpriteCount(direction);
     }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public abstract void run(Direction direction, long begTime);
 }

@@ -7,4 +7,9 @@ public class NPC extends Unit {
     }
 
     public void doHit(int dmg) {}
+
+    @Override
+    public boolean isDead() {
+        return false;
+    }
 }

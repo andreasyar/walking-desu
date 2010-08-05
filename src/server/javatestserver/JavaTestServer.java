@@ -10,6 +10,7 @@ import java.util.TimerTask;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.awt.Point;
+import java.net.SocketException;
 import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -389,8 +390,10 @@ public class JavaTestServer {
                     oos.reset();
                 }
             } catch (IOException ex) {
+                System.err.println("Sendin packet to player " + self.getID() + "(" + self.getNick() + ") failed.");
                 ex.printStackTrace();
-                System.exit(1);
+                close();
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -513,7 +516,7 @@ public class JavaTestServer {
                                     + monStrMult + ")"});
                     }
                     if (isDead || isStop) {
-                        vm.removeMonster(m);
+                        vm.killMonster(m);
                         units.remove(m);
                         li.remove();
                     }
