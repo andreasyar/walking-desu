@@ -14,26 +14,21 @@ import java.text.AttributedString;
 import java.util.Hashtable;
 
 public abstract class Unit {
+
     private MovementAnimation moveAnim;
     private StandAnimation standAnim;
     protected DeathAnimation deathAnim;
-
     private Movement mv;
-
     private long id;
     private String nick;
-
     private String text = null;
     private BufferedImage textCloud = null;
-
     protected int maxHitPoints;
     protected int hitPoints;
-
     protected Unit selectedUnit;
-
     protected Nuke currentNuke;
-
-    protected boolean isDeath;
+    protected boolean isDead = false;
+    private boolean isMove;
 
     public Unit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         this.id = id;
@@ -46,9 +41,23 @@ public abstract class Unit {
     }
 
     public Sprite getSprite() {
-        return mv.isMove() ?
-            moveAnim.getSprite(mv.getCurPos()) :
-            standAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
+        isMove = mv.isMove();
+
+        if (!isDead && isMove) {
+            return moveAnim.getSprite(mv.getCurPos());
+        } else if (!isDead && !isMove) {
+            return standAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
+        } else if (isDead) {
+            return deathAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
+        } else {
+            System.err.println("Illegal unit state.");
+            System.exit(1);
+            return null;
+        }
+    }
+
+    public boolean deathAnimationDone() {
+        return deathAnim.isDone();
     }
 
     public void changeSpriteSet(String spriteSetName) {
@@ -84,10 +93,12 @@ public abstract class Unit {
         return mv.getEndPoint();
     }
 // </editor-fold>
+
     public long getID() {
         return id;
     }
 // <editor-fold defaultstate="collapsed" desc="Nick works">
+
     public String getNick() {
         return nick;
     }
@@ -97,6 +108,7 @@ public abstract class Unit {
     }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Message works">
+
     public String getText() {
         return text;
     }
@@ -123,8 +135,8 @@ public abstract class Unit {
             float breakWidth = 149 - 2;
             float drawPosY = 0;
             Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
-            Graphics2D g2d = (Graphics2D)g;
-            g2d.setColor(new Color((float)0.1, (float)1.0, (float)0.3, (float)0.7));
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setColor(new Color((float) 0.1, (float) 1.0, (float) 0.3, (float) 0.7));
             g2d.fillRoundRect(1, 1, 148, 98, 10, 10);
             g2d.setColor(Color.BLACK);
             AttributedCharacterIterator paragraph = (new AttributedString(text)).getIterator();
@@ -150,13 +162,31 @@ public abstract class Unit {
     }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="HP works">
+
     abstract public void doHit(int dmg);
 
     public int getHitPoints() {
         return hitPoints;
     }
+
+    public void killUnit() {
+        Direction d;
+
+        isDead = true;
+        if ( (d = moveAnim.getDirection()) == null
+                && (d = standAnim.getDirection()) == null) {
+            d = Direction.SOUTH;
+        }
+        deathAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+        mv.stop();
+    }
+
+    public boolean isDead() {
+        return isDead;
+    }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Selected unit works">
+
     public Unit getSelectedUnit() {
         return selectedUnit;
     }
@@ -170,6 +200,7 @@ public abstract class Unit {
     }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Current nuke works">
+
     public Nuke getCurrentNuke() {
         return currentNuke;
     }

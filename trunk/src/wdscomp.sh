@@ -1,2 +1,2 @@
 #!/bin/sh
-javac server/javatestserver/JavaTestServer.java
+javac server/javatestserver/*.java

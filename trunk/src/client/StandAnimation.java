@@ -4,7 +4,7 @@ import java.awt.Point;
 
 public class StandAnimation {
     private DirectionalSpriteSet set;
-    private Direction direct;
+    private Direction direct = null;
     private int period;             // Количество спрайтов в наборе
 
     private long step;  // Время показа каждого спрайта (или время смены спрайта)
@@ -88,5 +88,9 @@ public class StandAnimation {
         this.direct = direct;
         period = set.getSpriteCount(direct);
         this.endTime = endTime;
+    }
+
+    public Direction getDirection() {
+        return direct;
     }
 }

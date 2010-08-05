@@ -2,26 +2,28 @@ package client;
 
 import java.awt.Point;
 
-public class MonsterDeathAnimation extends DeathAnimation {
+public class CanonHitAnimation extends HitAnimation {
 
-    private int period; // Количество спрайтов в наборе
+    private int period = 4; // Количество спрайтов в наборе
 
-    private long step;  // Время показа каждого спрайта (или время смены спрайта)
-    private int delay;  // Задержка до очередного проигрывания
+    private long step;      // Время показа каждого спрайта (или время смены спрайта)
+    private int delay;      // Задержка до очередного проигрывания
     private long begTime = 0;
 
-    public MonsterDeathAnimation(String set) {
-        super(set);
-        if ("poring".equals(set)) {
-            this.step = 150;
+    public CanonHitAnimation(String set, Point curPos, Direction direction, long begTime) {
+        super(set, curPos, direction);
+        if ("canon".equals(set)) {
+            this.step = 100;
             this.delay = 0;
         } else {
-            System.err.println("Death sprite set " + set + " not supported.");
+            System.err.println("Hit sprite set " + set + " not supported.");
             System.exit(1);
         }
+        this.begTime = begTime;
     }
 
-    public final Sprite getSprite(long curTime, Point curPos) {
+    @Override
+    public Sprite getSprite(long curTime) {
         long tmpTime;
         Sprite tmpSpr;
 
@@ -54,11 +56,5 @@ public class MonsterDeathAnimation extends DeathAnimation {
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
             return tmpSpr;
         }
-    }
-
-    public void run(Direction direction, long begTime) {
-        this.begTime = begTime;
-        this.direction = direction;
-        period = super.getSpriteCount();
     }
 }

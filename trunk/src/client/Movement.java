@@ -75,4 +75,8 @@ public class Movement {
     public Point getEndPoint() {
         return end;
     }
+
+    public void stop() {
+        isMove = false;
+    }
 }

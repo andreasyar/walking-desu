@@ -4,7 +4,7 @@ import java.awt.Point;
 
 public class MovementAnimation {
     private DirectionalSpriteSet set;
-    private Direction direct;
+    private Direction direct = null;
     private int period;
 
     private Point beg;

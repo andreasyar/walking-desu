@@ -3,6 +3,7 @@ package client;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.ListIterator;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +14,8 @@ public class GameField {
     private final ArrayList<Player> players = new ArrayList<Player>();
     private final ArrayList<Nuke> nukes = new ArrayList<Nuke>();
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
+    private final ArrayList<Monster> monsters = new ArrayList<Monster>();
+    private final ArrayList<HitAnimation> hitAnimations = new ArrayList<HitAnimation>();
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
      * monsters loss limit, S - strength multiplyer.
@@ -24,9 +27,11 @@ public class GameField {
     public GameField() {
         GeoDataController gdController = new GeoDataController(WanderingMap.getGeoData(), players);
         gdController.setScheduledFuture(executor.scheduleAtFixedRate(gdController, 0L, 200L, TimeUnit.MILLISECONDS));
+        MonsterDeathController mdController = new MonsterDeathController(this);
+        executor.scheduleAtFixedRate(mdController, 0L, 100L, TimeUnit.MILLISECONDS);
     }
-    // <editor-fold defaultstate="collapsed" desc="Self player works">
 
+    // <editor-fold defaultstate="collapsed" desc="Self player works">
     public void addSelfPlayer(Player selfPlayer) {
         this.selfPlayer = selfPlayer;
         addPlayer(this.selfPlayer);
@@ -38,12 +43,13 @@ public class GameField {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Units works">
 
+    /**
+     * Require lock all.
+     */
     public Unit getUnit(long id) {
-        synchronized (units) {
-            for (Unit u : units) {
-                if (u.getID() == id) {
-                    return u;
-                }
+        for (Unit u : units) {
+            if (u.getID() == id) {
+                return u;
             }
         }
 
@@ -54,59 +60,60 @@ public class GameField {
         return units;
     }
 
+    /**
+     * Require lock all.
+     */
     public ArrayList<Unit> getYSortedUnits() {
-        synchronized (units) {
-            Collections.sort(units, aligner);
-        }
-
+        Collections.sort(units, aligner);
         return units;
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Players works">
 
+    /**
+     * Require lock all.
+     */
     public void addPlayer(Player player) {
-        synchronized (units) {
-            units.add(player);
-        }
-        synchronized (players) {
-            players.add(player);
-        }
+        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        units.add(player);
+        players.add(player);
     }
 
+    /**
+     * Require lock all.
+     */
     public void delPlayer(long id) {
+        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
         Player p = getPlayer(id);
         if (p != null) {
-            synchronized (players) {
 
-                // Unselect player if it selected.
-                for (Player curPlayer : players) {
-                    if (curPlayer.getSelectedUnit() != null && curPlayer.getSelectedUnit().equals(p)) {
-                        curPlayer.unselectUnit();
-                    }
+            // Unselect player if it selected.
+            for (Player curPlayer : players) {
+                if (curPlayer.getSelectedUnit() != null && curPlayer.getSelectedUnit().equals(p)) {
+                    curPlayer.unselectUnit();
                 }
-
-                // Now we can safely remove him.
-                players.remove(p);
             }
-            synchronized (units) {
 
-                // Finally remove player from units list.
-                for (Unit curUnit : units) {
-                    if (curUnit.equals(p)) {
-                        units.remove(curUnit);
-                        return;
-                    }
+            // Now we can safely remove him.
+            players.remove(p);
+
+            // Finally remove player from units list.
+            for (Unit curUnit : units) {
+                if (curUnit.equals(p)) {
+                    units.remove(curUnit);
+                    return;
                 }
             }
         }
     }
 
+    /**
+     * Require lock players.
+     */
     public Player getPlayer(long id) {
-        synchronized (players) {
-            for (Player p : players) {
-                if (p.getID() == id) {
-                    return p;
-                }
+        for (Player p : players) {
+            if (p.getID() == id) {
+                return p;
             }
         }
 
@@ -119,16 +126,21 @@ public class GameField {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Nukes works">
 
+    /**
+     * Require lock nukes.
+     */
     public void addNuke(Unit self, Unit selectedUnit, long begTime) {
-        Nuke n;
 
-        synchronized (nukes) {
-            n = self.getCurrentNuke();//new PowerOfWateringPot(self);
-            //n.use(selectedUnit, begTime);
-            //self.setCurrentNuke(n);
-            n.use(begTime);
-            nukes.add(n);
+        // remove old nukes
+        for (ListIterator<Nuke> l = nukes.listIterator(); l.hasNext();) {
+            if (!l.next().isMove()) {
+                l.remove();
+            }
         }
+
+        Nuke n = self.getCurrentNuke();
+        n.use(begTime);
+        nukes.add(n);
     }
 
     public ArrayList<Nuke> getNukes() {
@@ -137,40 +149,34 @@ public class GameField {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Towers works">
 
+    /**
+     * Require lock all.
+     */
     public void addTower(Tower tower) {
-        synchronized (towers) {
-            towers.add(tower);
-        }
-        synchronized (units) {
-            units.add(tower);
-        }
+        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        towers.add(tower);
+        units.add(tower);
     }
 
+    /**
+     * Require lock all.
+     */
     public void delTower(long id) {
+        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
         Tower t = getTower(id);
         if (t != null) {
-            synchronized (towers) {
-                towers.remove(t);
-            }
-            synchronized (units) {
-
-                // Remove tower from units list.
-                for (Unit curUnit : units) {
-                    if (curUnit.equals(t)) {
-                        units.remove(curUnit);
-                        return;
-                    }
-                }
-            }
+            towers.remove(t);
+            units.remove(t);
         }
     }
 
+    /**
+     * Require lock towers.
+     */
     public Tower getTower(long id) {
-        synchronized (towers) {
-            for (Tower t : towers) {
-                if (t.getID() == id) {
-                    return t;
-                }
+        for (Tower t : towers) {
+            if (t.getID() == id) {
+                return t;
             }
         }
 
@@ -181,18 +187,78 @@ public class GameField {
         return towers;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Tower Defence Status works">
+    // <editor-fold defaultstate="collapsed" desc="Monsters works">
 
+    /**
+     * Require lock all.
+     */
+    public void addMonster(Monster monster) {
+        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        monsters.add(monster);
+        units.add(monster);
+    }
+
+    /**
+     * Require lock all.
+     */
+    void delDeadMonsters() {
+        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        Monster m;
+
+        for (ListIterator<Monster> l = monsters.listIterator(); l.hasNext();) {
+            m = l.next();
+            if (m.isDead() && m.deathAnimationDone()) {
+                units.remove(m);
+                l.remove();
+            }
+        }
+    }
+
+    public ArrayList<Monster> getMonsters() {
+        return monsters;
+    }
+
+    /**
+     * Require monsters lock.
+     */
+    public Monster getMonster(long id) {
+        for (Monster m : monsters) {
+            if (m.getID() == id) {
+                return m;
+            }
+        }
+
+        return null;
+    }
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Hit animations works">
+
+    /**
+     * Require hit animation lock.
+     */
+    public void addHitAnimation(HitAnimation hitAnimation) {
+
+        // Remove old hits.
+        for (ListIterator<HitAnimation> l = hitAnimations.listIterator(); l.hasNext();) {
+            if (l.next().isDone()) {
+                l.remove();
+            }
+        }
+
+        hitAnimations.add(hitAnimation);
+    }
+
+    public ArrayList<HitAnimation> getHitAnimations() {
+        return hitAnimations;
+    }
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Tower Defence Status works">
     public String getTDStatus() {
         return tdStatus;
     }
 
     public void setTDStatus(String status) {
         tdStatus = status;
-    }
-
-    public void deathPlayer(long id) {
-        
     }
     // </editor-fold>
 
@@ -201,5 +267,12 @@ public class GameField {
         public final int compare(Object a, Object b) {
             return ((Unit) a).getCurPos().y > ((Unit) b).getCurPos().y ? 1 : 0;
         }
+    }
+
+    private void debug_test1(String info) {
+        if (WanderingJPanel.resourcesInProcess && Thread.currentThread().getId() != WanderingJPanel.threadId) {
+            System.err.println("Some idiot " + info + " try to bad thing!");
+        }
+
     }
 }
