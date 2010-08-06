@@ -74,7 +74,7 @@ public class GameField {
      * Require lock all.
      */
     public void addPlayer(Player player) {
-        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        debug_test1(Thread.currentThread().getStackTrace());
         units.add(player);
         players.add(player);
     }
@@ -83,7 +83,7 @@ public class GameField {
      * Require lock all.
      */
     public void delPlayer(long id) {
-        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        debug_test1(Thread.currentThread().getStackTrace());
         Player p = getPlayer(id);
         if (p != null) {
 
@@ -153,7 +153,7 @@ public class GameField {
      * Require lock all.
      */
     public void addTower(Tower tower) {
-        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        debug_test1(Thread.currentThread().getStackTrace());
         towers.add(tower);
         units.add(tower);
     }
@@ -162,7 +162,7 @@ public class GameField {
      * Require lock all.
      */
     public void delTower(long id) {
-        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        debug_test1(Thread.currentThread().getStackTrace());
         Tower t = getTower(id);
         if (t != null) {
             towers.remove(t);
@@ -193,7 +193,7 @@ public class GameField {
      * Require lock all.
      */
     public void addMonster(Monster monster) {
-        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        debug_test1(Thread.currentThread().getStackTrace());
         monsters.add(monster);
         units.add(monster);
     }
@@ -202,7 +202,7 @@ public class GameField {
      * Require lock all.
      */
     void delDeadMonsters() {
-        debug_test1(Thread.currentThread().getStackTrace()[0].toString());
+        debug_test1(Thread.currentThread().getStackTrace());
         Monster m;
 
         for (ListIterator<Monster> l = monsters.listIterator(); l.hasNext();) {
@@ -253,6 +253,7 @@ public class GameField {
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Tower Defence Status works">
+
     public String getTDStatus() {
         return tdStatus;
     }
@@ -264,14 +265,18 @@ public class GameField {
 
     private static class YAligner implements Comparator {
 
+        @Override
         public final int compare(Object a, Object b) {
             return ((Unit) a).getCurPos().y > ((Unit) b).getCurPos().y ? 1 : 0;
         }
     }
 
-    private void debug_test1(String info) {
+    private void debug_test1(StackTraceElement[] trace) {
         if (WanderingJPanel.resourcesInProcess && Thread.currentThread().getId() != WanderingJPanel.threadId) {
-            System.err.println("Some idiot " + info + " try to bad thing!");
+            System.err.println("Some idiot try to bad thing!");
+            for (StackTraceElement e : trace) {
+                System.err.println(e.getClassName() + ":" + e.getMethodName() + ":" + e.getFileName() + ":" + e.getLineNumber());
+            }
         }
 
     }
