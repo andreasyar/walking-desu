@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Area;
+import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.ListIterator;
@@ -74,11 +75,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             // TODO На самом деле надо рисовать лишь видимую часть карты
             // которую можно получить с помощью метода getSubimage()
             buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
-                        mapOfst.height < 0 ? -mapOfst.height : 0,
-                        mapOfst.width < 0 ? 1024 + mapOfst.width : 1024 - mapOfst.width,
-                        mapOfst.height < 0 ? 768 + mapOfst.height : 768 - mapOfst.height),
-                    mapOfst.width >= 0 ? mapOfst.width : 0,
-                    mapOfst.height >= 0 ? mapOfst.height : 0, null);
+                                                   mapOfst.height < 0 ? -mapOfst.height : 0,
+                                                   mapOfst.width < 0 ? 1024 + mapOfst.width : 1024 - mapOfst.width,
+                                                   mapOfst.height < 0 ? 768 + mapOfst.height : 768 - mapOfst.height),
+                                mapOfst.width >= 0 ? mapOfst.width : 0,
+                                mapOfst.height >= 0 ? mapOfst.height : 0,
+                                null);
 
             // Вычислим новое смещение карты (временно это делается здесь)
             Point curPos = field.getSelfPlayer().getCurPos();

@@ -204,9 +204,9 @@ public class ServerInteraction {
         } else if ("delmonster".equals(pieces1[0])) {
             //field.delPlayer(Long.parseLong(pieces1[1]));
         } else if ("deathmonster".equals(pieces1[0])) {
-            WanderingLocks.lockMonsters();
+            //WanderingLocks.lockMonsters();
             Monster m = field.getMonster(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockMonsters();
+            //WanderingLocks.unlockMonsters();
             if (m != null) {
                 m.killUnit();
             }
@@ -223,9 +223,9 @@ public class ServerInteraction {
                     Direction.SOUTH,
                     "tower");
             t.setCurrentNuke(new CanonNuke(t));
-            WanderingLocks.lockAll();
+            //WanderingLocks.lockAll();
             field.addTower(t);
-            WanderingLocks.unlockAll();
+            //WanderingLocks.unlockAll();
         } else if ("monsterloss".equals(pieces1[0])) {
             pieces1 = command.split(" ");
             field.setTDStatus(Integer.parseInt(pieces1[1]) + "/" + Integer.parseInt(pieces1[2]) + " x" + Integer.parseInt(pieces1[3]));
