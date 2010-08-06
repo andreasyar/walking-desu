@@ -381,18 +381,25 @@ public class JavaTestServer {
         public void sendPacket() {
             try {
                 if (messages.size() > 0) {
-                    for (String line : messages) {
-                        System.out.println(s.getInetAddress() + " <-- " + line);
-                    }
-                    oos.writeObject(messages);
-                    messages.clear();
-                    oos.reset();
+                    //if () {
+                        for (String line : messages) {
+                            System.out.println(s.getInetAddress() + " <-- " + line);
+                        }
+                        System.out.println("s.isBound() " + s.isBound());
+                        System.out.println("s.isClosed() " + s.isClosed());
+                        System.out.println("s.isConnected() " + s.isConnected());
+                        System.out.println("s.isInputShutdown() " + s.isInputShutdown());
+                        System.out.println("s.isOutputShutdown() " + s.isOutputShutdown());
+                        oos.writeObject(messages);
+                        messages.clear();
+                        oos.reset();
+                    //}
                 }
             } catch (IOException ex) {
                 System.err.println("Sendin packet to player " + self.getID() + "(" + self.getNick() + ") failed.");
                 ex.printStackTrace();
-                close();
-                Thread.currentThread().interrupt();
+                //close();
+                //Thread.currentThread().interrupt();
             }
         }
     }
