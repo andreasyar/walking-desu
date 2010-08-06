@@ -73,7 +73,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             // TODO На самом деле надо рисовать лишь видимую часть карты
             // которую можно получить с помощью метода getSubimage()
-            buffGraph.drawImage(mapImg, mapOfst.width, mapOfst.height, null);
+            buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
+                        mapOfst.height < 0 ? -mapOfst.height : 0,
+                        mapOfst.width < 0 ? 1024 + mapOfst.width : 1024 - mapOfst.width,
+                        mapOfst.height < 0 ? 768 + mapOfst.height : 768 - mapOfst.height),
+                    mapOfst.width >= 0 ? mapOfst.width : 0,
+                    mapOfst.height >= 0 ? mapOfst.height : 0, null);
 
             // Вычислим новое смещение карты (временно это делается здесь)
             Point curPos = field.getSelfPlayer().getCurPos();
@@ -274,10 +279,10 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             ((Graphics2D) geoDebugLayerGraph).fillRect(0, 0, geoDebugLayer.getWidth() - 1, geoDebugLayer.getHeight() - 1);
             ((Graphics2D) geoDebugLayerGraph).setColor(Color.BLACK);*/
             geoDebugLayerDim = new Dimension(geoDebugLayer.getWidth(), geoDebugLayer.getHeight());
-            Color c;
+            //Color c;
             for (WanderingPolygon poly : WanderingMap.getGeoData()) {
-                geoDebugLayerGraph.drawPolygon(poly);
-                c = geoDebugLayerGraph.getColor();
+                //geoDebugLayerGraph.drawPolygon(poly);
+                /*c = geoDebugLayerGraph.getColor();
                 if (poly.getType() == WanderingPolygon.WallType.MONOLITH) {
                     geoDebugLayerGraph.setColor(Color.BLACK);
                 } else if (poly.getType() == WanderingPolygon.WallType.SPECIAL) {
@@ -286,7 +291,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     geoDebugLayerGraph.setColor(new Color((float)1.0, (float)1.0, (float)1.0, (float)0.4));
                 }
                 geoDebugLayerGraph.fillPolygon(poly);
-                geoDebugLayerGraph.setColor(c);
+                geoDebugLayerGraph.setColor(c);*/
             }
         }
     }

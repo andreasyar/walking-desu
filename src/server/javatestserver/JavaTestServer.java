@@ -10,7 +10,6 @@ import java.util.TimerTask;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.awt.Point;
-import java.net.SocketException;
 import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -464,7 +463,7 @@ public class JavaTestServer {
                 long tmpStep = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
                 Monster m;
                 Point beg;
-                Point end = new Point(600, 763);
+                Point end = new Point(705, 755);
 
                 if (tmpStep > step) {
                     step = tmpStep;
@@ -492,7 +491,7 @@ public class JavaTestServer {
                                 + monStrMult + ")"});
                     curWaveMonLoss = 0;
                     for (int i = 0; i < monsterCount + monCountAdd; i++) {
-                        beg = new Point(500 + rand.nextInt(500), 5 + rand.nextInt(50));
+                        beg = new Point(544 + rand.nextInt(287), 0 + rand.nextInt(64));
                         m = new Monster(curPlayerID++, "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                         m.setSpriteSetName("poring");
                         monsters.add(m);

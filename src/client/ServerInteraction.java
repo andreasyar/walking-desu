@@ -12,8 +12,6 @@ import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.SwingWorker;
 
 public class ServerInteraction {
@@ -193,6 +191,7 @@ public class ServerInteraction {
 
             pieces1 = command.split(" ", 7);
             pieces2 = pieces1[6].substring(1, pieces1[6].length() - 1).split("\" \"", 3);
+            WanderingLocks.lockAll();
             field.addMonster(new Monster(Integer.parseInt(pieces1[1]),
                     pieces2[0],
                     Integer.parseInt(pieces1[2]),
@@ -201,6 +200,7 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]));
+            WanderingLocks.unlockAll();
         } else if ("delmonster".equals(pieces1[0])) {
             //field.delPlayer(Long.parseLong(pieces1[1]));
         } else if ("deathmonster".equals(pieces1[0])) {
