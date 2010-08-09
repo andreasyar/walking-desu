@@ -21,6 +21,7 @@ public class MonsterDeathAnimation extends DeathAnimation {
         }
     }
 
+    @Override
     public final Sprite getSprite(long curTime, Point curPos) {
         long tmpTime;
         Sprite tmpSpr;
@@ -56,6 +57,7 @@ public class MonsterDeathAnimation extends DeathAnimation {
         }
     }
 
+    @Override
     public void run(Direction direction, long begTime) {
         this.begTime = begTime;
         this.direction = direction;

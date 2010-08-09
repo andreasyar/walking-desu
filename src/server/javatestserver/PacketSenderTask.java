@@ -9,6 +9,5 @@ public class PacketSenderTask implements Runnable {
 
     @Override
     public void run() {
-        server.sendPackets();
     }
 }

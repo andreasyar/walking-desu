@@ -10,6 +10,7 @@ import java.util.TimerTask;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.awt.Point;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -54,8 +55,6 @@ public class JavaTestServer {
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
         vm = new VisibleManager(players, towers, monsters, this);
         executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
-        PacketSenderTask pst = new PacketSenderTask(this);
-        executor.scheduleAtFixedRate(pst, 0L, 40L, TimeUnit.MILLISECONDS);
 
         while (true) {
             Socket s = getNewConnection();
@@ -129,14 +128,6 @@ public class JavaTestServer {
         }
     }
 
-    public void sendPackets() {
-        for (SocketProcessor sp : clientQueue) {
-            JTSLocks.lockPacket();
-            sp.sendPacket();
-            JTSLocks.unlockPacket();
-        }
-    }
-
     /**
      * Require player lock.
      */
@@ -201,6 +192,11 @@ public class JavaTestServer {
 
         @Override
         public void run() {
+            PacketSender sender = new PacketSender();
+            Thread senderThread = new Thread(sender);
+            senderThread.setDaemon(true);
+            senderThread.start();
+
             while (!s.isClosed()) {
                 String line = null;
                 String[] pieces;
@@ -368,38 +364,42 @@ public class JavaTestServer {
         }
 
         public void addMessage(String s) {
-            JTSLocks.lockPacket();
             try {
                 messages.put(s);
-            } catch (InterruptedException ignore) {}
-            JTSLocks.unlockPacket();
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         }
 
-        /**
-         * Require packet lock.
-         */
-        public void sendPacket() {
-            try {
-                if (messages.size() > 0) {
-                    //if () {
-                        for (String line : messages) {
-                            System.out.println(s.getInetAddress() + " <-- " + line);
+        private class PacketSender implements Runnable {
+
+            private LinkedBlockingQueue<String> messagesCopy = new LinkedBlockingQueue<String>();
+
+            @Override
+            public void run() {
+                String message;
+
+                try {
+                    while (true) {
+                        if (messages.size() > 0) {
+                            for (Iterator<String> i = messages.iterator(); i.hasNext();) {
+                                message = i.next();
+                                i.remove();
+                                System.out.println(s.getInetAddress() + " <-- " + message);
+                                messagesCopy.add(message);
+                            }
+                            oos.writeObject(messagesCopy);
+                            messagesCopy.clear();
+                            oos.reset();
                         }
-                        System.out.println("s.isBound() " + s.isBound());
-                        System.out.println("s.isClosed() " + s.isClosed());
-                        System.out.println("s.isConnected() " + s.isConnected());
-                        System.out.println("s.isInputShutdown() " + s.isInputShutdown());
-                        System.out.println("s.isOutputShutdown() " + s.isOutputShutdown());
-                        oos.writeObject(messages);
-                        messages.clear();
-                        oos.reset();
-                    //}
+                        Thread.sleep(50L);
+                    }
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                } catch (IOException ex) {
+                    System.err.println("Sendin packet to player " + self.getID() + " (" + self.getNick() + ") failed.");
+                    ex.printStackTrace();
                 }
-            } catch (IOException ex) {
-                System.err.println("Sendin packet to player " + self.getID() + "(" + self.getNick() + ") failed.");
-                ex.printStackTrace();
-                //close();
-                //Thread.currentThread().interrupt();
             }
         }
     }
