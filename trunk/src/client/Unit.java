@@ -12,12 +12,15 @@ import java.awt.image.BufferedImage;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class Unit {
 
     private MovementAnimation moveAnim;
     private StandAnimation standAnim;
     protected DeathAnimation deathAnim;
+    private AttackAnimation attackAnim;
     private Movement mv;
     private long id;
     private String nick;
@@ -29,6 +32,7 @@ public abstract class Unit {
     protected Nuke currentNuke;
     protected boolean isDead = false;
     private boolean isMove;
+    private boolean isAttack = false;
 
     public Unit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         this.id = id;
@@ -37,16 +41,32 @@ public abstract class Unit {
         moveAnim = new MovementAnimation(set);
         standAnim = new StandAnimation(set);
         standAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+        try {
+            attackAnim = new AttackAnimation(set);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
         mv = new Movement(x, y, speed);
     }
 
     public Sprite getSprite() {
         isMove = mv.isMove();
+        isAttack = isAttack();
 
         if (!isDead && isMove) {
             return moveAnim.getSprite(mv.getCurPos());
-        } else if (!isDead && !isMove) {
+        } else if (!isDead && !isMove && !isAttack) {
             return standAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
+        } else if (!isDead && !isMove && isAttack) {
+            Sprite s = null;
+            try {
+                s = attackAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+            return s;
         } else if (isDead) {
             return deathAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
         } else {
@@ -64,6 +84,10 @@ public abstract class Unit {
         moveAnim = new MovementAnimation(spriteSetName);
         standAnim = new StandAnimation(spriteSetName);
         standAnim.run(Direction.SOUTH, ServerInteraction.serverStartTime);
+    }
+
+    public long getNukeAnimationDelay() {
+        return attackAnim.getNukeAnimationDelay();
     }
 
 // <editor-fold defaultstate="collapsed" desc="Movement works">
@@ -91,6 +115,21 @@ public abstract class Unit {
 
     public Point getEndPoint() {
         return mv.getEndPoint();
+    }
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="Attack works">
+    public void attack(long begTime) {
+        if (isDead || isAttack()) {
+            return;
+        }
+        if (mv.isMove()) {
+            mv.stop();
+        }
+        attackAnim.run(moveAnim.getDirection(), begTime);
+    }
+
+    public boolean isAttack() {
+        return !attackAnim.isStoped();
     }
 // </editor-fold>
 
@@ -173,7 +212,7 @@ public abstract class Unit {
         Direction d;
 
         isDead = true;
-        if ( (d = moveAnim.getDirection()) == null
+        if ((d = moveAnim.getDirection()) == null
                 && (d = standAnim.getDirection()) == null) {
             d = Direction.SOUTH;
         }

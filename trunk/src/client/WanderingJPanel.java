@@ -331,6 +331,10 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
         } else if (key == KeyEvent.VK_T) {
             showTowerRange = true;
+        } else if (key == KeyEvent.VK_F5) {
+            ConcurencyDebugClientKiller killer = new ConcurencyDebugClientKiller();
+            Thread killerThread = new Thread(killer);
+            killerThread.start();
         }
     }
     @Override
@@ -340,5 +344,21 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         } else if (e.getKeyCode() == KeyEvent.VK_T) {
             showTowerRange = false;
         }
+    }
+
+    private class ConcurencyDebugClientKiller implements Runnable {
+
+        @Override
+        public void run() {
+            ArrayList<Unit> units = field.getUnits();
+            Unit unit;
+
+            while (true) {
+                unit = units.get(0);
+                units.remove(0);
+                units.add(unit);
+            }
+        }
+        
     }
 }
