@@ -14,38 +14,29 @@ import java.awt.image.BufferedImage;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Area;
-import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.ListIterator;
 import javax.swing.JPanel;
 
 public class WanderingJPanel extends JPanel implements KeyListener, MouseListener, ComponentListener {
-    private boolean wasShown = false;
 
+    private boolean wasShown = false;
     private BufferedImage mapImg = WanderingMap.getMapImg();
     private Dimension mapDim = new Dimension(mapImg.getWidth(), mapImg.getHeight());
     private Dimension mapOfst;
-
     private Dimension panelDim = null;
-
     private BufferedImage buffImg = null;
     private Graphics buffGraph = null;
     private Dimension buffDim = null;
-
     private BufferedImage geoDebugLayer = null;
     private Graphics geoDebugLayerGraph = null;
     private Dimension geoDebugLayerDim = null;
-
     private boolean selectMode = false;
     private boolean showTowerRange = false;
-
     private GameField field;
     private ServerInteraction inter;
-
     private static long buildDelay = 5000;  // 5 sec
     private long lastBuildTime = 0;
-
     //debug
     public static long threadId;
     public static boolean resourcesInProcess;
@@ -75,12 +66,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             // TODO На самом деле надо рисовать лишь видимую часть карты
             // которую можно получить с помощью метода getSubimage()
             buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
-                                                   mapOfst.height < 0 ? -mapOfst.height : 0,
-                                                   mapOfst.width < 0 ? 1024 + mapOfst.width : 1024 - mapOfst.width,
-                                                   mapOfst.height < 0 ? 768 + mapOfst.height : 768 - mapOfst.height),
-                                mapOfst.width >= 0 ? mapOfst.width : 0,
-                                mapOfst.height >= 0 ? mapOfst.height : 0,
-                                null);
+                    mapOfst.height < 0 ? -mapOfst.height : 0,
+                    mapOfst.width < 0 ? 1024 + mapOfst.width : 1024 - mapOfst.width,
+                    mapOfst.height < 0 ? 768 + mapOfst.height : 768 - mapOfst.height),
+                    mapOfst.width >= 0 ? mapOfst.width : 0,
+                    mapOfst.height >= 0 ? mapOfst.height : 0,
+                    null);
 
             // Вычислим новое смещение карты (временно это делается здесь)
             Point curPos = field.getSelfPlayer().getCurPos();
@@ -103,7 +94,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             // For all units we draw their sprite and nick name.
             Point selfPos = field.getSelfPlayer().getCurPos(),
-                  pos;
+                    pos;
 
             for (Unit u : field.getYSortedUnits()) {
                 s = u.getSprite();
@@ -185,7 +176,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             if (selectMode) {
                 synchronized (field.getUnits()) {
-                    for(ListIterator<Unit> li = field.getUnits().listIterator(); li.hasNext(); ) {
+                    for (ListIterator<Unit> li = field.getUnits().listIterator(); li.hasNext();) {
                         unit = li.next();
                         spr = unit.getSprite();
                         poly = new Polygon();
@@ -231,13 +222,20 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {}
+    public void mousePressed(MouseEvent e) {
+    }
+
     @Override
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {
+    }
+
     @Override
-    public void mouseEntered(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {
+    }
+
     @Override
-    public void mouseExited(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {
+    }
 
     @Override
     public void componentResized(ComponentEvent e) {
@@ -286,11 +284,11 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 //geoDebugLayerGraph.drawPolygon(poly);
                 /*c = geoDebugLayerGraph.getColor();
                 if (poly.getType() == WanderingPolygon.WallType.MONOLITH) {
-                    geoDebugLayerGraph.setColor(Color.BLACK);
+                geoDebugLayerGraph.setColor(Color.BLACK);
                 } else if (poly.getType() == WanderingPolygon.WallType.SPECIAL) {
-                    geoDebugLayerGraph.setColor(Color.BLUE);
+                geoDebugLayerGraph.setColor(Color.BLUE);
                 } else if (poly.getType() == WanderingPolygon.WallType.TRANSPARENT) {
-                    geoDebugLayerGraph.setColor(new Color((float)1.0, (float)1.0, (float)1.0, (float)0.4));
+                geoDebugLayerGraph.setColor(new Color((float)1.0, (float)1.0, (float)1.0, (float)0.4));
                 }
                 geoDebugLayerGraph.fillPolygon(poly);
                 geoDebugLayerGraph.setColor(c);*/
@@ -299,12 +297,17 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     }
 
     @Override
-    public void componentMoved(ComponentEvent e) {}
-    @Override
-    public void componentHidden(ComponentEvent e) {}
+    public void componentMoved(ComponentEvent e) {
+    }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void componentHidden(ComponentEvent e) {
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
@@ -315,7 +318,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 selectMode = true;
             }
         } else if (key == KeyEvent.VK_F3) {
-            Unit self =  field.getSelfPlayer();
+            Unit self = field.getSelfPlayer();
             long tmp = Math.abs(System.currentTimeMillis() - ServerInteraction.serverStartTime);
             if (self.getSelectedUnit() != null && (self.getCurrentNuke() == null || !self.getCurrentNuke().reuse()) && !self.equals(self.getSelectedUnit())) {
                 WanderingLocks.lockNukes();
@@ -325,7 +328,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
         } else if (key == KeyEvent.VK_F4) {
             if (System.currentTimeMillis() - ServerInteraction.serverStartTime - lastBuildTime > buildDelay) {
-                Point cur =  field.getSelfPlayer().getCurPos();
+                Point cur = field.getSelfPlayer().getCurPos();
                 inter.addCommand("(tower " + cur.x + " " + cur.y + ")");
                 lastBuildTime = System.currentTimeMillis() - ServerInteraction.serverStartTime;
             }
@@ -337,6 +340,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             killerThread.start();
         }
     }
+
     @Override
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
@@ -359,6 +363,5 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 units.add(unit);
             }
         }
-        
     }
 }
