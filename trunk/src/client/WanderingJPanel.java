@@ -130,8 +130,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             // Draw nuke bolts.
             for (Nuke n : field.getNukes()) {
-                if (n.isMove()) {
-                    s = n.getSprite();
+                if (n.isMove() && ( (s = n.getSprite()) != null)) {
                     buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                 }
             }
@@ -319,12 +318,18 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
         } else if (key == KeyEvent.VK_F3) {
             Unit self = field.getSelfPlayer();
-            long tmp = Math.abs(System.currentTimeMillis() - ServerInteraction.serverStartTime);
-            if (self.getSelectedUnit() != null && (self.getCurrentNuke() == null || !self.getCurrentNuke().reuse()) && !self.equals(self.getSelectedUnit())) {
-                WanderingLocks.lockNukes();
+            if (self.getSelectedUnit() != null
+                    && (self.getCurrentNuke() == null || !self.getCurrentNuke().isReuse())
+                    && !self.equals(self.getSelectedUnit())) {
+                /*WanderingLocks.lockNukes();
                 field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime);
                 WanderingLocks.unlockNukes();
-                inter.addCommand("(bolt " + self.getSelectedUnit().getID() + ")");
+                inter.addCommand("(bolt " + self.getSelectedUnit().getID() + ")");*/
+                if (self.attack(System.currentTimeMillis() - ServerInteraction.serverStartTime)) {
+                    WanderingLocks.lockNukes();
+                    field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime);
+                    WanderingLocks.unlockNukes();
+                }
             }
         } else if (key == KeyEvent.VK_F4) {
             if (System.currentTimeMillis() - ServerInteraction.serverStartTime - lastBuildTime > buildDelay) {

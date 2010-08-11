@@ -2,22 +2,28 @@ package client;
 
 import java.awt.Point;
 
-public class CanonNuke extends Nuke {
+public class PeasantNuke extends Nuke {
     private Unit attacker;
-    private CanonNukeAnimation animation;
+    private PeasantNukeAnimation animation;
     private Movement movement;
+    private long delay;
 
-    public CanonNuke(Unit attacker) {
+    public PeasantNuke(Unit attacker, long delay) {
         final Point cur = attacker.getCurPos();
 
-        this.attacker = attacker;
-        animation = new CanonNukeAnimation("canon_bolt");
         movement = new Movement(cur.x, cur.y, 1.0);
+        animation = new PeasantNukeAnimation("peasant_bolt");
+        this.attacker = attacker;
+        this.delay = delay;
     }
 
     @Override
     public Sprite getSprite() {
-        return animation.getSprite();
+        if (lastUseTime + delay >= System.currentTimeMillis() - ServerInteraction.serverStartTime) {
+            return animation.getSprite();
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -42,4 +48,5 @@ public class CanonNuke extends Nuke {
     public boolean isMove() {
         return movement.isMove();
     }
+
 }

@@ -12,15 +12,13 @@ import java.awt.image.BufferedImage;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.Hashtable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public abstract class Unit {
 
     private MovementAnimation moveAnim;
     private StandAnimation standAnim;
     protected DeathAnimation deathAnim;
-    private AttackAnimation attackAnim;
+    private UseSkillAnimation useAnim;
     private Movement mv;
     private long id;
     private String nick;
@@ -42,7 +40,7 @@ public abstract class Unit {
         standAnim = new StandAnimation(set);
         standAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
         try {
-            attackAnim = new AttackAnimation(set);
+            useAnim = new UseSkillAnimation(set);
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(1);
@@ -61,7 +59,7 @@ public abstract class Unit {
         } else if (!isDead && !isMove && isAttack) {
             Sprite s = null;
             try {
-                s = attackAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
+                s = useAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
             } catch (Exception ex) {
                 ex.printStackTrace();
                 System.exit(1);
@@ -87,7 +85,7 @@ public abstract class Unit {
     }
 
     public long getNukeAnimationDelay() {
-        return attackAnim.getNukeAnimationDelay();
+        return useAnim.getNukeAnimationDelay();
     }
 
 // <editor-fold defaultstate="collapsed" desc="Movement works">
@@ -118,18 +116,20 @@ public abstract class Unit {
     }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Attack works">
-    public void attack(long begTime) {
+
+    public boolean attack(long begTime) {
         if (isDead || isAttack()) {
-            return;
+            return false;
         }
         if (mv.isMove()) {
             mv.stop();
         }
-        attackAnim.run(moveAnim.getDirection(), begTime);
+        useAnim.run(moveAnim.getDirection(), begTime);
+        return true;
     }
 
     public boolean isAttack() {
-        return !attackAnim.isStoped();
+        return !useAnim.isStoped();
     }
 // </editor-fold>
 

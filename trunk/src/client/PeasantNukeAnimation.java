@@ -2,11 +2,11 @@ package client;
 
 import java.awt.Point;
 
-public class CanonNukeAnimation extends NukeAnimation {
+public class PeasantNukeAnimation extends NukeAnimation {
 
     private Point beg, end, cur;
 
-    public CanonNukeAnimation(String set) {
+    public PeasantNukeAnimation(String set) {
         super(set);
     }
 
