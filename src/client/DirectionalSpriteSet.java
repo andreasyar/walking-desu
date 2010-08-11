@@ -138,6 +138,33 @@ public class DirectionalSpriteSet {
             loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/e_01.png", "img/" + name + "/e_02.png", "img/" + name + "/e_03.png", "img/" + name + "/e_04.png"});
             loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/e_01.png", "img/" + name + "/e_02.png", "img/" + name + "/e_03.png", "img/" + name + "/e_04.png"});
             loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/e_01.png", "img/" + name + "/e_02.png", "img/" + name + "/e_03.png", "img/" + name + "/e_04.png"});
+        } else if (name.equals("peasant_bolt")) {
+            loadSprFiles(Direction.EAST, new String[] {"img/" + name + "/e_01.png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/ne_01.png"});
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/n_01.png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/e_01.png"});
+            loadSprFiles(Direction.WEST, new String[] {"img/" + name + "/w_01.png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/sw_01.png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/s_01.png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/se_01.png"});
+        } else if (name.equals("peasant_attack")) {
+            loadSprFiles(Direction.EAST, new String[] {"img/" + name + "/e_01.png", "img/" + name + "/e_02.png", "img/" + name + "/e_03.png", "img/" + name + "/e_04.png", "img/" + name + "/e_05.png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/ne_01.png", "img/" + name + "/ne_02.png", "img/" + name + "/ne_03.png", "img/" + name + "/ne_04.png", "img/" + name + "/ne_05.png"});
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/n_01.png", "img/" + name + "/n_02.png", "img/" + name + "/n_03.png", "img/" + name + "/n_04.png", "img/" + name + "/n_05.png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/nw_01.png", "img/" + name + "/nw_02.png", "img/" + name + "/nw_03.png", "img/" + name + "/nw_04.png", "img/" + name + "/nw_05.png"});
+            loadSprFiles(Direction.WEST, new String[] {"img/" + name + "/w_01.png", "img/" + name + "/w_02.png", "img/" + name + "/w_03.png", "img/" + name + "/w_04.png", "img/" + name + "/w_05.png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/sw_01.png", "img/" + name + "/sw_02.png", "img/" + name + "/sw_03.png", "img/" + name + "/sw_04.png", "img/" + name + "/sw_05.png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/s_01.png", "img/" + name + "/s_02.png", "img/" + name + "/s_03.png", "img/" + name + "/s_04.png", "img/" + name + "/s_05.png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/se_01.png", "img/" + name + "/se_02.png", "img/" + name + "/se_03.png", "img/" + name + "/se_04.png", "img/" + name + "/se_05.png"});
+        } else if (name.equals("peon_attack")) {
+            loadSprFiles(Direction.EAST, new String[] {"img/" + name + "/e_01.png", "img/" + name + "/e_02.png", "img/" + name + "/e_03.png", "img/" + name + "/e_04.png", "img/" + name + "/e_05.png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/ne_01.png", "img/" + name + "/ne_02.png", "img/" + name + "/ne_03.png", "img/" + name + "/ne_04.png", "img/" + name + "/ne_05.png"});
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/n_01.png", "img/" + name + "/n_02.png", "img/" + name + "/n_03.png", "img/" + name + "/n_04.png", "img/" + name + "/n_05.png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/nw_01.png", "img/" + name + "/nw_02.png", "img/" + name + "/nw_03.png", "img/" + name + "/nw_04.png", "img/" + name + "/nw_05.png"});
+            loadSprFiles(Direction.WEST, new String[] {"img/" + name + "/w_01.png", "img/" + name + "/w_02.png", "img/" + name + "/w_03.png", "img/" + name + "/w_04.png", "img/" + name + "/w_05.png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/sw_01.png", "img/" + name + "/sw_02.png", "img/" + name + "/sw_03.png", "img/" + name + "/sw_04.png", "img/" + name + "/sw_05.png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/s_01.png", "img/" + name + "/s_02.png", "img/" + name + "/s_03.png", "img/" + name + "/s_04.png", "img/" + name + "/s_05.png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/se_01.png", "img/" + name + "/se_02.png", "img/" + name + "/se_03.png", "img/" + name + "/se_04.png", "img/" + name + "/se_05.png"});
         } else {
             System.err.println("Sprite set " + name + " not found");
             System.exit(1);

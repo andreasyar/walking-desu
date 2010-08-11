@@ -94,34 +94,40 @@ public class ServerInteraction {
 
         if ("hello".equals(pieces1[0])) {
             String[] pieces2;
+            Player p;
 
             pieces1 = command.split(" ", 8);
             pieces2 = pieces1[7].substring(1, pieces1[7].length() - 1).split("\" \"", 3);
             serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces1[6]);
-            field.addSelfPlayer(new Player(Integer.parseInt(pieces1[1]),
+            p = new Player(Integer.parseInt(pieces1[1]),
                     pieces2[0],
                     Integer.parseInt(pieces1[2]),
                     Double.parseDouble(pieces1[3]),
                     Integer.parseInt(pieces1[4]),
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
-                    pieces2[2]));
+                    pieces2[2]);
+            field.addSelfPlayer(p);
+            p.setCurrentNuke(new PeasantNuke(p, 0));
         } else if ("timesync".equals(pieces1[0])) {
             serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces1[1]);
         } else if ("newplayer".equals(pieces1[0])) {
             String[] pieces2;
+            Player p;
 
             pieces1 = command.split(" ", 7);
             pieces2 = pieces1[6].substring(1, pieces1[6].length() - 1).split("\" \"", 3);
-            WanderingLocks.lockAll();
-            field.addPlayer(new Player(Integer.parseInt(pieces1[1]),
+            p = new Player(Integer.parseInt(pieces1[1]),
                     pieces2[0],
                     Integer.parseInt(pieces1[2]),
                     Double.parseDouble(pieces1[3]),
                     Integer.parseInt(pieces1[4]),
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
-                    pieces2[2]));
+                    pieces2[2]);
+            p.setCurrentNuke(new PeasantNuke(p, 0));
+            WanderingLocks.lockAll();
+            field.addPlayer(p);
             WanderingLocks.unlockAll();
         } else if ("move".equals(pieces1[0])) {
             long begTime = Long.parseLong(pieces1[2]);
@@ -233,6 +239,26 @@ public class ServerInteraction {
             WanderingLocks.lockAll();
             field.delTower(Long.parseLong(pieces1[1]));
             WanderingLocks.unlockAll();
+        } else if ("attack".equals(pieces1[0])) {
+            Unit selected;
+
+            WanderingLocks.lockAll();
+            Unit attacker = field.getUnit(Long.parseLong(pieces1[1]));
+            Unit target = field.getUnit(Long.parseLong(pieces1[2]));
+            WanderingLocks.unlockAll();
+            long begTime = Long.parseLong(pieces1[3]);
+
+            if (attacker != null && target != null) {
+                selected = attacker.getSelectedUnit();
+                if (selected == null || !selected.equals(target)) {
+                    attacker.selectUnit(target);
+                }
+                if (attacker.attack(begTime)) {
+                    WanderingLocks.lockNukes();
+                    field.addNuke(attacker, target, begTime);
+                    WanderingLocks.unlockNukes();
+                }
+            }
         }
     }
 

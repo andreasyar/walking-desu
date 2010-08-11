@@ -2,7 +2,7 @@ package client;
 
 import java.awt.Point;
 
-public class AttackAnimation {
+public class UseSkillAnimation {
 
     /**
      * Набор направленных спрайтов.
@@ -30,7 +30,7 @@ public class AttackAnimation {
      */
     private long begTime;
 
-    public AttackAnimation(String set) throws Exception {
+    public UseSkillAnimation(String set) throws Exception {
         if ("peasant".equals(set)) {
             STEP = 150;
         } else {
