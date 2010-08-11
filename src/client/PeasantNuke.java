@@ -19,7 +19,7 @@ public class PeasantNuke extends Nuke {
 
     @Override
     public Sprite getSprite() {
-        if (lastUseTime + delay >= System.currentTimeMillis() - ServerInteraction.serverStartTime) {
+        if (lastUseTime + delay <= System.currentTimeMillis() - ServerInteraction.serverStartTime) {
             return animation.getSprite();
         } else {
             return null;

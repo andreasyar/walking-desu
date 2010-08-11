@@ -55,6 +55,8 @@ public class JavaTestServer {
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
         vm = new VisibleManager(players, towers, monsters, this);
         executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
+        GeoDataController gdController = new GeoDataController(players);
+        gdController.setScheduledFuture(executor.scheduleAtFixedRate(gdController, 0L, 200L, TimeUnit.MILLISECONDS));
 
         while (true) {
             Socket s = getNewConnection();
@@ -135,6 +137,18 @@ public class JavaTestServer {
         for (Player p : players) {
             if (p.getID() == id) {
                 return p;
+            }
+        }
+
+        return null;
+    }
+    /**
+     * Require lock all.
+     */
+    private Unit getUnit(long id) {
+        for (Unit u : units) {
+            if (u.getID() == id) {
+                return u;
             }
         }
 
@@ -261,6 +275,28 @@ public class JavaTestServer {
                                             + target.getID() + " "
                                             + (System.currentTimeMillis() - serverStartTime) + ")"}, self.getID());
 
+                                // </editor-fold>
+                            } else if ("attack".equals(pieces[0])) {
+                                // <editor-fold defaultstate="collapsed" desc="Attack message processing">
+                                line = line.substring("attack".length() + 1, line.length());
+                                pieces = line.split(" ");
+
+                                JTSLocks.lockAll();
+                                Unit target = getUnit(Long.parseLong(pieces[0]));
+                                JTSLocks.unlockAll();
+                                long begTime = System.currentTimeMillis() - serverStartTime;
+
+                                if (target != null) {
+                                    NukeAction a = new NukeAction(new NukeBolt(self, target, begTime + self.getNukeAnimationDelay()));
+                                    ScheduledFuture f = executor.scheduleAtFixedRate(a, self.getNukeAnimationDelay(), 10L, TimeUnit.MILLISECONDS);
+                                    a.setScheduledFuture(f);
+                                    sendToAll(new String[]{"(attack "
+                                                + self.getID() + " "
+                                                + target.getID() + " "
+                                                + begTime + ")"});
+                                } else {
+                                    System.err.println("Taget not found: " + Long.parseLong(pieces[0]));
+                                }
                                 // </editor-fold>
                             } else if ("tower".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Tower processing">
@@ -418,10 +454,35 @@ public class JavaTestServer {
         public void run() {
             if (!canceled) {
                 if (!bolt.isFlight()) {
-                    sendToAll(new String[]{"(hit "
-                                + bolt.getAttacker().getID() + " "
-                                + bolt.getTarget().getID() + " "
-                                + ((Tower) bolt.getAttacker()).getDamage() + ")"});
+                    JTSLocks.lockAll();
+                    try {
+                        Unit attacker = bolt.getAttacker(),
+                             target = bolt.getTarget();
+
+                        target.doHit(attacker.getDamage());
+                        sendFromUnit("(hit "
+                                     + attacker.getID() + " "
+                                     + target.getID() + " "
+                                     + attacker.getDamage() + ")", target);
+
+                        if (target.dead()) {
+                            if (monsters.contains(target)) {
+                                monsters.remove(target);
+                                units.remove(target);
+                                vm.killMonster((Monster) target);
+                            } else if (players.contains(target)) {
+                                Player p = (Player) target;
+                                p.restoreHitPoints();
+                                p.teleportToSpawn();
+                                vm.killPlayer(p);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        System.exit(1);
+                    }
+                    JTSLocks.unlockAll();
+
                     this.cancel();
                 }
             }
@@ -502,6 +563,7 @@ public class JavaTestServer {
                         m = new Monster(curPlayerID++, "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                         m.setSpriteSetName("poring");
                         monsters.add(m);
+                        units.add(m);
                         m.move(beg, end, System.currentTimeMillis() - JavaTestServer.serverStartTime);
                     }
                 }
@@ -521,7 +583,7 @@ public class JavaTestServer {
                                     + tdMonsterLossLimit + " "
                                     + monStrMult + ")"});
                     }
-                    if (isDead || isStop) {
+                    if (!isDead && isStop) {
                         vm.killMonster(m);
                         units.remove(m);
                         li.remove();
@@ -570,12 +632,13 @@ public class JavaTestServer {
         private boolean attackRandomMonster(Tower t) {
             if (t.targetInRange()) {
                 if (!t.reuse()) {
-                    t.getTarget().doHit(t.getDamage());
-                    t.setLastAttackTime(System.currentTimeMillis() - JavaTestServer.serverStartTime);
-                    NukeAction a = new NukeAction(new NukeBolt((Unit) t, (Unit) t.getTarget(), System.currentTimeMillis() - serverStartTime));
+                    //t.getTarget().doHit(t.getDamage());
+                    long begTime = System.currentTimeMillis() - JavaTestServer.serverStartTime;
+                    t.setLastAttackTime(begTime);
+                    NukeAction a = new NukeAction(new NukeBolt((Unit) t, (Unit) t.getTarget(), begTime));
                     ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
                     a.setScheduledFuture(f);
-                    sendToAll(new String[]{"(bolt " + t.getID() + " " + t.getTarget().getID() + " " + (System.currentTimeMillis() - serverStartTime) + ")"});
+                    sendToAll(new String[]{"(bolt " + t.getID() + " " + t.getTarget().getID() + " " + (begTime) + ")"});
                     return true;
                 }
 

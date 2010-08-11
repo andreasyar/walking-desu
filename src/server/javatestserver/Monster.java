@@ -19,6 +19,7 @@ public class Monster extends Unit {
         hitPoints = maxHitPoints;
     }
 
+    @Override
     public boolean dead() {
         return hitPoints <= 0;
     }

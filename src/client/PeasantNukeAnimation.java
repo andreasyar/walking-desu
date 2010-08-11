@@ -16,12 +16,12 @@ public class PeasantNukeAnimation extends NukeAnimation {
         Sprite s;
 
         if (curLength > length / 4.0) {
-            s = set.getSprite(direction, 2);
+            s = set.getSprite(direction, 0);
             s.x = cur.x;
             s.y = cur.y;
             return s;
         } else if (curLength < length / 4.0 && curLength > length / 6.0) {
-            s = set.getSprite(direction, 1);
+            s = set.getSprite(direction, 0);
             s.x = cur.x;
             s.y = cur.y;
             return s;

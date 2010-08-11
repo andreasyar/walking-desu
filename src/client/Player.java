@@ -6,7 +6,8 @@ public class Player extends Unit {
 
     public Player(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         super(id, nick, maxHitPoints, speed, x, y, d, set);
-        restoreHitPoints();
+        hitPoints = maxHitPoints;
+        deathAnim = new PlayerDeathAnimation("peasant");
     }
 
     @Override
@@ -31,5 +32,22 @@ public class Player extends Unit {
 
     public void doHeal(int val) {
         hitPoints += val;
+    }
+
+    @Override
+    public void kill() {
+        Direction d;
+
+        isDead = true;
+        if ((d = moveAnim.getDirection()) == null
+                && (d = standAnim.getDirection()) == null) {
+            d = Direction.SOUTH;
+        }
+        deathAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+        mv.stop();
+    }
+
+    public void resurect() {
+        isDead = false;
     }
 }
