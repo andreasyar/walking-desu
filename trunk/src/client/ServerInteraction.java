@@ -108,7 +108,7 @@ public class ServerInteraction {
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
             field.addSelfPlayer(p);
-            p.setCurrentNuke(new PeasantNuke(p, 0));
+            p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
         } else if ("timesync".equals(pieces1[0])) {
             serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces1[1]);
         } else if ("newplayer".equals(pieces1[0])) {
@@ -125,7 +125,7 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
-            p.setCurrentNuke(new PeasantNuke(p, 0));
+            p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
             WanderingLocks.lockAll();
             field.addPlayer(p);
             WanderingLocks.unlockAll();
@@ -210,11 +210,28 @@ public class ServerInteraction {
         } else if ("delmonster".equals(pieces1[0])) {
             //field.delPlayer(Long.parseLong(pieces1[1]));
         } else if ("deathmonster".equals(pieces1[0])) {
+            Unit selected = field.getSelfPlayer().getSelectedUnit();
+
             WanderingLocks.lockMonsters();
             Monster m = field.getMonster(Long.parseLong(pieces1[1]));
             WanderingLocks.unlockMonsters();
             if (m != null) {
-                m.killUnit();
+                m.kill();
+                if (selected != null && m.equals(selected)) {
+                    field.getSelfPlayer().unselectUnit();
+                }
+            }
+        } else if ("deathplayer".equals(pieces1[0])) {
+            Unit selected = field.getSelfPlayer().getSelectedUnit();
+
+            WanderingLocks.lockPlayers();
+            Player p = field.getPlayer(Long.parseLong(pieces1[1]));
+            WanderingLocks.unlockPlayers();
+            if (p != null) {
+                p.kill();
+                if (selected != null && p.equals(selected)) {
+                    field.getSelfPlayer().unselectUnit();
+                }
             }
         } else if ("tower".equals(pieces1[0])) {
             pieces1 = command.split(" ", 7);
@@ -255,10 +272,15 @@ public class ServerInteraction {
                 }
                 if (attacker.attack(begTime)) {
                     WanderingLocks.lockNukes();
-                    field.addNuke(attacker, target, begTime);
+                    field.addNuke(attacker, target, begTime + attacker.getNukeAnimationDelay());
                     WanderingLocks.unlockNukes();
                 }
             }
+            /*if (self.attack(System.currentTimeMillis() - ServerInteraction.serverStartTime)) {
+                WanderingLocks.lockNukes();
+                field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime + self.getNukeAnimationDelay());
+                WanderingLocks.unlockNukes();
+            }*/
         }
     }
 

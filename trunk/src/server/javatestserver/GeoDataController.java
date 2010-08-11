@@ -1,4 +1,4 @@
-package client;
+package server.javatestserver;
 
 import java.util.ArrayList;
 import java.util.concurrent.ScheduledFuture;
@@ -10,15 +10,15 @@ public class GeoDataController implements Runnable {
     private final ArrayList<WanderingPolygon> geoData;
     private final ArrayList<Player> players;
 
-    public GeoDataController(ArrayList<WanderingPolygon> geoData, ArrayList<Player> players) {
-        this.geoData = geoData;
+    public GeoDataController(ArrayList<Player> players) {
+        this.geoData = WanderingMap.getGeoData();
         this.players = players;
     }
 
     @Override
     public void run() {
         if (!canceled) {
-            WanderingLocks.lockPlayers();
+            JTSLocks.lockPlayers();
             for (WanderingPolygon poly : geoData) {
                 if (poly.getType() == WanderingPolygon.WallType.SPECIAL) {
                     for (Player player : players) {
@@ -28,7 +28,7 @@ public class GeoDataController implements Runnable {
                     }
                 }
             }
-            WanderingLocks.unlockPlayers();
+            JTSLocks.unlockPlayers();
         }
     }
 

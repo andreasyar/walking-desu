@@ -15,11 +15,11 @@ import java.util.Hashtable;
 
 public abstract class Unit {
 
-    private MovementAnimation moveAnim;
-    private StandAnimation standAnim;
+    protected MovementAnimation moveAnim;
+    protected StandAnimation standAnim;
     protected DeathAnimation deathAnim;
     private UseSkillAnimation useAnim;
-    private Movement mv;
+    protected Movement mv;
     private long id;
     private String nick;
     private String text = null;
@@ -39,11 +39,20 @@ public abstract class Unit {
         moveAnim = new MovementAnimation(set);
         standAnim = new StandAnimation(set);
         standAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
-        try {
-            useAnim = new UseSkillAnimation(set);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
+        if ("peasant".equals(set)) {
+            try {
+                useAnim = new UseSkillAnimation(set);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+        } else if ("peon".equals(set)) {
+            try {
+                useAnim = new UseSkillAnimation("peasant");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
         }
         mv = new Movement(x, y, speed);
     }
@@ -124,12 +133,12 @@ public abstract class Unit {
         if (mv.isMove()) {
             mv.stop();
         }
-        useAnim.run(moveAnim.getDirection(), begTime);
+        useAnim.run(Direction.getDirection(getCurPos(), selectedUnit.getCurPos()), begTime);
         return true;
     }
 
     public boolean isAttack() {
-        return !useAnim.isStoped();
+        return useAnim != null && !useAnim.isStoped();
     }
 // </editor-fold>
 
@@ -208,17 +217,7 @@ public abstract class Unit {
         return hitPoints;
     }
 
-    public void killUnit() {
-        Direction d;
-
-        isDead = true;
-        if ((d = moveAnim.getDirection()) == null
-                && (d = standAnim.getDirection()) == null) {
-            d = Direction.SOUTH;
-        }
-        deathAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
-        mv.stop();
-    }
+    public abstract void kill();
 
     public boolean isDead() {
         return isDead;

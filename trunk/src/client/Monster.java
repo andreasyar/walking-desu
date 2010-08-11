@@ -21,4 +21,17 @@ public class Monster extends Unit {
         hitPoints = maxHitPoints;
     }
     // </editor-fold>
+
+    @Override
+    public void kill() {
+        Direction d;
+
+        isDead = true;
+        if ((d = moveAnim.getDirection()) == null
+                && (d = standAnim.getDirection()) == null) {
+            d = Direction.SOUTH;
+        }
+        deathAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+        mv.stop();
+    }
 }

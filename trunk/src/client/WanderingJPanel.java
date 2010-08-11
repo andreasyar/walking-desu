@@ -89,7 +89,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             WanderingLocks.lockAll();
             WanderingLocks.lockNukes();
             WanderingLocks.lockHits();
-            Sprite s;
+            Sprite s = null;
             resourcesInProcess = true;
 
             // For all units we draw their sprite and nick name.
@@ -132,7 +132,9 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             for (Nuke n : field.getNukes()) {
                 if (n.isMove() && ( (s = n.getSprite()) != null)) {
                     buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
-                }
+                }/* else if (s == null) {
+                    System.err.println("Sprite is null.");
+                }*/
             }
 
             // Draw hit animation.
@@ -325,11 +327,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime);
                 WanderingLocks.unlockNukes();
                 inter.addCommand("(bolt " + self.getSelectedUnit().getID() + ")");*/
-                if (self.attack(System.currentTimeMillis() - ServerInteraction.serverStartTime)) {
+                /*if (self.attack(System.currentTimeMillis() - ServerInteraction.serverStartTime)) {
                     WanderingLocks.lockNukes();
-                    field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime);
+                    field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime + self.getNukeAnimationDelay());
                     WanderingLocks.unlockNukes();
-                }
+                }*/
+                inter.addCommand("(attack " + self.getSelectedUnit().getID() + ")");
             }
         } else if (key == KeyEvent.VK_F4) {
             if (System.currentTimeMillis() - ServerInteraction.serverStartTime - lastBuildTime > buildDelay) {
@@ -339,11 +342,11 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
         } else if (key == KeyEvent.VK_T) {
             showTowerRange = true;
-        } else if (key == KeyEvent.VK_F5) {
+        }/* else if (key == KeyEvent.VK_F5) {
             ConcurencyDebugClientKiller killer = new ConcurencyDebugClientKiller();
             Thread killerThread = new Thread(killer);
             killerThread.start();
-        }
+        }*/
     }
 
     @Override
@@ -355,7 +358,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         }
     }
 
-    private class ConcurencyDebugClientKiller implements Runnable {
+    /*private class ConcurencyDebugClientKiller implements Runnable {
 
         @Override
         public void run() {
@@ -368,5 +371,5 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 units.add(unit);
             }
         }
-    }
+    }*/
 }

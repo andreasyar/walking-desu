@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 
 public class Tower extends NPC {
-    private int damage;
-    private double range;
 
+    private double range;
     private long reuse;
     private long lastAttackTime;
-
     private Unit target = null;
 
     public Tower(long id, String nick, double range, int damage, long reuse, int x, int y) {
@@ -61,10 +59,6 @@ public class Tower extends NPC {
 
     public Unit getTarget() {
         return target;
-    }
-
-    public int getDamage() {
-        return damage;
     }
 
     public double getRange() {

@@ -29,6 +29,8 @@ public class GameField {
         gdController.setScheduledFuture(executor.scheduleAtFixedRate(gdController, 0L, 200L, TimeUnit.MILLISECONDS));
         MonsterDeathController mdController = new MonsterDeathController(this);
         executor.scheduleAtFixedRate(mdController, 0L, 100L, TimeUnit.MILLISECONDS);
+        PlayerDeathController pdController = new PlayerDeathController(this);
+        executor.scheduleAtFixedRate(pdController, 0L, 100L, TimeUnit.MILLISECONDS);
     }
 
     // <editor-fold defaultstate="collapsed" desc="Self player works">

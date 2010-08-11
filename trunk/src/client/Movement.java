@@ -4,16 +4,18 @@ import java.awt.Point;
 
 public class Movement {
     private boolean isMove;
-    private Point beg;
+    private Point beg = new Point();
     private final Point cur = new Point();  // For temporary storage purpose
-    private Point end;
+    private Point end = new Point();
     private long begTime;
     private long endTime;                   // Calculated value
     private double speed;
 
     public Movement(int x, int y, double speed) {
         isMove = false;
+        beg.move(x, y);
         cur.move(x, y);
+        end.move(x, y);
         this.speed = speed;
     }
 

@@ -75,7 +75,7 @@ public class VisibleManager implements Runnable {
                             server.sendTo("(move "
                                     + p1.getID() + " "
                                     + p1.getBegTime() + " "
-                                    + beg.x+ " "
+                                    + beg.x + " "
                                     + beg.y + " "
                                     + end.x + " "
                                     + end.y + ")", p2);
@@ -86,7 +86,7 @@ public class VisibleManager implements Runnable {
                             server.sendTo("(move "
                                     + p2.getID() + " "
                                     + p2.getBegTime() + " "
-                                    + beg.x+ " "
+                                    + beg.x + " "
                                     + beg.y + " "
                                     + end.x + " "
                                     + end.y + ")", p1);
@@ -137,8 +137,8 @@ public class VisibleManager implements Runnable {
                     if (m.isMove()) {
                         beg = m.getBeg();
                         end = m.getEnd();
-                        server.sendTo("(move " +
-                                m.getID() + " "
+                        server.sendTo("(move "
+                                + m.getID() + " "
                                 + m.getBegTime() + " "
                                 + beg.x + " "
                                 + beg.y + " "
@@ -197,5 +197,28 @@ public class VisibleManager implements Runnable {
                 server.sendTo("(deathmonster " + monster.getID() + ")", p);
             }
         }
+    }
+
+    /**
+     * Require players lock.
+     */
+    public void killUnit(Unit unit) {
+        for (Player p : players) {
+            if (p.getVisibleUnitsList().remove(unit)) {
+                server.sendTo("(deathunit " + unit.getID() + ")", p);
+            }
+        }
+    }
+
+    /**
+     * Require players lock.
+     */
+    public void killPlayer(Player player) {
+        for (Player p : players) {
+            if (p.getVisibleUnitsList().contains(player)) {
+                server.sendTo("(deathplayer " + player.getID() + ")", p);
+            }
+        }
+        server.sendTo("(deathplayer " + player.getID() + ")", player);
     }
 }

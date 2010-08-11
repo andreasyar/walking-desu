@@ -2,7 +2,7 @@ package client;
 
 import java.awt.Point;
 
-public class MonsterDeathAnimation extends DeathAnimation {
+public class PlayerDeathAnimation extends DeathAnimation {
 
     private int period; // Количество спрайтов в наборе
 
@@ -10,9 +10,9 @@ public class MonsterDeathAnimation extends DeathAnimation {
     private int delay;  // Задержка до очередного проигрывания
     private long begTime = 0;
 
-    public MonsterDeathAnimation(String set) {
+    public PlayerDeathAnimation(String set) {
         super(set);
-        if ("poring".equals(set)) {
+        if ("peasant".equals(set)) {
             this.step = 150;
             this.delay = 0;
         } else {
