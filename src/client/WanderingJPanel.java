@@ -14,7 +14,6 @@ import java.awt.image.BufferedImage;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Area;
-import java.util.ArrayList;
 import java.util.ListIterator;
 import javax.swing.JPanel;
 
@@ -63,12 +62,10 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             buffGraph.setColor(Color.BLACK);
             buffGraph.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
 
-            // TODO На самом деле надо рисовать лишь видимую часть карты
-            // которую можно получить с помощью метода getSubimage()
             buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
                     mapOfst.height < 0 ? -mapOfst.height : 0,
-                    mapOfst.width < 0 ? 1024 + mapOfst.width : 1024 - mapOfst.width,
-                    mapOfst.height < 0 ? 768 + mapOfst.height : 768 - mapOfst.height),
+                    mapOfst.width < 0 ? mapImg.getWidth() + mapOfst.width : (panelDim.width - mapOfst.width <= mapImg.getWidth() ? panelDim.width - mapOfst.width : mapImg.getWidth()),
+                    mapOfst.height < 0 ? mapImg.getHeight() + mapOfst.height : (panelDim.height - mapOfst.height <= mapImg.getHeight() ? panelDim.height - mapOfst.height : mapImg.getHeight())),
                     mapOfst.width >= 0 ? mapOfst.width : 0,
                     mapOfst.height >= 0 ? mapOfst.height : 0,
                     null);
@@ -94,7 +91,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             // For all units we draw their sprite and nick name.
             Point selfPos = field.getSelfPlayer().getCurPos(),
-                    pos;
+                  pos;
 
             for (Unit u : field.getYSortedUnits()) {
                 s = u.getSprite();
@@ -130,10 +127,10 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             // Draw nuke bolts.
             for (Nuke n : field.getNukes()) {
-                if (n.isMove() && ( (s = n.getSprite()) != null)) {
+                if (n.isMove() && ((s = n.getSprite()) != null)) {
                     buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                 }/* else if (s == null) {
-                    System.err.println("Sprite is null.");
+                System.err.println("Sprite is null.");
                 }*/
             }
 
@@ -323,15 +320,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             if (self.getSelectedUnit() != null
                     && (self.getCurrentNuke() == null || !self.getCurrentNuke().isReuse())
                     && !self.equals(self.getSelectedUnit())) {
-                /*WanderingLocks.lockNukes();
-                field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime);
-                WanderingLocks.unlockNukes();
-                inter.addCommand("(bolt " + self.getSelectedUnit().getID() + ")");*/
-                /*if (self.attack(System.currentTimeMillis() - ServerInteraction.serverStartTime)) {
-                    WanderingLocks.lockNukes();
-                    field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime + self.getNukeAnimationDelay());
-                    WanderingLocks.unlockNukes();
-                }*/
                 inter.addCommand("(attack " + self.getSelectedUnit().getID() + ")");
             }
         } else if (key == KeyEvent.VK_F4) {
@@ -342,11 +330,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
         } else if (key == KeyEvent.VK_T) {
             showTowerRange = true;
-        }/* else if (key == KeyEvent.VK_F5) {
-            ConcurencyDebugClientKiller killer = new ConcurencyDebugClientKiller();
-            Thread killerThread = new Thread(killer);
-            killerThread.start();
-        }*/
+        }
     }
 
     @Override
@@ -358,18 +342,23 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         }
     }
 
+    /* else if (key == KeyEvent.VK_F5) {
+        ConcurencyDebugClientKiller killer = new ConcurencyDebugClientKiller();
+        Thread killerThread = new Thread(killer);
+        killerThread.start();
+        }*/
     /*private class ConcurencyDebugClientKiller implements Runnable {
 
-        @Override
-        public void run() {
-            ArrayList<Unit> units = field.getUnits();
-            Unit unit;
+    @Override
+    public void run() {
+    ArrayList<Unit> units = field.getUnits();
+    Unit unit;
 
-            while (true) {
-                unit = units.get(0);
-                units.remove(0);
-                units.add(unit);
-            }
-        }
+    while (true) {
+    unit = units.get(0);
+    units.remove(0);
+    units.add(unit);
+    }
+    }
     }*/
 }
