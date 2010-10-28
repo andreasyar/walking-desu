@@ -27,6 +27,7 @@ public class WanderingGUI implements Runnable {
         sendBtn.addActionListener(new sendBtnActionListener(field, inter));
     }
 
+    @Override
     public void run() {
         panel.add(sendBtn);
         panel.add(msgField);

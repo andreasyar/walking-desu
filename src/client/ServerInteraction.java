@@ -208,7 +208,9 @@ public class ServerInteraction {
                     pieces2[2]));
             WanderingLocks.unlockAll();
         } else if ("delmonster".equals(pieces1[0])) {
-            //field.delPlayer(Long.parseLong(pieces1[1]));
+            WanderingLocks.lockAll();
+            field.delMonster(Long.parseLong(pieces1[1]));
+            WanderingLocks.unlockAll();
         } else if ("deathmonster".equals(pieces1[0])) {
             Unit selected = field.getSelfPlayer().getSelectedUnit();
 

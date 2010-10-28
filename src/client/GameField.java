@@ -203,6 +203,18 @@ public class GameField {
     /**
      * Require lock all.
      */
+    public void delMonster(long id) {
+        debug_test1(Thread.currentThread().getStackTrace());
+        Monster m = getMonster(id);
+        if (m != null) {
+            monsters.remove(m);
+            units.remove(m);
+        }
+    }
+
+    /**
+     * Require lock all.
+     */
     void delDeadMonsters() {
         debug_test1(Thread.currentThread().getStackTrace());
         Monster m;
