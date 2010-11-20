@@ -12,6 +12,12 @@ public class WalkingDesu {
 
     private WalkingDesu(String[] args) {
         GameField field = new GameField();
+        MapFragment.setWidth(1024);
+        MapFragment.setHeight(768);
+        field.addMapFragment(new MapFragment(0, 0, new int[][]{}));
+        //field.addMapFragment(new MapFragment(0, 1, new int[][]{}));
+        //field.addMapFragment(new MapFragment(1, 1, new int[][]{}));
+        //field.addMapFragment(new MapFragment(1, 0, new int[][]{}));
 
         Executor executor = Executors.newCachedThreadPool();
         ServerInteraction inter = new ServerInteraction(field, executor, args[0], Integer.parseInt(args[1]));

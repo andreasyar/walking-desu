@@ -1,5 +1,7 @@
 package client;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +18,7 @@ public class GameField {
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
     private final ArrayList<Monster> monsters = new ArrayList<Monster>();
     private final ArrayList<HitAnimation> hitAnimations = new ArrayList<HitAnimation>();
+    private final ArrayList<MapFragment> mfagments = new ArrayList<MapFragment>();
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
      * monsters loss limit, S - strength multiplyer.
@@ -274,6 +277,40 @@ public class GameField {
 
     public void setTDStatus(String status) {
         tdStatus = status;
+    }
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Tower Defence Status works">
+
+    public MapFragment getMapFragment(Point pos) {
+        int x = pos.x / MapFragment.getWidth();
+        int y = pos.y / MapFragment.getHeight();
+        for (MapFragment mf : mfagments) {
+            if (mf.getIdx() == x && mf.getIdy() == y) {
+                return mf;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns neighbour map fragments count for defined screen resolution.
+     * @return
+     */
+    public int getAroundFragCount(Dimension d) {
+        return ((int)Math.max(d.width / MapFragment.getWidth(), d.height / MapFragment.getHeight())) + 1;
+    }
+
+    public MapFragment getMapFragment(int idx, int idy) {
+        for (MapFragment mf : mfagments) {
+            if (mf.getIdx() == idx && mf.getIdy() == idy) {
+                return mf;
+            }
+        }
+        return null;
+    }
+
+    public void addMapFragment(MapFragment mf) {
+        mfagments.add(mf);
     }
     // </editor-fold>
 

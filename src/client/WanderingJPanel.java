@@ -62,6 +62,9 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             buffGraph.setColor(Color.BLACK);
             buffGraph.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
 
+            // Вычислим новое смещение карты (временно это делается здесь)
+            Point curPos = field.getSelfPlayer().getCurPos();
+
             buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
                     mapOfst.height < 0 ? -mapOfst.height : 0,
                     mapOfst.width < 0 ? mapImg.getWidth() + mapOfst.width : (panelDim.width - mapOfst.width <= mapImg.getWidth() ? panelDim.width - mapOfst.width : mapImg.getWidth()),
@@ -70,9 +73,24 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     mapOfst.height >= 0 ? mapOfst.height : 0,
                     null);
 
-            // Вычислим новое смещение карты (временно это делается здесь)
-            Point curPos = field.getSelfPlayer().getCurPos();
-            if (panelDim.width / 2 != mapOfst.width + curPos.x || panelDim.height / 2 != mapOfst.height + curPos.y) {
+            MapFragment curFragment = field.getMapFragment(curPos);
+            MapFragment tmpFragment;
+            for (int i = curFragment.getIdy() - 1; i <= curFragment.getIdy() + 1; i++) {
+                for (int j = curFragment.getIdx() - 1; j <= curFragment.getIdx() + 1; j++) {
+                    tmpFragment = field.getMapFragment(j, i);
+                    if (i >= 0 && j >= 0 && tmpFragment != null) {
+                         buffGraph.drawImage(tmpFragment.getImage(),
+                                             mapOfst.width + (j - curFragment.getIdx()) * 1024,
+                                             mapOfst.height + (i - curFragment.getIdy()) * 768, null);
+                         System.out.println("Fragment " + j + ", " + i + " drow at "
+                                 + (mapOfst.width + (j - curFragment.getIdx()) * 1024) + ", "
+                                 + mapOfst.height + (i - curFragment.getIdy()) * 768);
+                    }
+                }
+            }
+
+            if (panelDim.width / 2 != mapOfst.width + curPos.x
+                    || panelDim.height / 2 != mapOfst.height + curPos.y) {
                 mapOfst.width += panelDim.width / 2 - (curPos.x + mapOfst.width);
                 mapOfst.height += panelDim.height / 2 - (curPos.y + mapOfst.height);
             }
@@ -166,7 +184,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         int y = e.getY();
 
         // Если клик был в пределах карты.
-        if (x >= mapOfst.width && x <= mapDim.width + mapOfst.width && y >= mapOfst.height && y <= mapDim.height + mapOfst.height) {
+        if (true || x >= mapOfst.width && x <= mapDim.width + mapOfst.width && y >= mapOfst.height && y <= mapDim.height + mapOfst.height) {
             boolean selected = false;
             Polygon poly;
             Unit unit;
@@ -212,6 +230,18 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     }
                 }
                 if (canGo) {
+                    MapFragment curFragment = field.getMapFragment(p);
+                    int n = field.getAroundFragCount(mapDim);
+                    for (int i = curFragment.getIdy() - n; i <= curFragment.getIdy() + n; i++) {
+                        for (int j = curFragment.getIdx() - n; j <= curFragment.getIdx() + n; j++) {
+                            if (i >= 0 && j >= 0 && field.getMapFragment(j, i) == null) {
+                                // TODO Server query.
+                                field.addMapFragment(new MapFragment(j, i, new int[][]{}));
+                                System.out.println("Map Fragment " + j + ", " + i + " added.");
+                            }
+                        }
+                    }
+
                     field.getSelfPlayer().move((Point) field.getSelfPlayer().getCurPos().clone(), p, System.currentTimeMillis() - ServerInteraction.serverStartTime);
                     inter.addCommand("(move " + p.x + " " + p.y + ")");
                 }
