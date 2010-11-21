@@ -23,6 +23,25 @@ public class MapFragment {
 
     private BufferedImage img = null;
 
+    private static int cellW;
+    private static int cellH;
+
+    public static void setCellH(int cellH) {
+        MapFragment.cellH = cellH;
+    }
+
+    public static void setCellW(int cellW) {
+        MapFragment.cellW = cellW;
+    }
+
+    public static int getCellH() {
+        return cellH;
+    }
+
+    public static int getCellW() {
+        return cellW;
+    }
+
     public static void setHeight(int height) {
         MapFragment.height = height;
     }
@@ -57,9 +76,19 @@ public class MapFragment {
         if (img == null) {
             img = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
             Graphics g = img.getGraphics();
-            g.setColor(new Color((float) 0.1, (float) 1.0, (float) 0.3, (float) 0.7));
-            g.fillRect(0, 0, width - 1, height - 1);
-            g.setColor(Color.GREEN);
+            Color myGreen = new Color((float) 0.1, (float) 1.0, (float) 0.3, (float) 0.7);
+            Color myBlack = new Color((float) 0.1, (float) 0.1, (float) 0.1, (float) 0.7);
+
+            for (int i = 0; (i + 1) * cellW <= width; i++) {
+                for (int j = 0; (j + 1) * cellH <= height; j++) {
+                    g.setColor(myBlack);
+                    g.fillRect(i *  cellW, j * cellH, cellW, cellH);
+                    g.setColor(myGreen);
+                    g.fillRect(i * cellW + 1, j * cellH + 1, cellW - 1, cellH - 1);
+                    g.setColor(myBlack);
+                    g.drawString(idx + "," + idy, i * cellW, j * cellH + cellH / 2);
+                }
+            }
         }
         
         return img;
