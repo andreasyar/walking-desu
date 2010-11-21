@@ -15,6 +15,13 @@ import java.awt.image.BufferedImage;
  */
 public class MapFragment {
     private static int width;
+    private static int height;
+
+    private final int[][] hmap;
+    private final int idx;
+    private final int idy;
+
+    private BufferedImage img = null;
 
     public static void setHeight(int height) {
         MapFragment.height = height;
@@ -23,7 +30,6 @@ public class MapFragment {
     public static void setWidth(int width) {
         MapFragment.width = width;
     }
-    private static int height;
 
     public static int getHeight() {
         return height;
@@ -33,9 +39,6 @@ public class MapFragment {
         return width;
     }
 
-    private final int[][] hmap;
-    private final int idx;
-
     public int getIdx() {
         return idx;
     }
@@ -43,8 +46,6 @@ public class MapFragment {
     public int getIdy() {
         return idy;
     }
-    private final int idy;
-    private BufferedImage img = null;
 
     public MapFragment(int idx, int idy, int [][] hmap) {
         this.hmap = hmap;
