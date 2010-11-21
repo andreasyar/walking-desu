@@ -30,6 +30,7 @@ public class JavaTestServer {
     private final ArrayList<Player> players = new ArrayList<Player>();
     private final ArrayList<Monster> monsters = new ArrayList<Monster>();
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
+    private final ArrayList<MapFragment> mapfragments = new ArrayList<MapFragment>();
     private final int tdMonsterLossLimit = 100;
     private int tdMonsterLoss = 0;
     ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
@@ -108,11 +109,30 @@ public class JavaTestServer {
         }
     }
 
+    public void sendTo(JTSMessage msg, Player player) {
+        for (SocketProcessor sp : clientQueue) {
+            if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
+                sp.addMessage(msg);
+                return;
+            }
+        }
+    }
+
     public void sendToAll(String[] msgs) {
         for (String msg : msgs) {
             for (SocketProcessor sp : clientQueue) {
                 if (sp.loggedIn()) {
                     sp.send(msg);
+                    sp.addMessage(msg);
+                }
+            }
+        }
+    }
+
+    public void sendToAll(JTSMessage[] msgs) {
+        for (JTSMessage msg : msgs) {
+            for (SocketProcessor sp : clientQueue) {
+                if (sp.loggedIn()) {
                     sp.addMessage(msg);
                 }
             }
@@ -192,7 +212,7 @@ public class JavaTestServer {
         private boolean nickReceived = false;
         private boolean helloSended = false;
         private Player self = null;
-        private LinkedBlockingQueue<String> messages = new LinkedBlockingQueue<String>();
+        private LinkedBlockingQueue<JTSMessage> messages = new LinkedBlockingQueue<JTSMessage>();
         private ObjectOutputStream oos;
 
         SocketProcessor(Socket socketParam) throws IOException {
@@ -311,6 +331,41 @@ public class JavaTestServer {
                                 units.add(t);
                                 JTSLocks.unlockAll();
                                 // </editor-fold>
+                            } else if ("getmapfragm".equals(pieces[0])) {
+                                // <editor-fold defaultstate="collapsed" desc="Map fragment request processing">
+                                pieces = line.split(" ");
+
+                                int idx = Integer.parseInt(pieces[1]);
+                                int idy = Integer.parseInt(pieces[2]);
+                                boolean found = false;
+                                MapFragment mapFrag = null;
+                                for (MapFragment f: mapfragments) {
+                                    if (idx == f.getIdx() && idy == f.getIdy()) {
+                                        found = true;
+                                        mapFrag = f;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    mapFrag = new MapFragment(idx,
+                                                              idy,
+                                                              MapFragment.create2DHMap());
+                                    mapfragments.add(mapFrag);
+                                }
+                                sendTo(new JTSMessage(JTSMessageTypes.HMAP,
+                                           new ShortMapFragment(mapFrag.getHmap(), idx, idy)),
+                                       self);
+
+                                JTSLocks.lockAll();
+                                Monster mon = new Monster(curPlayerID++, "Monster", 100, idx * MapFragment.getHeight() + 100, idy * MapFragment.getWidth() + 100, 0.5);
+                                System.out.println("New mon spawned in " + (idx * MapFragment.getHeight() + 100)
+                                                   + ", "
+                                                   + (idy * MapFragment.getWidth() + 100));
+                                mon.setSpriteSetName("poring");
+                                monsters.add(mon);
+                                units.add(mon);
+                                JTSLocks.unlockAll();
+                                // </editor-fold>
                             }
                         } else if ("nick".equals(pieces[0])) {
                             // <editor-fold defaultstate="collapsed" desc="Nick message processing">
@@ -401,7 +456,15 @@ public class JavaTestServer {
 
         public void addMessage(String s) {
             try {
-                messages.put(s);
+                messages.put(new JTSMessage(JTSMessageTypes.OTHER, s));
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        public void addMessage(JTSMessage m) {
+            try {
+                messages.put(m);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -409,16 +472,16 @@ public class JavaTestServer {
 
         private class PacketSender implements Runnable {
 
-            private LinkedBlockingQueue<String> messagesCopy = new LinkedBlockingQueue<String>();
+            private LinkedBlockingQueue<JTSMessage> messagesCopy = new LinkedBlockingQueue<JTSMessage>();
 
             @Override
             public void run() {
-                String message;
+                JTSMessage message;
 
                 try {
                     while (true) {
                         if (messages.size() > 0) {
-                            for (Iterator<String> i = messages.iterator(); i.hasNext();) {
+                            for (Iterator<JTSMessage> i = messages.iterator(); i.hasNext();) {
                                 message = i.next();
                                 i.remove();
                                 System.out.println(s.getInetAddress() + " <-- " + message);

@@ -18,7 +18,7 @@ public class GameField {
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
     private final ArrayList<Monster> monsters = new ArrayList<Monster>();
     private final ArrayList<HitAnimation> hitAnimations = new ArrayList<HitAnimation>();
-    private final ArrayList<MapFragment> mfagments = new ArrayList<MapFragment>();
+    private final ArrayList<ClientMapFragment> mfagments = new ArrayList<ClientMapFragment>();
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
      * monsters loss limit, S - strength multiplyer.
@@ -281,10 +281,10 @@ public class GameField {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Map fragments works">
 
-    public MapFragment getMapFragment(Point pos) {
-        int x = pos.x / MapFragment.getWidth();
-        int y = pos.y / MapFragment.getHeight();
-        for (MapFragment mf : mfagments) {
+    public ClientMapFragment getMapFragment(Point pos) {
+        int x = pos.x / ClientMapFragment.getWidth();
+        int y = pos.y / ClientMapFragment.getHeight();
+        for (ClientMapFragment mf : mfagments) {
             if (mf.getIdx() == x && mf.getIdy() == y) {
                 return mf;
             }
@@ -297,11 +297,11 @@ public class GameField {
      * @return
      */
     public int getAroundFragCount(Dimension d) {
-        return ((int)Math.max(d.width / MapFragment.getWidth(), d.height / MapFragment.getHeight())) + 1;
+        return ((int)Math.max(d.width / ClientMapFragment.getWidth(), d.height / ClientMapFragment.getHeight())) + 1;
     }
 
-    public MapFragment getMapFragment(int idx, int idy) {
-        for (MapFragment mf : mfagments) {
+    public ClientMapFragment getMapFragment(int idx, int idy) {
+        for (ClientMapFragment mf : mfagments) {
             if (mf.getIdx() == idx && mf.getIdy() == idy) {
                 return mf;
             }
@@ -309,8 +309,12 @@ public class GameField {
         return null;
     }
 
-    public void addMapFragment(MapFragment mf) {
+    public void addMapFragment(ClientMapFragment mf) {
         mfagments.add(mf);
+    }
+
+    public boolean availableCell(Point p) {
+        return getMapFragment(p).availableCell(p);
     }
     // </editor-fold>
 

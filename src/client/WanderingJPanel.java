@@ -63,17 +63,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             buffGraph.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
 
             Point curPos = field.getSelfPlayer().getCurPos();
-
-            /*buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
-                    mapOfst.height < 0 ? -mapOfst.height : 0,
-                    mapOfst.width < 0 ? mapImg.getWidth() + mapOfst.width : (panelDim.width - mapOfst.width <= mapImg.getWidth() ? panelDim.width - mapOfst.width : mapImg.getWidth()),
-                    mapOfst.height < 0 ? mapImg.getHeight() + mapOfst.height : (panelDim.height - mapOfst.height <= mapImg.getHeight() ? panelDim.height - mapOfst.height : mapImg.getHeight())),
-                    mapOfst.width >= 0 ? mapOfst.width : 0,
-                    mapOfst.height >= 0 ? mapOfst.height : 0,
-                    null);*/
-
-            MapFragment curFragment = field.getMapFragment(curPos);
-            MapFragment tmpFragment;
+            ClientMapFragment curFragment = field.getMapFragment(curPos);
+            ClientMapFragment tmpFragment;
             BufferedImage tmpImg;
             int cutX, cutY, cutW, cutH;
             for (int i = curFragment.getIdy() - 1; i <= curFragment.getIdy() + 1; i++) {
@@ -162,14 +153,14 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                         }
 
                         buffGraph.drawImage(tmpImg.getSubimage(cutX, cutY, cutW, cutH),
-                                            cutX > 0 ? 0 : (j) * 1024 - (curPos.x - panelDim.width / 2)/*mapOfst.width + (j - curFragment.getIdx()) * 1024*/,
-                                            cutY > 0 ? 0 : (i) * 769 - (curPos.y - panelDim.height / 2)/*mapOfst.height + (i - curFragment.getIdy()) * 768*/,
+                                            cutX > 0 ? 0 : (j) * tmpImg.getWidth() - (curPos.x - panelDim.width / 2)/*mapOfst.width + (j - curFragment.getIdx()) * 1024*/,
+                                            cutY > 0 ? 0 : (i) * tmpImg.getHeight() - (curPos.y - panelDim.height / 2)/*mapOfst.height + (i - curFragment.getIdy()) * 768*/,
                                             null);
-                        System.out.println("Fragment " + j + ", " + i + " drow "
-                                           + (cutX > 0 ? 0 : (j) * 1024 - (curPos.x - panelDim.width / 2)) + ", "
-                                           + (cutY > 0 ? 0 : (i) * 769 - (curPos.y - panelDim.height / 2)) + "; "
-                                           + cutW + ", "
-                                           + cutH);
+//                        System.out.println("Fragment " + j + ", " + i + " drow "
+//                                           + (cutX > 0 ? 0 : (j) * tmpImg.getWidth() - (curPos.x - panelDim.width / 2)) + ", "
+//                                           + (cutY > 0 ? 0 : (i) * tmpImg.getHeight() - (curPos.y - panelDim.height / 2)) + "; "
+//                                           + cutW + ", "
+//                                           + cutH);
                     }
                 }
             }
@@ -194,8 +185,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             resourcesInProcess = true;
 
             // For all units we draw their sprite and nick name.
-            Point selfPos = field.getSelfPlayer().getCurPos(),
-                  pos;
+            Point selfPos = field.getSelfPlayer().getCurPos();
+            Point pos;
 
             for (Unit u : field.getYSortedUnits()) {
                 s = u.getSprite();
@@ -316,14 +307,15 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     }
                 }
                 if (canGo) {
-                    MapFragment curFragment = field.getMapFragment(p);
+                    ClientMapFragment curFragment = field.getMapFragment(p);
                     int n = field.getAroundFragCount(mapDim);
                     for (int i = curFragment.getIdy() - n; i <= curFragment.getIdy() + n; i++) {
                         for (int j = curFragment.getIdx() - n; j <= curFragment.getIdx() + n; j++) {
                             if (i >= 0 && j >= 0 && field.getMapFragment(j, i) == null) {
+                                inter.addCommand("(getmapfragm " + j + " " + i + ")");
                                 // TODO Server query.
-                                field.addMapFragment(new MapFragment(j, i, new int[][]{}));
-                                System.out.println("Map Fragment " + j + ", " + i + " added.");
+//                                field.addMapFragment(new ClientMapFragment(j, i, new int[][]{}));
+//                                System.out.println("Map Fragment " + j + ", " + i + " added.");
                             }
                         }
                     }

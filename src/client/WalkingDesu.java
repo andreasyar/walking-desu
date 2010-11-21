@@ -12,11 +12,11 @@ public class WalkingDesu {
 
     private WalkingDesu(String[] args) {
         GameField field = new GameField();
-        MapFragment.setWidth(1024);
-        MapFragment.setHeight(768);
-        MapFragment.setCellW(32);
-        MapFragment.setCellH(32);
-        field.addMapFragment(new MapFragment(0, 0, new int[][]{}));
+        ClientMapFragment.setWidth(1024);
+        ClientMapFragment.setHeight(1024);
+        ClientMapFragment.setCellW(32);
+        ClientMapFragment.setCellH(32);
+        field.addMapFragment(new ClientMapFragment(0, 0, new int[][]{}));
         //field.addMapFragment(new MapFragment(0, 1, new int[][]{}));
         //field.addMapFragment(new MapFragment(1, 1, new int[][]{}));
         //field.addMapFragment(new MapFragment(1, 0, new int[][]{}));

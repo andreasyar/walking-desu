@@ -1,5 +1,6 @@
 package server.javatestserver;
 
+import client.GameField;
 import java.awt.Point;
 
 public abstract class Unit {

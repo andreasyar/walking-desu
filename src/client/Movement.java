@@ -11,6 +11,17 @@ public class Movement {
     private long endTime;                   // Calculated value
     private double speed;
 
+    protected GameField gField;
+
+    public void setgField(GameField gField) {
+        this.gField = gField;
+    }
+    public GameField getgField() {
+        return gField;
+    }
+
+    private Point tmpPos = new Point(); // For map fragment cell type check and stop player.
+
     public Movement(int x, int y, double speed) {
         isMove = false;
         beg.move(x, y);
@@ -55,8 +66,15 @@ public class Movement {
             long curTime = System.currentTimeMillis() - ServerInteraction.serverStartTime;
             double sqrt = Math.sqrt(Math.pow(Math.abs(end.x - beg.x), 2) + Math.pow(Math.abs(end.y - beg.y), 2));
 
-            cur.x = (int) (beg.x + ((end.x - beg.x) / sqrt) * speed * (curTime - begTime));
-            cur.y = (int) (beg.y + ((end.y - beg.y) / sqrt) * speed * (curTime - begTime));
+            tmpPos.x = (int) (beg.x + ((end.x - beg.x) / sqrt) * speed * (curTime - begTime));
+            tmpPos.y = (int) (beg.y + ((end.y - beg.y) / sqrt) * speed * (curTime - begTime));
+            
+            //if (gField.availableCell(tmpPos)) {
+                cur.move(tmpPos.x, tmpPos.y);
+//            } else {
+//                isMove = false;
+//                return cur;
+//            }
 
             if (beg.x > end.x && end.x > cur.x
                     || beg.x < end.x && end.x < cur.x
