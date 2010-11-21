@@ -62,33 +62,119 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             buffGraph.setColor(Color.BLACK);
             buffGraph.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
 
-            // Вычислим новое смещение карты (временно это делается здесь)
             Point curPos = field.getSelfPlayer().getCurPos();
 
-            buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
+            /*buffGraph.drawImage(mapImg.getSubimage(mapOfst.width < 0 ? -mapOfst.width : 0,
                     mapOfst.height < 0 ? -mapOfst.height : 0,
                     mapOfst.width < 0 ? mapImg.getWidth() + mapOfst.width : (panelDim.width - mapOfst.width <= mapImg.getWidth() ? panelDim.width - mapOfst.width : mapImg.getWidth()),
                     mapOfst.height < 0 ? mapImg.getHeight() + mapOfst.height : (panelDim.height - mapOfst.height <= mapImg.getHeight() ? panelDim.height - mapOfst.height : mapImg.getHeight())),
                     mapOfst.width >= 0 ? mapOfst.width : 0,
                     mapOfst.height >= 0 ? mapOfst.height : 0,
-                    null);
+                    null);*/
 
             MapFragment curFragment = field.getMapFragment(curPos);
             MapFragment tmpFragment;
+            BufferedImage tmpImg;
+            int cutX, cutY, cutW, cutH;
             for (int i = curFragment.getIdy() - 1; i <= curFragment.getIdy() + 1; i++) {
                 for (int j = curFragment.getIdx() - 1; j <= curFragment.getIdx() + 1; j++) {
                     tmpFragment = field.getMapFragment(j, i);
                     if (i >= 0 && j >= 0 && tmpFragment != null) {
-                         buffGraph.drawImage(tmpFragment.getImage(),
-                                             mapOfst.width + (j - curFragment.getIdx()) * 1024,
-                                             mapOfst.height + (i - curFragment.getIdy()) * 768, null);
-                         System.out.println("Fragment " + j + ", " + i + " drow at "
-                                 + (mapOfst.width + (j - curFragment.getIdx()) * 1024) + ", "
-                                 + mapOfst.height + (i - curFragment.getIdy()) * 768);
+                        if (i == 0 && j == 0) {
+                            tmpImg = mapImg;
+                        } else {
+                            tmpImg = tmpFragment.getImage();
+                        }
+
+                        // Левый верхний угол фрагмента находится справа от панели (фрагмент невидим)
+                        if (j * tmpImg.getWidth() >= curPos.x + panelDim.width / 2) {
+                            continue;
+                        }
+
+                        // Нижний правый угол фрагмента находится слева от панели (фрагмент невидим)
+                        if (j * tmpImg.getWidth() + tmpImg.getWidth() <= curPos.x - panelDim.width / 2) {
+                            continue;
+                        }
+
+                        // Левый верхний угол фрагмента находится снизу под панелью (фрагмент невидим)
+                        if (i * tmpImg.getHeight() >= curPos.y + panelDim.height / 2) {
+                            continue;
+                        }
+
+                        // Правый нижний угол фрагмента находится сверху над панелью (фрагмент невидим)
+                        if (i * tmpImg.getHeight() + tmpImg.getHeight() <= curPos.y - panelDim.height / 2) {
+                            continue;
+                        }
+
+                        // Если верхний левый угол фрагмента находится в пределах панели
+                        // то не обрезаем фрагмент слева. В потивном случае вычислим
+                        // точку начала отреза.
+                        if (curPos.x - panelDim.width / 2 <= j * tmpImg.getWidth()) {
+                            cutX = 0;
+                        } else {
+                            cutX = curPos.x - panelDim.width / 2 - j * tmpImg.getWidth();
+                        }
+                        if (curPos.y - panelDim.height / 2 <= i * tmpImg.getHeight()) {
+                            cutY = 0;
+                        } else {
+                            cutY = curPos.y - panelDim.height / 2 - i * tmpImg.getHeight();
+                        }
+
+                        // Вычислим ширину и высоту отреза, даже если фрагмент не
+                        // обрезается слева.
+
+                        // Фрагмент шире панели.
+                        if (tmpImg.getWidth() > panelDim.width) {   
+                            // cutX - ширина невидимой области фрагмента
+                            // tmpImg.getWidth() - cutX - ширина видимой области фрагмента
+
+                            // Ширина видимой части фрагмента больше ширины панели.
+                            if (tmpImg.getWidth() - cutX > panelDim.width) {
+                                cutW = panelDim.width;
+                            } else {
+                                cutW = tmpImg.getWidth() - cutX;
+                            }
+                        } else {
+                            if (cutX > 0) {
+                                cutW = tmpImg.getWidth() - cutX;
+                            } else {
+                                cutW = panelDim.width;
+                            }
+                        }
+
+                        // Фрагмент выше панели (шире по высоте)
+                        if (tmpImg.getHeight() > panelDim.height) {
+                            // cutY - высота невидимой области фрагмента
+                            // tmpImg.getHeight() - cutY - высота видимой области фрагмента
+
+                            // Высота видимой части фрагмента больше высоты панели.
+                            if (tmpImg.getHeight() - cutY > panelDim.height) {
+                                cutH = panelDim.height;
+                            } else {
+                                cutH = tmpImg.getHeight() - cutY;
+                            }
+                        } else {
+                            if (cutY > 0) {
+                                cutH = tmpImg.getHeight() - cutY;
+                            } else {
+                                cutH = panelDim.height;
+                            }
+                        }
+
+                        buffGraph.drawImage(tmpImg.getSubimage(cutX, cutY, cutW, cutH),
+                                            cutX > 0 ? 0 : (j) * 1024 - (curPos.x - panelDim.width / 2)/*mapOfst.width + (j - curFragment.getIdx()) * 1024*/,
+                                            cutY > 0 ? 0 : (i) * 769 - (curPos.y - panelDim.height / 2)/*mapOfst.height + (i - curFragment.getIdy()) * 768*/,
+                                            null);
+                        System.out.println("Fragment " + j + ", " + i + " drow "
+                                           + (cutX > 0 ? 0 : (j) * 1024 - (curPos.x - panelDim.width / 2)) + ", "
+                                           + (cutY > 0 ? 0 : (i) * 769 - (curPos.y - panelDim.height / 2)) + "; "
+                                           + cutW + ", "
+                                           + cutH);
                     }
                 }
             }
 
+            // Вычислим новое смещение карты (временно это делается здесь)
             if (panelDim.width / 2 != mapOfst.width + curPos.x
                     || panelDim.height / 2 != mapOfst.height + curPos.y) {
                 mapOfst.width += panelDim.width / 2 - (curPos.x + mapOfst.width);

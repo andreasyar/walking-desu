@@ -14,6 +14,8 @@ public class WalkingDesu {
         GameField field = new GameField();
         MapFragment.setWidth(1024);
         MapFragment.setHeight(768);
+        MapFragment.setCellW(32);
+        MapFragment.setCellH(32);
         field.addMapFragment(new MapFragment(0, 0, new int[][]{}));
         //field.addMapFragment(new MapFragment(0, 1, new int[][]{}));
         //field.addMapFragment(new MapFragment(1, 1, new int[][]{}));
