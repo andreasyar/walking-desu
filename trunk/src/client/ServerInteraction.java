@@ -13,6 +13,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.SwingWorker;
+import server.javatestserver.JTSMessage;
+import server.javatestserver.ShortMapFragment;
+import server.javatestserver.JTSMessageTypes;
 
 public class ServerInteraction {
     public static long serverStartTime = 0;
@@ -107,6 +110,7 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
+            p.setgField(field);
             field.addSelfPlayer(p);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
         } else if ("timesync".equals(pieces1[0])) {
@@ -126,6 +130,7 @@ public class ServerInteraction {
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
+            p.setgField(field);
             WanderingLocks.lockAll();
             field.addPlayer(p);
             WanderingLocks.unlockAll();
@@ -286,6 +291,15 @@ public class ServerInteraction {
         }
     }
 
+    private void commandHandler(JTSMessage command) {
+        if (command.getType() == JTSMessageTypes.OTHER) {
+            commandHandler((String) command.getData());
+        } else if (command.getType() == JTSMessageTypes.HMAP) {
+            ShortMapFragment tmpMapFrag = (ShortMapFragment) command.getData();
+            field.addMapFragment(new ClientMapFragment(tmpMapFrag.idx, tmpMapFrag.idy, tmpMapFrag.hmap));
+        }
+    }
+
     private class ServerWriterTask extends SwingWorker<Void, Void> {
         @Override
         protected Void doInBackground() {
@@ -319,18 +333,18 @@ public class ServerInteraction {
     private class ServerReaderTask extends SwingWorker<Void, Void> {
         @Override
         protected Void doInBackground() {
-            String command;
+            JTSMessage command;
             ObjectInputStream ois;
-            LinkedBlockingQueue<String> messages;
+            LinkedBlockingQueue<JTSMessage> messages;
 
             try {
                 ois = new ObjectInputStream(serverSocket.getInputStream());
 
                 while (serverSocket.isConnected()) {
                     //command = in.readLine();
-                    messages = (LinkedBlockingQueue<String>) ois.readObject();
-                    for (String s : messages) {
-                        command = s;
+                    messages = (LinkedBlockingQueue<JTSMessage>) ois.readObject();
+                    for (JTSMessage m : messages) {
+                        command = m;
                         System.out.println("<-- " + command);
                         try {
                             commandHandler(command);
