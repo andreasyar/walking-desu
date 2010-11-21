@@ -279,7 +279,7 @@ public class GameField {
         tdStatus = status;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Tower Defence Status works">
+    // <editor-fold defaultstate="collapsed" desc="Map fragments works">
 
     public MapFragment getMapFragment(Point pos) {
         int x = pos.x / MapFragment.getWidth();
