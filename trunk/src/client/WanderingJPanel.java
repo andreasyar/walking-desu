@@ -57,10 +57,10 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         if (field.getSelfPlayer() != null && buffDim != null) { // TODO Concurency issue
 
             // Поле вне карты цвета фона и по краям черная рамочка в 1 пиксел.
-            buffGraph.setColor(getBackground());
-            buffGraph.fillRect(0, 0, buffDim.width - 1, buffDim.height - 1);
-            buffGraph.setColor(Color.BLACK);
-            buffGraph.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
+            g.setColor(getBackground());
+            g.fillRect(0, 0, buffDim.width - 1, buffDim.height - 1);
+            g.setColor(Color.BLACK);
+            g.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
 
             Point curPos = field.getSelfPlayer().getCurPos();
             ClientMapFragment curFragment = field.getMapFragment(curPos);
@@ -152,7 +152,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                             }
                         }
 
-                        buffGraph.drawImage(tmpImg.getSubimage(cutX, cutY, cutW, cutH),
+                        g.drawImage(tmpImg.getSubimage(cutX, cutY, cutW, cutH),
                                             cutX > 0 ? 0 : (j) * tmpImg.getWidth() - (curPos.x - panelDim.width / 2)/*mapOfst.width + (j - curFragment.getIdx()) * 1024*/,
                                             cutY > 0 ? 0 : (i) * tmpImg.getHeight() - (curPos.y - panelDim.height / 2)/*mapOfst.height + (i - curFragment.getIdy()) * 768*/,
                                             null);
@@ -173,8 +173,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
 
             if (selfPlayer.getSelectedUnit() != null) {
-                buffGraph.drawString(selfPlayer.getSelectedUnit().getNick() + " (" + selfPlayer.getSelectedUnit().getID() + ")", 10, panelDim.height - 50);
-                buffGraph.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
+                g.drawString(selfPlayer.getSelectedUnit().getNick() + " (" + selfPlayer.getSelectedUnit().getID() + ")", 10, panelDim.height - 50);
+                g.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
             }
 
             // Lets lock all lists.
@@ -192,8 +192,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 s = u.getSprite();
                 pos = u.getCurPos();
                 if (selfPos.distance(pos) <= 500.0) {
-                    buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
-                    buffGraph.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                    g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                    g.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
                 }
             }
 
@@ -204,26 +204,26 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 s = p.getSprite();
                 textCloud = p.getTextCloud();
                 if (textCloud != null) {
-                    buffGraph.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
+                    g.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
                 }
                 if (showTowerRange && p.isMove()) {
                     curPos = p.getCurPos();
-                    buffGraph.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEndPoint().x + mapOfst.width, p.getEndPoint().y + mapOfst.height);
-                    buffGraph.drawOval(curPos.x + mapOfst.width - 500, curPos.y + mapOfst.height - 500, 1000, 1000);
+                    g.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEndPoint().x + mapOfst.width, p.getEndPoint().y + mapOfst.height);
+                    g.drawOval(curPos.x + mapOfst.width - 500, curPos.y + mapOfst.height - 500, 1000, 1000);
                 }
             }
 
             // Draw towers range if enabled.
             if (showTowerRange) {
                 for (Tower t : field.getTowers()) {
-                    buffGraph.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
+                    g.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
                 }
             }
 
             // Draw nuke bolts.
             for (Nuke n : field.getNukes()) {
                 if (n.isMove() && ((s = n.getSprite()) != null)) {
-                    buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                    g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                 }/* else if (s == null) {
                 System.err.println("Sprite is null.");
                 }*/
@@ -233,7 +233,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             for (HitAnimation a : field.getHitAnimations()) {
                 if (!a.isDone()) {
                     s = a.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime);
-                    buffGraph.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                    g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
                 }
             }
 
@@ -243,14 +243,14 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             WanderingLocks.unlockNukes();
             WanderingLocks.unlockHits();
 
-            buffGraph.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
+            g.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
 
             String tdStatus = field.getTDStatus();
             if (tdStatus != null) {
-                buffGraph.drawString(tdStatus, panelDim.width / 2, 50);
+                g.drawString(tdStatus, panelDim.width / 2, 50);
             }
 
-            g.drawImage(buffImg, 0, 0, null);
+            //g.drawImage(buffImg, 0, 0, null);
         }
     }
 
