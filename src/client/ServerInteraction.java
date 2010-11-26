@@ -110,7 +110,6 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
-            p.setgField(field);
             field.addSelfPlayer(p);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
         } else if ("timesync".equals(pieces1[0])) {
@@ -130,7 +129,6 @@ public class ServerInteraction {
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
-            p.setgField(field);
             WanderingLocks.lockAll();
             field.addPlayer(p);
             WanderingLocks.unlockAll();
