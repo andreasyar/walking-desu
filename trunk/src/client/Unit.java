@@ -32,17 +32,6 @@ public abstract class Unit {
     private boolean isMove;
     private boolean isAttack = false;
 
-    protected GameField gField;
-
-    public void setgField(GameField gField) {
-        this.gField = gField;
-        mv.setgField(gField);
-    }
-    public GameField getgField() {
-        return gField;
-    }
-    
-
     public Unit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         this.id = id;
         this.nick = nick;
