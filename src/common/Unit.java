@@ -59,13 +59,7 @@ public abstract class Unit {
      * @param y New unit y position on the world.
      * @param speed New unit movement speed.
      */
-    protected Unit(long id,
-                   String nick,
-                   int maxHitPoints,
-                   int x,
-                   int y,
-                   double speed) throws ServerStartTimeException {
-
+    protected Unit(long id, String nick, int maxHitPoints, int x, int y, double speed) {
         this.id = id;
         this.nick = nick;
         this.maxHitPoints = maxHitPoints;
