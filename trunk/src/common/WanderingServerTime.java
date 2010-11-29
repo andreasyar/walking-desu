@@ -22,7 +22,7 @@ public class WanderingServerTime {
         return me;
     }
 
-    private WanderingServerTime() {
+    protected WanderingServerTime() {
         serverTime = 0;
     }
 
