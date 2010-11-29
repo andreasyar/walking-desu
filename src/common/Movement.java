@@ -101,7 +101,7 @@ public class Movement {
                     || beg.y > end.y && end.y > cur.y
                     || beg.y < end.y && end.y < cur.y
                     || curTime > endTime) {
-                cur.move(end.x, end.y);
+                cur.setLocation(end.x, end.y);
                 isMove = false;
             }
         }

@@ -91,20 +91,16 @@ public abstract class Unit {
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Movement works">
-    public void move(int begX, int begY, int endX, int endY, long begTime) {
-        mv.move(begX, begY, endX, endY, begTime);
-    }
-
     public boolean isMove() {
         return mv.isMove();
     }
 
-    public double getSpeed() {
-        return mv.getSpeed();
+    public Point getEnd() {
+        return mv.getEnd();
     }
 
-    public void setSpeed(double speed) {
-        mv.setSpeed(speed);
+    public Point getBeg() {
+        return mv.getBeg();
     }
 
     public Point getCurPos() {
@@ -119,13 +115,23 @@ public abstract class Unit {
         return mv.getEndTime();
     }
 
-    public Point getEnd() {
-        return mv.getEnd();
+    public double getSpeed() {
+        return mv.getSpeed();
     }
 
-    public Point getBeg() {
-        return mv.getBeg();
+    public void setSpeed(double speed) {
+        mv.setSpeed(speed);
     }
+
+    /**
+     * Moves unit.
+     * @param begX Start x world coord of movement.
+     * @param begY Start y world coord of movement.
+     * @param endX End x world coord of movement.
+     * @param endY End y world coord of movement.
+     * @param begTime Movement begining time since server start.
+     */
+    public abstract void move(int begX, int begY, int endX, int endY, long begTime);
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Sprite set name works">
@@ -168,6 +174,8 @@ public abstract class Unit {
     public int getHitPoints() {
         return hitPoints;
     }
+
+    public abstract void kill();
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Text works">
@@ -184,9 +192,7 @@ public abstract class Unit {
      * for more info about text.
      * @param text New text.
      */
-    public void setText(String text) {
-        this.text = text;
-    }
+    public abstract void setText(String text);
     // </editor-fold>
 
     /**

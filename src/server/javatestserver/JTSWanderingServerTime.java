@@ -1,6 +1,6 @@
 package server.javatestserver;
 
-import common.WanderingServerTime;
+/*import common.WanderingServerTime;
 
 public class JTSWanderingServerTime extends WanderingServerTime
                                     implements Runnable {
@@ -22,3 +22,4 @@ public class JTSWanderingServerTime extends WanderingServerTime
     }
 
 }
+*/

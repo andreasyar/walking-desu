@@ -2,6 +2,8 @@ package client;
 
 import java.awt.Point;
 
+import common.Movement;
+
 public class PeasantNuke extends Nuke {
     private Unit attacker;
     private PeasantNukeAnimation animation;
@@ -29,11 +31,12 @@ public class PeasantNuke extends Nuke {
     @Override
     public void use(long begTime) {
         Unit target = attacker.getSelectedUnit();
-        Point beg;
+        Point beg, cur;
 
         if (target != null) {
             beg = (Point) attacker.getCurPos().clone();
-            movement.move(beg, target.getCurPos(), begTime);
+            cur = target.getCurPos();
+            movement.move(beg.x, beg.y, cur.x, cur.y, begTime);
             animation.run(beg, target.getEndPoint(), movement.getCurPos());
             lastUseTime = begTime;
         }

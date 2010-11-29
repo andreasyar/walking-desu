@@ -13,23 +13,37 @@ import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.Hashtable;
 
+import common.Movement;
+
 public abstract class Unit {
+
+    private long id;
+
+    private String nick;
+
+    protected Movement mv;
 
     protected MovementAnimation moveAnim;
     protected StandAnimation standAnim;
     protected DeathAnimation deathAnim;
     private UseSkillAnimation useAnim;
-    protected Movement mv;
-    private long id;
-    private String nick;
-    private String text = null;
-    private BufferedImage textCloud = null;
+
     protected int maxHitPoints;
+
     protected int hitPoints;
+
+    private String text = null;
+
+    private BufferedImage textCloud = null;
+
     protected Unit selectedUnit;
+
     protected Nuke currentNuke;
+
     protected boolean isDead = false;
+
     private boolean isMove;
+
     private boolean isAttack = false;
 
     public Unit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
@@ -57,6 +71,48 @@ public abstract class Unit {
         mv = new Movement(x, y, speed);
 
     }
+
+    public long getID() {
+        return id;
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="Nick works">
+    public String getNick() {
+        return nick;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Movement works">
+    public boolean isMove() {
+        return mv.isMove();
+    }
+
+    public Point getEndPoint() {
+        return mv.getEnd();
+    }
+
+    public Point getCurPos() {
+        return mv.getCurPos();
+    }
+
+    public double getSpeed() {
+        return mv.getSpeed();
+    }
+
+    public void setSpeed(double speed) {
+        mv.setSpeed(speed);
+    }
+
+    public void move(Point beg, Point end, long begTime) {
+        mv.move(beg.x, beg.y, end.x, end.y, begTime);
+        moveAnim.run(beg, end, 10.0);
+        standAnim.run(moveAnim.getDirection(), mv.getEndTime());
+    }
+    // </editor-fold>
 
     public Sprite getSprite() {
         isMove = mv.isMove();
@@ -98,66 +154,21 @@ public abstract class Unit {
         return useAnim.getNukeAnimationDelay();
     }
 
-// <editor-fold defaultstate="collapsed" desc="Movement works">
-    public void move(Point beg, Point end, long begTime) {
-        mv.move(beg, end, begTime);
-        moveAnim.run(beg, end, 10.0);
-        standAnim.run(moveAnim.getDirection(), mv.getEndTime());
+    // <editor-fold defaultstate="collapsed" desc="HP works">
+    public boolean isDead() {
+        return isDead;
+    }
+    
+    abstract public void doHit(int dmg);
+
+    public int getHitPoints() {
+        return hitPoints;
     }
 
-    public boolean isMove() {
-        return mv.isMove();
-    }
+    public abstract void kill();
+    // </editor-fold>
 
-    public double getSpeed() {
-        return mv.getSpeed();
-    }
-
-    public void setSpeed(double speed) {
-        mv.setSpeed(speed);
-    }
-
-    public Point getCurPos() {
-        return mv.getCurPos();
-    }
-
-    public Point getEndPoint() {
-        return mv.getEndPoint();
-    }
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Attack works">
-
-    public boolean attack(long begTime) {
-        if (isDead || isAttack()) {
-            return false;
-        }
-        if (mv.isMove()) {
-            mv.stop();
-        }
-        useAnim.run(Direction.getDirection(getCurPos(), selectedUnit.getCurPos()), begTime);
-        return true;
-    }
-
-    public boolean isAttack() {
-        return useAnim != null && !useAnim.isStoped();
-    }
-// </editor-fold>
-
-    public long getID() {
-        return id;
-    }
-// <editor-fold defaultstate="collapsed" desc="Nick works">
-
-    public String getNick() {
-        return nick;
-    }
-
-    public void setNick(String nick) {
-        this.nick = nick;
-    }
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Message works">
-
+    // <editor-fold defaultstate="collapsed" desc="Message works">
     public String getText() {
         return text;
     }
@@ -209,23 +220,9 @@ public abstract class Unit {
             }
         }
     }
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="HP works">
+    // </editor-fold>
 
-    abstract public void doHit(int dmg);
-
-    public int getHitPoints() {
-        return hitPoints;
-    }
-
-    public abstract void kill();
-
-    public boolean isDead() {
-        return isDead;
-    }
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Selected unit works">
-
+    // <editor-fold defaultstate="collapsed" desc="Selected unit works">
     public Unit getSelectedUnit() {
         return selectedUnit;
     }
@@ -237,9 +234,9 @@ public abstract class Unit {
     public void unselectUnit() {
         selectedUnit = null;
     }
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Current nuke works">
+    // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="Current nuke works">
     public Nuke getCurrentNuke() {
         return currentNuke;
     }
@@ -247,5 +244,22 @@ public abstract class Unit {
     public void setCurrentNuke(Nuke currentNuke) {
         this.currentNuke = currentNuke;
     }
-// </editor-fold>
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Attack works">
+    public boolean attack(long begTime) {
+        if (isDead || isAttack()) {
+            return false;
+        }
+        if (mv.isMove()) {
+            mv.stop();
+        }
+        useAnim.run(Direction.getDirection(getCurPos(), selectedUnit.getCurPos()), begTime);
+        return true;
+    }
+
+    public boolean isAttack() {
+        return useAnim != null && !useAnim.isStoped();
+    }
+    // </editor-fold>
 }
