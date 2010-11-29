@@ -16,6 +16,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
 
+import common.Movement;
+import common.WanderingServerTime;
+
 /**
  * Главный класс тестового ява сервера блуждающей же.
  */
@@ -42,6 +45,9 @@ public class JavaTestServer {
     public JavaTestServer(int port) throws IOException {
         ss = new ServerSocket(port);
         ts = new TimeSyncTask();
+
+        // Classes what server use also whant to know server start time.
+        WanderingServerTime.getInstance().setServerTime(serverStartTime);
     }
 
     /**
@@ -735,8 +741,9 @@ class NukeBolt {
         this.target = target;
 
         Point tmp = attacker.getCurPos();
+        Point cur = target.getCurPos();
         mv = new Movement(tmp.x, tmp.y, 1.0);
-        mv.move(tmp, target.getCurPos(), begTime);
+        mv.move(tmp.x, tmp.y, cur.x, cur.y, begTime);
     }
 
     public boolean isFlight() {

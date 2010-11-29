@@ -1,9 +1,7 @@
 package common;
 
 /**
- * This class is a common part of Server Time Service what used both on clients
- * and on servers. Common part of service provide functions for store and get
- * server time.
+ * This class is a Server Time Service what used both on clients and on servers.
  */
 public class WanderingServerTime {
 
@@ -23,7 +21,7 @@ public class WanderingServerTime {
     }
 
     protected WanderingServerTime() {
-        serverTime = 0;
+        serverTime = 0L;
     }
 
     public long getServerTime() {

@@ -17,6 +17,8 @@ import server.javatestserver.JTSMessage;
 import server.javatestserver.ShortMapFragment;
 import server.javatestserver.JTSMessageTypes;
 
+import common.WanderingServerTime;
+
 public class ServerInteraction {
     public static long serverStartTime = 0;
 
@@ -102,6 +104,10 @@ public class ServerInteraction {
             pieces1 = command.split(" ", 8);
             pieces2 = pieces1[7].substring(1, pieces1[7].length() - 1).split("\" \"", 3);
             serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces1[6]);
+
+            // We initialize server time counter here. Hello message contains requied value.
+            WanderingServerTime.getInstance().setServerTime(System.currentTimeMillis() - Long.parseLong(pieces1[6]));
+
             p = new Player(Integer.parseInt(pieces1[1]),
                     pieces2[0],
                     Integer.parseInt(pieces1[2]),
@@ -114,6 +120,10 @@ public class ServerInteraction {
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
         } else if ("timesync".equals(pieces1[0])) {
             serverStartTime = System.currentTimeMillis() - Long.parseLong(pieces1[1]);
+
+            // Every time when we recv timesync we must update our local server time.
+            WanderingServerTime.getInstance().setServerTime(System.currentTimeMillis() - Long.parseLong(pieces1[1]));
+
         } else if ("newplayer".equals(pieces1[0])) {
             String[] pieces2;
             Player p;

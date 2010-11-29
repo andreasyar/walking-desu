@@ -2,7 +2,7 @@ package client;
 
 import java.awt.Point;
 
-public class Movement {
+/*public class Movement {
 
     private boolean isMove;
 
@@ -26,15 +26,6 @@ public class Movement {
         this.speed = speed;
     }
 
-    public void move(final Point beg, final Point end, long begTime) {
-        isMove = true;
-        this.beg.move(beg.x, beg.y);
-        this.end.move(end.x, end.y);
-        this.begTime = begTime;
-        endTime = begTime + (long) (beg.distance(end) / speed);
-        cur.move(beg.x, beg.y);
-    }
-
     public boolean isMove() {
         if (!isMove) {
             return false;
@@ -44,17 +35,8 @@ public class Movement {
         }
     }
 
-    public double getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(double speed) {
-        if (isMove) {
-            this.speed = speed;
-            endTime = begTime + (long) (beg.distance(end) / speed);
-        } else {
-            this.speed = speed;
-        }
+    public Point getEnd() {
+        return end;
     }
 
     public Point getCurPos() {
@@ -81,11 +63,29 @@ public class Movement {
         return endTime;
     }
 
-    public Point getEndPoint() {
-        return end;
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        if (isMove) {
+            this.speed = speed;
+            endTime = begTime + (long) (beg.distance(end) / speed);
+        } else {
+            this.speed = speed;
+        }
+    }
+
+    public void move(final Point beg, final Point end, long begTime) {
+        isMove = true;
+        this.beg.move(beg.x, beg.y);
+        this.end.move(end.x, end.y);
+        this.begTime = begTime;
+        endTime = begTime + (long) (beg.distance(end) / speed);
+        cur.move(beg.x, beg.y);
     }
 
     public void stop() {
         isMove = false;
     }
-}
+}*/
