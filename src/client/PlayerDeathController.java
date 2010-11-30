@@ -1,10 +1,10 @@
 package client;
 
-import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class PlayerDeathController implements Runnable {
 
-    private final ArrayList<Player> players;
+    private final LinkedBlockingQueue<Player> players;
     public static final Object listener = new Object();
 
     public PlayerDeathController(GameField field) {
@@ -13,7 +13,6 @@ public class PlayerDeathController implements Runnable {
 
     @Override
     public void run() {
-        WanderingLocks.lockPlayers();
         for (Player p : players) {
             if (p.dead() && p.deathAnimationDone()) {
                 p.restoreHitPoints();
@@ -21,6 +20,5 @@ public class PlayerDeathController implements Runnable {
                 p.resurect();
             }
         }
-        WanderingLocks.unlockPlayers();
     }
 }

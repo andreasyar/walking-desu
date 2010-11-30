@@ -2,15 +2,16 @@ package server.javatestserver;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class VisibleManager implements Runnable {
 
-    private final ArrayList<Player> players;
-    private final ArrayList<Tower> towers;
-    private final ArrayList<Monster> monsters;
+    private final LinkedBlockingQueue<Player> players;
+    private final LinkedBlockingQueue<Tower> towers;
+    private final LinkedBlockingQueue<Monster> monsters;
     private final JavaTestServer server;
 
-    public VisibleManager(ArrayList<Player> players, ArrayList<Tower> towers, ArrayList<Monster> monsters, JavaTestServer server) {
+    public VisibleManager(LinkedBlockingQueue<Player> players, LinkedBlockingQueue<Tower> towers, LinkedBlockingQueue<Monster> monsters, JavaTestServer server) {
         this.players = players;
         this.towers = towers;
         this.monsters = monsters;
@@ -20,9 +21,7 @@ public class VisibleManager implements Runnable {
     @Override
     public void run() {
         try {
-            JTSLocks.lockPlayers();
             update();
-            JTSLocks.unlockPlayers();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);

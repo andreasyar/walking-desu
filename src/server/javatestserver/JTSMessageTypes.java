@@ -9,6 +9,6 @@ package server.javatestserver;
  *
  * @author Sorc
  */
-public enum JTSMessageTypes {
-    HMAP, OTHER;
-}
+//public enum JTSMessageTypes {
+//    HMAP, OTHER;
+//}

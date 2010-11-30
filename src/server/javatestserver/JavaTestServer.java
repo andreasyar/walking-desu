@@ -8,7 +8,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.ArrayList;
-import java.util.ListIterator;
 import java.awt.Point;
 import java.util.Iterator;
 import java.util.Random;
@@ -16,7 +15,10 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
 
+import common.HMapMessage;
+import common.Message;
 import common.Movement;
+import common.OtherMessage;
 import common.WanderingServerTime;
 
 /**
@@ -29,10 +31,10 @@ public class JavaTestServer {
     BlockingQueue<SocketProcessor> clientQueue = new LinkedBlockingQueue<SocketProcessor>();
     private long curPlayerID = 1;
     ArrayList<Long> playerIDs = new ArrayList<Long>();
-    private final ArrayList<JTSUnit> units = new ArrayList<JTSUnit>();
-    private final ArrayList<Player> players = new ArrayList<Player>();
-    private final ArrayList<Monster> monsters = new ArrayList<Monster>();
-    private final ArrayList<Tower> towers = new ArrayList<Tower>();
+    private final LinkedBlockingQueue<JTSUnit> units = new LinkedBlockingQueue<JTSUnit>();
+    private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
+    private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
+    private final LinkedBlockingQueue<Tower> towers = new LinkedBlockingQueue<Tower>();
     private final ArrayList<MapFragment> mapfragments = new ArrayList<MapFragment>();
     private final int tdMonsterLossLimit = 100;
     private int tdMonsterLoss = 0;
@@ -99,7 +101,6 @@ public class JavaTestServer {
     public void sendFromUnit(String msg, JTSUnit unit) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
-                sp.send(msg);
                 sp.addMessage(msg);
             }
         }
@@ -108,14 +109,13 @@ public class JavaTestServer {
     public void sendTo(String msg, Player player) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
-                sp.send(msg);
                 sp.addMessage(msg);
                 return;
             }
         }
     }
 
-    public void sendTo(JTSMessage msg, Player player) {
+    public void sendTo(Message msg, Player player) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
                 sp.addMessage(msg);
@@ -128,15 +128,14 @@ public class JavaTestServer {
         for (String msg : msgs) {
             for (SocketProcessor sp : clientQueue) {
                 if (sp.loggedIn()) {
-                    sp.send(msg);
                     sp.addMessage(msg);
                 }
             }
         }
     }
 
-    public void sendToAll(JTSMessage[] msgs) {
-        for (JTSMessage msg : msgs) {
+    public void sendToAll(Message[] msgs) {
+        for (Message msg : msgs) {
             for (SocketProcessor sp : clientQueue) {
                 if (sp.loggedIn()) {
                     sp.addMessage(msg);
@@ -149,7 +148,6 @@ public class JavaTestServer {
         for (String msg : msgs) {
             for (SocketProcessor sp : clientQueue) {
                 if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID && sp.loggedIn()) {
-                    sp.send(msg);
                     sp.addMessage(msg);
                 }
             }
@@ -218,7 +216,7 @@ public class JavaTestServer {
         private boolean nickReceived = false;
         private boolean helloSended = false;
         private Player self = null;
-        private LinkedBlockingQueue<JTSMessage> messages = new LinkedBlockingQueue<JTSMessage>();
+        private LinkedBlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
         private ObjectOutputStream oos;
 
         SocketProcessor(Socket socketParam) throws IOException {
@@ -288,9 +286,7 @@ public class JavaTestServer {
                             } else if ("bolt".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Bolt message processing">
                                 line = line.substring("bolt".length() + 1, line.length());
-                                JTSLocks.lockPlayers();
                                 Player target = getPlayer(Long.parseLong(line));
-                                JTSLocks.unlockPlayers();
                                 if (target != null) {
                                     NukeAction a = new NukeAction(new NukeBolt(self, target, System.currentTimeMillis() - serverStartTime));
                                     ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
@@ -307,9 +303,7 @@ public class JavaTestServer {
                                 line = line.substring("attack".length() + 1, line.length());
                                 pieces = line.split(" ");
 
-                                JTSLocks.lockAll();
                                 JTSUnit target = getUnit(Long.parseLong(pieces[0]));
-                                JTSLocks.unlockAll();
                                 long begTime = System.currentTimeMillis() - serverStartTime;
 
                                 if (target != null) {
@@ -332,10 +326,8 @@ public class JavaTestServer {
                                  * башен.
                                  */
                                 Tower t = new Tower(curPlayerID++, "Tower", 200.0, 10, 1000L, Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
-                                JTSLocks.lockAll();
                                 towers.add(t);
                                 units.add(t);
-                                JTSLocks.unlockAll();
                                 // </editor-fold>
                             } else if ("getmapfragm".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Map fragment request processing">
@@ -358,11 +350,8 @@ public class JavaTestServer {
                                                               MapFragment.create2DHMap());
                                     mapfragments.add(mapFrag);
                                 }
-                                sendTo(new JTSMessage(JTSMessageTypes.HMAP,
-                                           new ShortMapFragment(mapFrag.getHmap(), idx, idy)),
-                                       self);
+                                sendTo(new HMapMessage(mapFrag.getHmap(), idx, idy), self);
 
-                                JTSLocks.lockAll();
                                 Monster mon = new Monster(curPlayerID++, "Monster", 100, idx * MapFragment.getHeight() + 100, idy * MapFragment.getWidth() + 100, 0.5);
                                 System.out.println("New mon spawned in " + (idx * MapFragment.getHeight() + 100)
                                                    + ", "
@@ -370,7 +359,6 @@ public class JavaTestServer {
                                 mon.setSpriteSetName("poring");
                                 monsters.add(mon);
                                 units.add(mon);
-                                JTSLocks.unlockAll();
                                 // </editor-fold>
                             }
                         } else if ("nick".equals(pieces[0])) {
@@ -398,11 +386,9 @@ public class JavaTestServer {
                                     + "\"SOUTH\"" + " "
                                     + "\"" + self.getSpriteSetName() + "\"" + ")");
                             helloSended = true;
-                            JTSLocks.lockAll();
                             players.add(self);
                             units.add(self);
                             System.out.println("Welcome to WD Java Test Server. Online: " + players.size() + " players (with you).");
-                            JTSLocks.unlockAll();
                             // </editor-fold>
                         }
                     } else if ("hello".equals(pieces[0])) {
@@ -410,20 +396,6 @@ public class JavaTestServer {
                     }
                 }
             }
-        }
-
-        public synchronized void send(String line) {
-            /*if (!line.startsWith("(")) {
-                line = "(" + line + ")";
-            }
-            System.out.println(s.getInetAddress() + " <-- " + line);
-            try {
-                bw.write(line);
-                bw.write("\n");
-                bw.flush();
-            } catch (IOException e) {
-                close();
-            }*/
         }
 
         public synchronized void close() {
@@ -437,12 +409,10 @@ public class JavaTestServer {
                 return;
             }
             if (self != null) {
-                JTSLocks.lockAll();
                 vm.removePlayer(self);
                 players.remove(self);
                 units.remove(self);
                 self = null;
-                JTSLocks.unlockAll();
             }
         }
 
@@ -462,13 +432,13 @@ public class JavaTestServer {
 
         public void addMessage(String s) {
             try {
-                messages.put(new JTSMessage(JTSMessageTypes.OTHER, s));
+                messages.put(new OtherMessage(s));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
         }
 
-        public void addMessage(JTSMessage m) {
+        public void addMessage(Message m) {
             try {
                 messages.put(m);
             } catch (InterruptedException ex) {
@@ -478,16 +448,16 @@ public class JavaTestServer {
 
         private class PacketSender implements Runnable {
 
-            private LinkedBlockingQueue<JTSMessage> messagesCopy = new LinkedBlockingQueue<JTSMessage>();
+            private LinkedBlockingQueue<Message> messagesCopy = new LinkedBlockingQueue<Message>();
 
             @Override
             public void run() {
-                JTSMessage message;
+                Message message;
 
                 try {
                     while (true) {
                         if (messages.size() > 0) {
-                            for (Iterator<JTSMessage> i = messages.iterator(); i.hasNext();) {
+                            for (Iterator<Message> i = messages.iterator(); i.hasNext();) {
                                 message = i.next();
                                 i.remove();
                                 System.out.println(s.getInetAddress() + " <-- " + message);
@@ -523,7 +493,6 @@ public class JavaTestServer {
         public void run() {
             if (!canceled) {
                 if (!bolt.isFlight()) {
-                    JTSLocks.lockAll();
                     try {
                         JTSUnit attacker = bolt.getAttacker(),
                                 target = bolt.getTarget();
@@ -550,7 +519,6 @@ public class JavaTestServer {
                         ex.printStackTrace();
                         System.exit(1);
                     }
-                    JTSLocks.unlockAll();
 
                     this.cancel();
                 }
@@ -595,7 +563,6 @@ public class JavaTestServer {
         @Override
         public void run() {
             if (!canceled) {
-                JTSLocks.lockAll();
 
                 long tmpStep = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
                 Monster m;
@@ -612,7 +579,7 @@ public class JavaTestServer {
                         monCountAdd = 0;
                         Tower t;
 
-                        for (ListIterator<Tower> li = towers.listIterator(); li.hasNext();) {
+                        for (Iterator<Tower> li = towers.iterator(); li.hasNext();) {
                             t = li.next();
                             vm.removeTower(t);
                             units.remove(t);
@@ -640,7 +607,7 @@ public class JavaTestServer {
                 boolean isDead;
                 boolean isStop;
 
-                for (ListIterator<Monster> li = monsters.listIterator(); li.hasNext();) {
+                for (Iterator<Monster> li = monsters.iterator(); li.hasNext();) {
                     m = li.next();
                     isDead = m.dead();
                     isStop = !m.isMove();
@@ -659,7 +626,6 @@ public class JavaTestServer {
                     }
                 }
             }
-            JTSLocks.unlockAll();
         }
 
         public void setScheduledFuture(ScheduledFuture future) {
@@ -685,16 +651,17 @@ public class JavaTestServer {
         @Override
         public void run() {
             if (!canceled) {
-                JTSLocks.lockTowers();
-
-                for (Tower t : towers) {
-                    if (!attackRandomMonster(t)) {
-                        t.selectMonster(monsters);
-                        attackRandomMonster(t);
+                try {
+                    for (Tower t : towers) {
+                        if (!attackRandomMonster(t)) {
+                            t.selectMonster(monsters);
+                            attackRandomMonster(t);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
                 }
-
-                JTSLocks.unlockTowers();
             }
         }
 
@@ -710,10 +677,8 @@ public class JavaTestServer {
                     sendToAll(new String[]{"(bolt " + t.getID() + " " + t.getTarget().getID() + " " + (begTime) + ")"});
                     return true;
                 }
-
                 return false;
             }
-
             return false;
         }
 

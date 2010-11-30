@@ -10,9 +10,7 @@ public class MonsterDeathController implements Runnable {
 
     @Override
     public void run() {
-        WanderingLocks.lockAll();
         field.delDeadMonsters();
-        WanderingLocks.unlockAll();
     }
 
 }

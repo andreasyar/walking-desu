@@ -1,7 +1,7 @@
 package server.javatestserver;
 
-import java.util.ArrayList;
-import java.util.ListIterator;
+import java.util.Iterator;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Tower extends NPC {
 
@@ -28,11 +28,11 @@ public class Tower extends NPC {
         }
     }
 
-    public void selectMonster(final ArrayList<Monster> targets) {
+    public void selectMonster(final LinkedBlockingQueue<Monster> targets) {
         boolean found = false;
 
         synchronized (targets) {
-            for (ListIterator<Monster> li = targets.listIterator(); li.hasNext();) {
+            for (Iterator<Monster> li = targets.iterator(); li.hasNext();) {
                 target = li.next();
                 if (targetInRange() && !((Monster) target).dead()) {
                     found = true;
