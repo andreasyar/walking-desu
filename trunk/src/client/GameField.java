@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class GameField {
 
     private Player selfPlayer;
-    private final ArrayList<Unit> units = new ArrayList<Unit>();
+    private final ArrayList<WUnit> units = new ArrayList<WUnit>();
     private final ArrayList<Player> players = new ArrayList<Player>();
     private final ArrayList<Nuke> nukes = new ArrayList<Nuke>();
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
@@ -51,8 +51,8 @@ public class GameField {
     /**
      * Require lock all.
      */
-    public Unit getUnit(long id) {
-        for (Unit u : units) {
+    public WUnit getUnit(long id) {
+        for (WUnit u : units) {
             if (u.getID() == id) {
                 return u;
             }
@@ -61,14 +61,14 @@ public class GameField {
         return null;
     }
 
-    public ArrayList<Unit> getUnits() {
+    public ArrayList<WUnit> getUnits() {
         return units;
     }
 
     /**
      * Require lock all.
      */
-    public ArrayList<Unit> getYSortedUnits() {
+    public ArrayList<WUnit> getYSortedUnits() {
         Collections.sort(units, aligner);
         return units;
     }
@@ -103,7 +103,7 @@ public class GameField {
             players.remove(p);
 
             // Finally remove player from units list.
-            for (Unit curUnit : units) {
+            for (WUnit curUnit : units) {
                 if (curUnit.equals(p)) {
                     units.remove(curUnit);
                     return;
@@ -134,7 +134,7 @@ public class GameField {
     /**
      * Require lock nukes.
      */
-    public void addNuke(Unit self, Unit selectedUnit, long begTime) {
+    public void addNuke(WUnit self, WUnit selectedUnit, long begTime) {
 
         // remove old nukes
         for (ListIterator<Nuke> l = nukes.listIterator(); l.hasNext();) {
@@ -224,7 +224,7 @@ public class GameField {
 
         for (ListIterator<Monster> l = monsters.listIterator(); l.hasNext();) {
             m = l.next();
-            if (m.isDead() && m.deathAnimationDone()) {
+            if (m.dead() && m.deathAnimationDone()) {
                 units.remove(m);
                 l.remove();
             }
@@ -322,7 +322,7 @@ public class GameField {
 
         @Override
         public final int compare(Object a, Object b) {
-            return ((Unit) a).getCurPos().y > ((Unit) b).getCurPos().y ? 1 : 0;
+            return ((WUnit) a).getCurPos().y > ((WUnit) b).getCurPos().y ? 1 : 0;
         }
     }
 

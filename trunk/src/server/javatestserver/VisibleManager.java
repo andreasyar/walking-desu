@@ -202,7 +202,7 @@ public class VisibleManager implements Runnable {
     /**
      * Require players lock.
      */
-    public void killUnit(Unit unit) {
+    public void killUnit(JTSUnit unit) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(unit)) {
                 server.sendTo("(deathunit " + unit.getID() + ")", p);

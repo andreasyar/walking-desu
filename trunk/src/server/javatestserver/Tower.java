@@ -8,7 +8,7 @@ public class Tower extends NPC {
     private double range;
     private long reuse;
     private long lastAttackTime;
-    private Unit target = null;
+    private JTSUnit target = null;
 
     public Tower(long id, String nick, double range, int damage, long reuse, int x, int y) {
         super(id, nick, 1, x, y, 0.0);
@@ -57,7 +57,7 @@ public class Tower extends NPC {
         return System.currentTimeMillis() - JavaTestServer.serverStartTime - lastAttackTime < reuse;
     }
 
-    public Unit getTarget() {
+    public JTSUnit getTarget() {
         return target;
     }
 

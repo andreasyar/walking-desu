@@ -29,9 +29,13 @@ public class MovementAnimation {
     }
 
     public void run(Point beg, Point end, double step) {
-        direct = Direction.getDirection(beg, end);
+        run(beg.x, beg.y, end.x, end.y, step);
+    }
+
+    public void run(int begX, int begY, int endX, int endY, double step) {
+        beg = new Point(begX, begY);
+        direct = Direction.getDirection(beg, new Point(endX, endY));
         period = set.getSpriteCount(direct);
-        this.beg = beg;
         this.step = step;
         stepCount = 0.0;
     }

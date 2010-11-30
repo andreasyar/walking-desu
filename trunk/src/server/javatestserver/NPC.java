@@ -1,6 +1,6 @@
 package server.javatestserver;
 
-public class NPC extends Unit {
+public class NPC extends JTSUnit {
 
     public NPC(long id, String nick, int maxHitPoints, int x, int y, double speed) {
         super(id, nick, maxHitPoints, x, y, speed);
@@ -14,5 +14,10 @@ public class NPC extends Unit {
     @Override
     public boolean dead() {
         return false;
+    }
+
+    @Override
+    public void kill() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

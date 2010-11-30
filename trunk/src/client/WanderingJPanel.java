@@ -188,7 +188,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             Point selfPos = field.getSelfPlayer().getCurPos();
             Point pos;
 
-            for (Unit u : field.getYSortedUnits()) {
+            for (WUnit u : field.getYSortedUnits()) {
                 s = u.getSprite();
                 pos = u.getCurPos();
                 if (selfPos.distance(pos) <= 500.0) {
@@ -208,7 +208,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 }
                 if (showTowerRange && p.isMove()) {
                     curPos = p.getCurPos();
-                    g.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEndPoint().x + mapOfst.width, p.getEndPoint().y + mapOfst.height);
+                    g.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEnd().x + mapOfst.width, p.getEnd().y + mapOfst.height);
                     g.drawOval(curPos.x + mapOfst.width - 500, curPos.y + mapOfst.height - 500, 1000, 1000);
                 }
             }
@@ -264,12 +264,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         if (true || x >= mapOfst.width && x <= mapDim.width + mapOfst.width && y >= mapOfst.height && y <= mapDim.height + mapOfst.height) {
             boolean selected = false;
             Polygon poly;
-            Unit unit;
+            WUnit unit;
             Sprite spr;
 
             if (selectMode) {
                 synchronized (field.getUnits()) {
-                    for (ListIterator<Unit> li = field.getUnits().listIterator(); li.hasNext();) {
+                    for (ListIterator<WUnit> li = field.getUnits().listIterator(); li.hasNext();) {
                         unit = li.next();
                         spr = unit.getSprite();
                         poly = new Polygon();
@@ -313,14 +313,11 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                         for (int j = curFragment.getIdx() - n; j <= curFragment.getIdx() + n; j++) {
                             if (i >= 0 && j >= 0 && field.getMapFragment(j, i) == null) {
                                 inter.addCommand("(getmapfragm " + j + " " + i + ")");
-                                // TODO Server query.
-//                                field.addMapFragment(new ClientMapFragment(j, i, new int[][]{}));
-//                                System.out.println("Map Fragment " + j + ", " + i + " added.");
                             }
                         }
                     }
 
-                    field.getSelfPlayer().move((Point) field.getSelfPlayer().getCurPos().clone(), p, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+                    field.getSelfPlayer().move(cur.x, cur.y, p.x, p.y, System.currentTimeMillis() - ServerInteraction.serverStartTime);
                     inter.addCommand("(move " + p.x + " " + p.y + ")");
                 }
             }
@@ -424,7 +421,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 selectMode = true;
             }
         } else if (key == KeyEvent.VK_F3) {
-            Unit self = field.getSelfPlayer();
+            WUnit self = field.getSelfPlayer();
             if (self.getSelectedUnit() != null
                     && (self.getCurrentNuke() == null || !self.getCurrentNuke().isReuse())
                     && !self.equals(self.getSelectedUnit())) {

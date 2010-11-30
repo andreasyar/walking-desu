@@ -1,11 +1,10 @@
 package server.javatestserver;
 
-import java.awt.Point;
 import java.util.ArrayList;
 
-public class Player extends Unit {
+public class Player extends JTSUnit {
 
-    private final ArrayList<Unit> visibleUnits = new ArrayList<Unit>();
+    private final ArrayList<JTSUnit> visibleUnits = new ArrayList<JTSUnit>();
     private static final double visibleRange = 500.0;
 
     public Player(long id, String nick, int maxHitPoints, int x, int y, double speed) {
@@ -32,32 +31,32 @@ public class Player extends Unit {
     }
 
     public void teleportToSpawn() {
-        move(new Point(0, 0), new Point(0, 0), System.currentTimeMillis() - JavaTestServer.serverStartTime);
+        move(0, 0, 0, 0, System.currentTimeMillis() - JavaTestServer.serverStartTime);
     }
 
     public void teleportTo(int x, int y) {
-        move(new Point(x, y), new Point(x, y), System.currentTimeMillis() - JavaTestServer.serverStartTime);
+        move(x, y, x, y, System.currentTimeMillis() - JavaTestServer.serverStartTime);
     }
-// <editor-fold defaultstate="collapsed" desc="Visible units works">
 
-    public void addVisibleUnit(Unit unit) {
+    // <editor-fold defaultstate="collapsed" desc="Visible units works">
+    public void addVisibleUnit(JTSUnit unit) {
         synchronized (visibleUnits) {
             visibleUnits.add(unit);
         }
     }
 
-    public void delVisibleUnit(Unit unit) {
+    public void delVisibleUnit(JTSUnit unit) {
         synchronized (visibleUnits) {
             while (visibleUnits.remove(unit)) {
             }
         }
     }
 
-    public ArrayList<Unit> getVisibleUnitsList() {
+    public ArrayList<JTSUnit> getVisibleUnitsList() {
         return visibleUnits;
     }
 
-    public boolean inRange(Unit unit) {
+    public boolean inRange(JTSUnit unit) {
         if (getCurPos().distance(unit.getCurPos()) <= visibleRange) {
             return true;
         } else {
@@ -65,8 +64,13 @@ public class Player extends Unit {
         }
     }
 
-    public boolean see(Unit unit) {
+    public boolean see(JTSUnit unit) {
         return visibleUnits.contains(unit);
     }
-// </editor-fold>
+    // </editor-fold>
+
+    @Override
+    public void kill() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
