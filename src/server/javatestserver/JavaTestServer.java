@@ -29,7 +29,7 @@ public class JavaTestServer {
     BlockingQueue<SocketProcessor> clientQueue = new LinkedBlockingQueue<SocketProcessor>();
     private long curPlayerID = 1;
     ArrayList<Long> playerIDs = new ArrayList<Long>();
-    private final ArrayList<Unit> units = new ArrayList<Unit>();
+    private final ArrayList<JTSUnit> units = new ArrayList<JTSUnit>();
     private final ArrayList<Player> players = new ArrayList<Player>();
     private final ArrayList<Monster> monsters = new ArrayList<Monster>();
     private final ArrayList<Tower> towers = new ArrayList<Tower>();
@@ -96,7 +96,7 @@ public class JavaTestServer {
         return cs;
     }
 
-    public void sendFromUnit(String msg, Unit unit) {
+    public void sendFromUnit(String msg, JTSUnit unit) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
                 sp.send(msg);
@@ -171,8 +171,8 @@ public class JavaTestServer {
     /**
      * Require lock all.
      */
-    private Unit getUnit(long id) {
-        for (Unit u : units) {
+    private JTSUnit getUnit(long id) {
+        for (JTSUnit u : units) {
             if (u.getID() == id) {
                 return u;
             }
@@ -269,7 +269,7 @@ public class JavaTestServer {
                                 Point selfCurPos = self.getCurPos();
                                 line = line.substring("move".length() + 1, line.length());
                                 pieces = line.split(" ");
-                                self.move((Point) selfCurPos.clone(), new Point(Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1])), (System.currentTimeMillis() - serverStartTime));
+                                self.move(selfCurPos.x, selfCurPos.y, Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]), (System.currentTimeMillis() - serverStartTime));
                                 sendFromUnit("(move "
                                         + self.getID() + " "
                                         + (System.currentTimeMillis() - serverStartTime) + " "
@@ -308,7 +308,7 @@ public class JavaTestServer {
                                 pieces = line.split(" ");
 
                                 JTSLocks.lockAll();
-                                Unit target = getUnit(Long.parseLong(pieces[0]));
+                                JTSUnit target = getUnit(Long.parseLong(pieces[0]));
                                 JTSLocks.unlockAll();
                                 long begTime = System.currentTimeMillis() - serverStartTime;
 
@@ -525,8 +525,8 @@ public class JavaTestServer {
                 if (!bolt.isFlight()) {
                     JTSLocks.lockAll();
                     try {
-                        Unit attacker = bolt.getAttacker(),
-                             target = bolt.getTarget();
+                        JTSUnit attacker = bolt.getAttacker(),
+                                target = bolt.getTarget();
 
                         target.doHit(attacker.getDamage());
                         sendFromUnit("(hit "
@@ -633,7 +633,7 @@ public class JavaTestServer {
                         m.setSpriteSetName("poring");
                         monsters.add(m);
                         units.add(m);
-                        m.move(beg, end, System.currentTimeMillis() - JavaTestServer.serverStartTime);
+                        m.move(beg.x, beg.y, end.x, end.y, System.currentTimeMillis() - JavaTestServer.serverStartTime);
                     }
                 }
 
@@ -704,7 +704,7 @@ public class JavaTestServer {
                     //t.getTarget().doHit(t.getDamage());
                     long begTime = System.currentTimeMillis() - JavaTestServer.serverStartTime;
                     t.setLastAttackTime(begTime);
-                    NukeAction a = new NukeAction(new NukeBolt((Unit) t, (Unit) t.getTarget(), begTime));
+                    NukeAction a = new NukeAction(new NukeBolt((JTSUnit) t, (JTSUnit) t.getTarget(), begTime));
                     ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
                     a.setScheduledFuture(f);
                     sendToAll(new String[]{"(bolt " + t.getID() + " " + t.getTarget().getID() + " " + (begTime) + ")"});
@@ -732,11 +732,11 @@ public class JavaTestServer {
 
 class NukeBolt {
 
-    private Unit attacker;
-    private Unit target;
+    private JTSUnit attacker;
+    private JTSUnit target;
     private Movement mv;
 
-    public NukeBolt(Unit attacker, Unit target, long begTime) {
+    public NukeBolt(JTSUnit attacker, JTSUnit target, long begTime) {
         this.attacker = attacker;
         this.target = target;
 
@@ -750,11 +750,11 @@ class NukeBolt {
         return mv.isMove();
     }
 
-    public Unit getAttacker() {
+    public JTSUnit getAttacker() {
         return attacker;
     }
 
-    public Unit getTarget() {
+    public JTSUnit getTarget() {
         return target;
     }
 }

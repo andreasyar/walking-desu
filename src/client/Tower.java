@@ -10,7 +10,7 @@ public class Tower extends NPC {
     private long reuse;
     private long lastAttackTime;
 
-    private Unit target = null;
+    private WUnit target = null;
 
     public Tower(long id, String nick, double range, int damage, long reuse, int x, int y, Direction d, String set) {
         super(id, nick, 1, 0.0, x, y, d, set);
@@ -22,7 +22,7 @@ public class Tower extends NPC {
     }
 
     public boolean targetInRange() {
-        if (target == null || target.getCurPos().distance(getCurPos()) > range || ((Monster) target).isDead()) {
+        if (target == null || target.getCurPos().distance(getCurPos()) > range || ((Monster) target).dead()) {
             target = null;
             return false;
         } else {
@@ -36,7 +36,7 @@ public class Tower extends NPC {
         synchronized (targets) {
             for (ListIterator<Monster> li = targets.listIterator(); li.hasNext();) {
                 target = li.next();
-                if (targetInRange() && !((Monster) target).isDead()) {
+                if (targetInRange() && !((Monster) target).dead()) {
                     found = true;
                     break;
                 }
@@ -58,7 +58,7 @@ public class Tower extends NPC {
         return System.currentTimeMillis() - ServerInteraction.serverStartTime - lastAttackTime > reuse;
     }
 
-    public Unit getTarget() {
+    public WUnit getTarget() {
         return target;
     }
 

@@ -4,7 +4,7 @@ import java.awt.Point;
 
 public class PowerOfWateringPot extends Nuke {
 
-    public PowerOfWateringPot(Unit attacker) {
+    public PowerOfWateringPot(WUnit attacker) {
         /*super(attacker);
         animation = new NukeAnimation("power_of_watering_pot");
         reuse = 2000;   // 2 sec.

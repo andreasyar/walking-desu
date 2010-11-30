@@ -5,11 +5,11 @@ import java.awt.Point;
 import common.Movement;
 
 public class CanonNuke extends Nuke {
-    private Unit attacker;
+    private WUnit attacker;
     private CanonNukeAnimation animation;
     private Movement movement;
 
-    public CanonNuke(Unit attacker) {
+    public CanonNuke(WUnit attacker) {
         final Point cur = attacker.getCurPos();
 
         this.attacker = attacker;
@@ -24,14 +24,14 @@ public class CanonNuke extends Nuke {
 
     @Override
     public void use(long begTime) {
-        Unit target = attacker.getSelectedUnit();
+        WUnit target = attacker.getSelectedUnit();
         Point beg, cur;
 
         if (target != null) {
             beg = (Point) attacker.getCurPos().clone();
             cur = target.getCurPos();
             movement.move(beg.x, beg.y, cur.x, cur.y, begTime);
-            animation.run(beg, target.getEndPoint(), movement.getCurPos());
+            animation.run(beg, target.getEnd(), movement.getCurPos());
             lastUseTime = begTime;
         }
     }

@@ -145,11 +145,11 @@ public class ServerInteraction {
         } else if ("move".equals(pieces1[0])) {
             long begTime = Long.parseLong(pieces1[2]);
             WanderingLocks.lockAll();
-            Unit u = field.getUnit(Long.parseLong(pieces1[1]));
+            WUnit u = field.getUnit(Long.parseLong(pieces1[1]));
             WanderingLocks.unlockAll();
             //DONT DO IT!serverStartTime = System.currentTimeMillis() - begTime;
             if (u != null) {
-                u.move(new Point(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4])), new Point(Integer.parseInt(pieces1[5]), Integer.parseInt(pieces1[6])), begTime);
+                u.move(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4]), Integer.parseInt(pieces1[5]), Integer.parseInt(pieces1[6]), begTime);
             }
         } else if ("delplayer".equals(pieces1[0])) {
             WanderingLocks.lockAll();
@@ -166,8 +166,8 @@ public class ServerInteraction {
             }
         } else if ("bolt".equals(pieces1[0])) {
             WanderingLocks.lockAll();
-            Unit attacker = field.getUnit(Long.parseLong(pieces1[1]));
-            Unit target = field.getUnit(Long.parseLong(pieces1[2]));
+            WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
+            WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
             WanderingLocks.unlockAll();
             long begTime = Long.parseLong(pieces1[3]);
 
@@ -179,8 +179,8 @@ public class ServerInteraction {
             }
         } else if ("hit".equals(pieces1[0])) {
             WanderingLocks.lockAll();
-            Unit attacker = field.getUnit(Long.parseLong(pieces1[1]));
-            Unit target = field.getUnit(Long.parseLong(pieces1[2]));
+            WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
+            WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
             WanderingLocks.unlockAll();
 
             if (attacker != null && target != null) {
@@ -225,7 +225,7 @@ public class ServerInteraction {
             field.delMonster(Long.parseLong(pieces1[1]));
             WanderingLocks.unlockAll();
         } else if ("deathmonster".equals(pieces1[0])) {
-            Unit selected = field.getSelfPlayer().getSelectedUnit();
+            WUnit selected = field.getSelfPlayer().getSelectedUnit();
 
             WanderingLocks.lockMonsters();
             Monster m = field.getMonster(Long.parseLong(pieces1[1]));
@@ -237,7 +237,7 @@ public class ServerInteraction {
                 }
             }
         } else if ("deathplayer".equals(pieces1[0])) {
-            Unit selected = field.getSelfPlayer().getSelectedUnit();
+            WUnit selected = field.getSelfPlayer().getSelectedUnit();
 
             WanderingLocks.lockPlayers();
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
@@ -272,11 +272,11 @@ public class ServerInteraction {
             field.delTower(Long.parseLong(pieces1[1]));
             WanderingLocks.unlockAll();
         } else if ("attack".equals(pieces1[0])) {
-            Unit selected;
+            WUnit selected;
 
             WanderingLocks.lockAll();
-            Unit attacker = field.getUnit(Long.parseLong(pieces1[1]));
-            Unit target = field.getUnit(Long.parseLong(pieces1[2]));
+            WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
+            WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
             WanderingLocks.unlockAll();
             long begTime = Long.parseLong(pieces1[3]);
 

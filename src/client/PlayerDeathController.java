@@ -15,7 +15,7 @@ public class PlayerDeathController implements Runnable {
     public void run() {
         WanderingLocks.lockPlayers();
         for (Player p : players) {
-            if (p.isDead() && p.deathAnimationDone()) {
+            if (p.dead() && p.deathAnimationDone()) {
                 p.restoreHitPoints();
                 p.teleportToSpawn();
                 p.resurect();
