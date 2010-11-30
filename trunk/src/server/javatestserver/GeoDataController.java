@@ -1,6 +1,7 @@
 package server.javatestserver;
 
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 
 public class GeoDataController implements Runnable {
@@ -8,9 +9,9 @@ public class GeoDataController implements Runnable {
     private ScheduledFuture future = null;
     private boolean canceled = false;
     private final ArrayList<WanderingPolygon> geoData;
-    private final ArrayList<Player> players;
+    private final LinkedBlockingQueue<Player> players;
 
-    public GeoDataController(ArrayList<Player> players) {
+    public GeoDataController(LinkedBlockingQueue<Player> players) {
         this.geoData = WanderingMap.getGeoData();
         this.players = players;
     }
@@ -18,7 +19,6 @@ public class GeoDataController implements Runnable {
     @Override
     public void run() {
         if (!canceled) {
-            JTSLocks.lockPlayers();
             for (WanderingPolygon poly : geoData) {
                 if (poly.getType() == WanderingPolygon.WallType.SPECIAL) {
                     for (Player player : players) {
@@ -28,7 +28,6 @@ public class GeoDataController implements Runnable {
                     }
                 }
             }
-            JTSLocks.unlockPlayers();
         }
     }
 

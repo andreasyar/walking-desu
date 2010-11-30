@@ -12,6 +12,7 @@ public class WalkingDesu {
 
     private WalkingDesu(String[] args) {
         GameField field = new GameField();
+        field.startSelfExecution();
         ClientMapFragment.setWidth(1024);
         ClientMapFragment.setHeight(1024);
         ClientMapFragment.setCellW(32);

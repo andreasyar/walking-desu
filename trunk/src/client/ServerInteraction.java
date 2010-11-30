@@ -13,9 +13,11 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.SwingWorker;
-import server.javatestserver.JTSMessage;
-import server.javatestserver.ShortMapFragment;
-import server.javatestserver.JTSMessageTypes;
+import common.Message;
+import common.HitMessage;
+import common.HMapMessage;
+import common.OtherMessage;
+import common.MessageType;
 
 import common.WanderingServerTime;
 
@@ -139,68 +141,48 @@ public class ServerInteraction {
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
-            WanderingLocks.lockAll();
-            field.addPlayer(p);
-            WanderingLocks.unlockAll();
+            field.asyncAddPlayer(p);
         } else if ("move".equals(pieces1[0])) {
             long begTime = Long.parseLong(pieces1[2]);
-            WanderingLocks.lockAll();
             WUnit u = field.getUnit(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockAll();
             //DONT DO IT!serverStartTime = System.currentTimeMillis() - begTime;
             if (u != null) {
                 u.move(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4]), Integer.parseInt(pieces1[5]), Integer.parseInt(pieces1[6]), begTime);
             }
         } else if ("delplayer".equals(pieces1[0])) {
-            WanderingLocks.lockAll();
-            field.delPlayer(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockAll();
+            field.asyncDelPlayer(Long.parseLong(pieces1[1]));
         } else if ("message".equals(pieces1[0])) {
             pieces1 = command.split(" ", 3);
-            WanderingLocks.lockPlayers();
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockPlayers();
 
             if (p != null) {
                 p.setText(pieces1[2].substring(1, pieces1[2].length() - 1));
             }
         } else if ("bolt".equals(pieces1[0])) {
-            WanderingLocks.lockAll();
             WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
             WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
-            WanderingLocks.unlockAll();
             long begTime = Long.parseLong(pieces1[3]);
 
             if (attacker != null && target != null) {
                 attacker.selectUnit(target);
-                WanderingLocks.lockNukes();
-                field.addNuke(attacker, target, begTime);
-                WanderingLocks.unlockNukes();
+                field.asyncAddNuke(attacker, target, begTime);
             }
         } else if ("hit".equals(pieces1[0])) {
-            WanderingLocks.lockAll();
             WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
             WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
-            WanderingLocks.unlockAll();
 
             if (attacker != null && target != null) {
-                WanderingLocks.lockHits();
-                field.addHitAnimation(new CanonHitAnimation("canon", (Point) target.getCurPos().clone(), Direction.SOUTH, System.currentTimeMillis() - serverStartTime));
-                WanderingLocks.unlockHits();
+                field.asyncAddHitAnimation(new CanonHitAnimation("canon", (Point) target.getCurPos().clone(), Direction.SOUTH, System.currentTimeMillis() - serverStartTime));
                 target.doHit(Integer.parseInt(pieces1[3]));
             }
         } else if ("teleport".equals(pieces1[0])) {
-            WanderingLocks.lockPlayers();
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockPlayers();
 
             if (p != null) {
                 p.teleportTo(Integer.parseInt(pieces1[2]), Integer.parseInt(pieces1[3]));
             }
         } else if ("heal".equals(pieces1[0])) {
-            WanderingLocks.lockPlayers();
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockPlayers();
 
             if (p != null) {
                 p.doHeal(Integer.parseInt(pieces1[2]));
@@ -210,8 +192,7 @@ public class ServerInteraction {
 
             pieces1 = command.split(" ", 7);
             pieces2 = pieces1[6].substring(1, pieces1[6].length() - 1).split("\" \"", 3);
-            WanderingLocks.lockAll();
-            field.addMonster(new Monster(Integer.parseInt(pieces1[1]),
+            field.asyncAddMonster(new Monster(Integer.parseInt(pieces1[1]),
                     pieces2[0],
                     Integer.parseInt(pieces1[2]),
                     Double.parseDouble(pieces1[3]),
@@ -219,17 +200,12 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]));
-            WanderingLocks.unlockAll();
         } else if ("delmonster".equals(pieces1[0])) {
-            WanderingLocks.lockAll();
-            field.delMonster(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockAll();
+            field.asyncDelMonster(Long.parseLong(pieces1[1]));
         } else if ("deathmonster".equals(pieces1[0])) {
             WUnit selected = field.getSelfPlayer().getSelectedUnit();
 
-            WanderingLocks.lockMonsters();
             Monster m = field.getMonster(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockMonsters();
             if (m != null) {
                 m.kill();
                 if (selected != null && m.equals(selected)) {
@@ -239,9 +215,7 @@ public class ServerInteraction {
         } else if ("deathplayer".equals(pieces1[0])) {
             WUnit selected = field.getSelfPlayer().getSelectedUnit();
 
-            WanderingLocks.lockPlayers();
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockPlayers();
             if (p != null) {
                 p.kill();
                 if (selected != null && p.equals(selected)) {
@@ -261,23 +235,17 @@ public class ServerInteraction {
                     Direction.SOUTH,
                     "tower");
             t.setCurrentNuke(new CanonNuke(t));
-            WanderingLocks.lockAll();
-            field.addTower(t);
-            WanderingLocks.unlockAll();
+            field.asyncAddTower(t);
         } else if ("monsterloss".equals(pieces1[0])) {
             pieces1 = command.split(" ");
             field.setTDStatus(Integer.parseInt(pieces1[1]) + "/" + Integer.parseInt(pieces1[2]) + " x" + Integer.parseInt(pieces1[3]));
         } else if ("deltower".equals(pieces1[0])) {
-            WanderingLocks.lockAll();
-            field.delTower(Long.parseLong(pieces1[1]));
-            WanderingLocks.unlockAll();
+            field.asyncDelTower(Long.parseLong(pieces1[1]));
         } else if ("attack".equals(pieces1[0])) {
             WUnit selected;
 
-            WanderingLocks.lockAll();
             WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
             WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
-            WanderingLocks.unlockAll();
             long begTime = Long.parseLong(pieces1[3]);
 
             if (attacker != null && target != null) {
@@ -286,9 +254,7 @@ public class ServerInteraction {
                     attacker.selectUnit(target);
                 }
                 if (attacker.attack(begTime)) {
-                    WanderingLocks.lockNukes();
-                    field.addNuke(attacker, target, begTime + attacker.getNukeAnimationDelay());
-                    WanderingLocks.unlockNukes();
+                    field.asyncAddNuke(attacker, target, begTime + attacker.getNukeAnimationDelay());
                 }
             }
             /*if (self.attack(System.currentTimeMillis() - ServerInteraction.serverStartTime)) {
@@ -299,12 +265,12 @@ public class ServerInteraction {
         }
     }
 
-    private void commandHandler(JTSMessage command) {
-        if (command.getType() == JTSMessageTypes.OTHER) {
-            commandHandler((String) command.getData());
-        } else if (command.getType() == JTSMessageTypes.HMAP) {
-            ShortMapFragment tmpMapFrag = (ShortMapFragment) command.getData();
-            field.addMapFragment(new ClientMapFragment(tmpMapFrag.idx, tmpMapFrag.idy, tmpMapFrag.hmap));
+    private void commandHandler(Message m) {
+        if (m.getType() == MessageType.OTHER) {
+            commandHandler(((OtherMessage) m).getMessage());
+        } else if (m.getType() == MessageType.HMAP) {
+            HMapMessage tmpMessage = (HMapMessage) m;
+            field.addMapFragment(new ClientMapFragment(tmpMessage.getIdx(), tmpMessage.getIdy(), tmpMessage.getHmap()));
         }
     }
 
@@ -341,17 +307,17 @@ public class ServerInteraction {
     private class ServerReaderTask extends SwingWorker<Void, Void> {
         @Override
         protected Void doInBackground() {
-            JTSMessage command;
+            Message command;
             ObjectInputStream ois;
-            LinkedBlockingQueue<JTSMessage> messages;
+            LinkedBlockingQueue<Message> messages;
 
             try {
                 ois = new ObjectInputStream(serverSocket.getInputStream());
 
                 while (serverSocket.isConnected()) {
                     //command = in.readLine();
-                    messages = (LinkedBlockingQueue<JTSMessage>) ois.readObject();
-                    for (JTSMessage m : messages) {
+                    messages = (LinkedBlockingQueue<Message>) ois.readObject();
+                    for (Message m : messages) {
                         command = m;
                         System.out.println("<-- " + command);
                         try {

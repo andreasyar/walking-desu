@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Area;
+import java.util.Iterator;
 import java.util.ListIterator;
 import javax.swing.JPanel;
 
@@ -178,9 +179,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
 
             // Lets lock all lists.
-            WanderingLocks.lockAll();
-            WanderingLocks.lockNukes();
-            WanderingLocks.lockHits();
             Sprite s = null;
             resourcesInProcess = true;
 
@@ -239,9 +237,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             // Lets lock all lists.
             resourcesInProcess = false;
-            WanderingLocks.unlockAll();
-            WanderingLocks.unlockNukes();
-            WanderingLocks.unlockHits();
 
             g.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
 
@@ -269,7 +264,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
             if (selectMode) {
                 synchronized (field.getUnits()) {
-                    for (ListIterator<WUnit> li = field.getUnits().listIterator(); li.hasNext();) {
+                    for (Iterator<WUnit> li = field.getUnits().iterator(); li.hasNext();) {
                         unit = li.next();
                         spr = unit.getSprite();
                         poly = new Polygon();

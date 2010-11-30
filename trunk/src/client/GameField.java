@@ -2,23 +2,24 @@ package client;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.ListIterator;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.lang.reflect.*;
+import java.util.Iterator;
 
 public class GameField {
 
     private Player selfPlayer;
-    private final ArrayList<WUnit> units = new ArrayList<WUnit>();
-    private final ArrayList<Player> players = new ArrayList<Player>();
-    private final ArrayList<Nuke> nukes = new ArrayList<Nuke>();
-    private final ArrayList<Tower> towers = new ArrayList<Tower>();
-    private final ArrayList<Monster> monsters = new ArrayList<Monster>();
-    private final ArrayList<HitAnimation> hitAnimations = new ArrayList<HitAnimation>();
-    private final ArrayList<ClientMapFragment> mfagments = new ArrayList<ClientMapFragment>();
+    private final LinkedBlockingQueue<WUnit> units = new LinkedBlockingQueue<WUnit>();
+    private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
+    private final LinkedBlockingQueue<Nuke> nukes = new LinkedBlockingQueue<Nuke>();
+    private final LinkedBlockingQueue<Tower> towers = new LinkedBlockingQueue<Tower>();
+    private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
+    private final LinkedBlockingQueue<HitAnimation> hitAnimations = new LinkedBlockingQueue<HitAnimation>();
+    private final LinkedBlockingQueue<ClientMapFragment> mfagments = new LinkedBlockingQueue<ClientMapFragment>();
+    private SelfExecutor selfExecutor;
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
      * monsters loss limit, S - strength multiplyer.
@@ -34,9 +35,10 @@ public class GameField {
         executor.scheduleAtFixedRate(mdController, 0L, 100L, TimeUnit.MILLISECONDS);
         PlayerDeathController pdController = new PlayerDeathController(this);
         executor.scheduleAtFixedRate(pdController, 0L, 100L, TimeUnit.MILLISECONDS);
+        selfExecutor = new SelfExecutor(this);
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Self player works">
+    // <editor-fold defaultstate="collapsed" desc="Self player">
     public void addSelfPlayer(Player selfPlayer) {
         this.selfPlayer = selfPlayer;
         addPlayer(this.selfPlayer);
@@ -46,11 +48,8 @@ public class GameField {
         return selfPlayer;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Units works">
 
-    /**
-     * Require lock all.
-     */
+    // <editor-fold defaultstate="collapsed" desc="Units">
     public WUnit getUnit(long id) {
         for (WUnit u : units) {
             if (u.getID() == id) {
@@ -61,32 +60,27 @@ public class GameField {
         return null;
     }
 
-    public ArrayList<WUnit> getUnits() {
+    public LinkedBlockingQueue<WUnit> getUnits() {
         return units;
     }
 
-    /**
-     * Require lock all.
-     */
-    public ArrayList<WUnit> getYSortedUnits() {
-        Collections.sort(units, aligner);
+    public LinkedBlockingQueue<WUnit> getYSortedUnits() {
+        // TODO: SORT!
+        //Collections.sort(units, aligner);
         return units;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Players works">
 
-    /**
-     * Require lock all.
-     */
+    // <editor-fold defaultstate="collapsed" desc="Players">
     public void addPlayer(Player player) {
-        debug_test1(Thread.currentThread().getStackTrace());
         units.add(player);
         players.add(player);
     }
 
-    /**
-     * Require lock all.
-     */
+    public void asyncAddPlayer(Player player) {
+        selfExecutor.add("addPlayer", new Class[] { Player.class }, new Object[] { player });
+    }
+
     public void delPlayer(long id) {
         debug_test1(Thread.currentThread().getStackTrace());
         Player p = getPlayer(id);
@@ -112,9 +106,10 @@ public class GameField {
         }
     }
 
-    /**
-     * Require lock players.
-     */
+    public void asyncDelPlayer(long id) {
+        selfExecutor.add("delPlayer", new Class[] { long.class }, new Object[] { id });
+    }
+
     public Player getPlayer(long id) {
         for (Player p : players) {
             if (p.getID() == id) {
@@ -125,19 +120,16 @@ public class GameField {
         return null;
     }
 
-    public ArrayList<Player> getPlayers() {
+    public LinkedBlockingQueue<Player> getPlayers() {
         return players;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Nukes works">
 
-    /**
-     * Require lock nukes.
-     */
+    // <editor-fold defaultstate="collapsed" desc="Nukes works">
     public void addNuke(WUnit self, WUnit selectedUnit, long begTime) {
 
-        // remove old nukes
-        for (ListIterator<Nuke> l = nukes.listIterator(); l.hasNext();) {
+        // Remove old nukes.
+        for (Iterator<Nuke> l = nukes.iterator(); l.hasNext();) {
             if (!l.next().isMove()) {
                 l.remove();
             }
@@ -148,26 +140,28 @@ public class GameField {
         nukes.add(n);
     }
 
-    public ArrayList<Nuke> getNukes() {
+    public void asyncAddNuke(WUnit self, WUnit selectedUnit, long begTime) {
+        selfExecutor.add("addNuke",
+                         new Class[] { WUnit.class, WUnit.class, long.class },
+                         new Object[] { self, selectedUnit, begTime });
+    }
+
+    public LinkedBlockingQueue<Nuke> getNukes() {
         return nukes;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Towers works">
 
-    /**
-     * Require lock all.
-     */
+    // <editor-fold defaultstate="collapsed" desc="Towers">
     public void addTower(Tower tower) {
-        debug_test1(Thread.currentThread().getStackTrace());
         towers.add(tower);
         units.add(tower);
     }
 
-    /**
-     * Require lock all.
-     */
+    public void asyncAddTower(Tower tower) {
+        selfExecutor.add("addTower", new Class[] { Tower.class }, new Object[] { tower });
+    }
+
     public void delTower(long id) {
-        debug_test1(Thread.currentThread().getStackTrace());
         Tower t = getTower(id);
         if (t != null) {
             towers.remove(t);
@@ -175,9 +169,10 @@ public class GameField {
         }
     }
 
-    /**
-     * Require lock towers.
-     */
+    public void asyncDelTower(long id) {
+        selfExecutor.add("delTower", new Class[] { long.class }, new Object[] { id });
+    }
+
     public Tower getTower(long id) {
         for (Tower t : towers) {
             if (t.getID() == id) {
@@ -188,26 +183,22 @@ public class GameField {
         return null;
     }
 
-    public ArrayList<Tower> getTowers() {
+    public LinkedBlockingQueue<Tower> getTowers() {
         return towers;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Monsters works">
 
-    /**
-     * Require lock all.
-     */
+    // <editor-fold defaultstate="collapsed" desc="Monsters">
     public void addMonster(Monster monster) {
-        debug_test1(Thread.currentThread().getStackTrace());
         monsters.add(monster);
         units.add(monster);
     }
 
-    /**
-     * Require lock all.
-     */
+    public void asyncAddMonster(Monster monster) {
+        selfExecutor.add("addMonster", new Class[] { Monster.class }, new Object[] { monster });
+    }
+
     public void delMonster(long id) {
-        debug_test1(Thread.currentThread().getStackTrace());
         Monster m = getMonster(id);
         if (m != null) {
             monsters.remove(m);
@@ -215,14 +206,14 @@ public class GameField {
         }
     }
 
-    /**
-     * Require lock all.
-     */
+    public void asyncDelMonster(long id) {
+        selfExecutor.add("delMonster", new Class[] { long.class }, new Object[] { id });
+    }
+
     void delDeadMonsters() {
-        debug_test1(Thread.currentThread().getStackTrace());
         Monster m;
 
-        for (ListIterator<Monster> l = monsters.listIterator(); l.hasNext();) {
+        for (Iterator<Monster> l = monsters.iterator(); l.hasNext();) {
             m = l.next();
             if (m.dead() && m.deathAnimationDone()) {
                 units.remove(m);
@@ -231,13 +222,10 @@ public class GameField {
         }
     }
 
-    public ArrayList<Monster> getMonsters() {
+    public LinkedBlockingQueue<Monster> getMonsters() {
         return monsters;
     }
 
-    /**
-     * Require monsters lock.
-     */
     public Monster getMonster(long id) {
         for (Monster m : monsters) {
             if (m.getID() == id) {
@@ -248,15 +236,12 @@ public class GameField {
         return null;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Hit animations works">
 
-    /**
-     * Require hit animation lock.
-     */
+    // <editor-fold defaultstate="collapsed" desc="Hit animations">
     public void addHitAnimation(HitAnimation hitAnimation) {
 
         // Remove old hits.
-        for (ListIterator<HitAnimation> l = hitAnimations.listIterator(); l.hasNext();) {
+        for (Iterator<HitAnimation> l = hitAnimations.iterator(); l.hasNext();) {
             if (l.next().isDone()) {
                 l.remove();
             }
@@ -265,12 +250,16 @@ public class GameField {
         hitAnimations.add(hitAnimation);
     }
 
-    public ArrayList<HitAnimation> getHitAnimations() {
+    public void asyncAddHitAnimation(HitAnimation hitAnimation) {
+        selfExecutor.add("addHitAnimation", new Class[] { HitAnimation.class }, new Object[] { hitAnimation });
+    }
+
+    public LinkedBlockingQueue<HitAnimation> getHitAnimations() {
         return hitAnimations;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Tower Defence Status works">
 
+    // <editor-fold defaultstate="collapsed" desc="Tower Defence Status works">
     public String getTDStatus() {
         return tdStatus;
     }
@@ -279,8 +268,8 @@ public class GameField {
         tdStatus = status;
     }
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Map fragments works">
 
+    // <editor-fold defaultstate="collapsed" desc="Map fragments">
     public ClientMapFragment getMapFragment(Point pos) {
         int x = pos.x / ClientMapFragment.getWidth();
         int y = pos.y / ClientMapFragment.getHeight();
@@ -297,7 +286,7 @@ public class GameField {
      * @return
      */
     public int getAroundFragCount(Dimension d) {
-        return ((int)Math.max(d.width / ClientMapFragment.getWidth(), d.height / ClientMapFragment.getHeight())) + 1;
+        return ((int) Math.max(d.width / ClientMapFragment.getWidth(), d.height / ClientMapFragment.getHeight())) + 1;
     }
 
     public ClientMapFragment getMapFragment(int idx, int idy) {
@@ -334,5 +323,117 @@ public class GameField {
             }
         }
 
+    }
+
+    public void startSelfExecution() {
+        new Thread(selfExecutor).start();
+    }
+
+    /**
+     * Thread what invoke GameField methods asynchronously.
+     */
+    private class SelfExecutor implements Runnable {
+
+        /**
+         * Flag what cause thred to stop.
+         */
+        private boolean stoped = false;
+        /**
+         * Execution queue.
+         */
+        private final LinkedBlockingQueue<Invokable> q = new LinkedBlockingQueue<Invokable>();
+        /**
+         * GameField where method will be executed.
+         */
+        private GameField field;
+
+        public SelfExecutor(GameField field) {
+            this.field = field;
+        }
+
+        /**
+         * Adds method to execution queue.
+         * @param method Name of GameField's method.
+         * @param paramTypes Types of method arguments.
+         * @param args Params what will be passed to method.
+         */
+        public void add(String method, Class[] paramTypes, Object[] args) {
+            try {
+                q.add(new Invokable(field.getClass().getMethod(method, paramTypes), args));
+                wakeup();
+            } catch (NoSuchMethodException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            } catch (SecurityException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+        }
+
+        /**
+         * Thread function. Only one thread can be runned at time.
+         */
+        @Override
+        public void run() {
+            try {
+                while (!stoped) {
+                    while (q.isEmpty()) {
+                        try {
+                            synchronized (q) {
+                                q.wait();
+                            }
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                            System.exit(1);
+                        }
+                    }
+
+                    Invokable i = q.remove();
+                    i.getMethod().invoke(field, i.getArgs());
+                    System.out.println("I execute some method: " + i.getMethod().getName());
+                }
+            } catch (IllegalAccessException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            } catch (IllegalArgumentException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            } catch (InvocationTargetException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+        }
+
+        /**
+         * Stop the thread.
+         */
+        public void stop() {
+            stoped = true;
+        }
+
+        private void wakeup() {
+            synchronized (q) {
+                q.notify();
+            }
+        }
+
+        private class Invokable {
+
+            private Method method;
+            private Object[] args;
+
+            public Object[] getArgs() {
+                return args;
+            }
+
+            public Method getMethod() {
+                return method;
+            }
+
+            public Invokable(Method method, Object[] args) {
+                this.method = method;
+                this.args = args;
+            }
+        }
     }
 }
