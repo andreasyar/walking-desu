@@ -1,5 +1,7 @@
 package client;
 
+import common.WanderingServerTime;
+
 public class Monster extends WUnit {
 
     public Monster(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
@@ -26,12 +28,13 @@ public class Monster extends WUnit {
     public void kill() {
         Direction d;
 
-        if ((d = moveAnim.getDirection()) == null
-                && (d = standAnim.getDirection()) == null) {
+        if ( (d = moveAnim.getDirection()) == null && (d = standAnim.getDirection()) == null) {
             d = Direction.SOUTH;
         }
-        deathAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+        // TODO looks like some times d is null!
+        deathAnim.run(d, WanderingServerTime.getInstance().getTimeSinceStart());
         mv.stop();
+        hitPoints = 0;
     }
 
     @Override

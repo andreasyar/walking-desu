@@ -1,5 +1,6 @@
 package server.javatestserver;
 
+import common.BoltMessage;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
@@ -16,7 +17,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
 
 import common.HMapMessage;
+import common.HitMessage;
 import common.Message;
+import common.MoveMessage;
 import common.Movement;
 import common.OtherMessage;
 import common.WanderingServerTime;
@@ -106,6 +109,14 @@ public class JavaTestServer {
         }
     }
 
+    public void sendFromUnit(Message msg, JTSUnit unit) {
+        for (SocketProcessor sp : clientQueue) {
+            if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
+                sp.addMessage(msg);
+            }
+        }
+    }
+
     public void sendTo(String msg, Player player) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
@@ -146,6 +157,16 @@ public class JavaTestServer {
 
     public void sendToAll(String[] msgs, long excID) {
         for (String msg : msgs) {
+            for (SocketProcessor sp : clientQueue) {
+                if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID && sp.loggedIn()) {
+                    sp.addMessage(msg);
+                }
+            }
+        }
+    }
+
+    public void sendToAll(Message[] msgs, long excID) {
+        for (Message msg : msgs) {
             for (SocketProcessor sp : clientQueue) {
                 if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID && sp.loggedIn()) {
                     sp.addMessage(msg);
@@ -268,13 +289,13 @@ public class JavaTestServer {
                                 line = line.substring("move".length() + 1, line.length());
                                 pieces = line.split(" ");
                                 self.move(selfCurPos.x, selfCurPos.y, Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]), (System.currentTimeMillis() - serverStartTime));
-                                sendFromUnit("(move "
-                                        + self.getID() + " "
-                                        + (System.currentTimeMillis() - serverStartTime) + " "
-                                        + selfCurPos.x + " "
-                                        + selfCurPos.y + " "
-                                        + pieces[0] + " "
-                                        + pieces[1] + ")", self);
+                                sendFromUnit(new MoveMessage(self.getID(),
+                                                             System.currentTimeMillis() - WanderingServerTime.getInstance().getServerTime(),
+                                                             selfCurPos.x,
+                                                             selfCurPos.y,
+                                                             Integer.parseInt(pieces[0]),
+                                                             Integer.parseInt(pieces[1])),
+                                             self);
                                 // </editor-fold>
                             } else if ("message".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Message message processing">
@@ -292,10 +313,10 @@ public class JavaTestServer {
                                     ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
                                     a.setScheduledFuture(f);
                                 }
-                                sendToAll(new String[]{"(bolt "
-                                            + self.getID() + " "
-                                            + target.getID() + " "
-                                            + (System.currentTimeMillis() - serverStartTime) + ")"}, self.getID());
+                                sendToAll(new Message[] { new BoltMessage(self.getID(),
+                                                                          target.getID(),
+                                                                          System.currentTimeMillis() - serverStartTime)},
+                                          self.getID());
 
                                 // </editor-fold>
                             } else if ("attack".equals(pieces[0])) {
@@ -494,15 +515,18 @@ public class JavaTestServer {
             if (!canceled) {
                 if (!bolt.isFlight()) {
                     try {
-                        JTSUnit attacker = bolt.getAttacker(),
-                                target = bolt.getTarget();
+                        JTSUnit attacker = bolt.getAttacker();
+                        JTSUnit target = bolt.getTarget();
 
                         target.doHit(attacker.getDamage());
-                        sendFromUnit("(hit "
+                        /*sendFromUnit("(hit "
                                      + attacker.getID() + " "
                                      + target.getID() + " "
-                                     + attacker.getDamage() + ")", target);
-
+                                     + attacker.getDamage() + ")", target);*/
+                        sendFromUnit(new HitMessage(attacker.getID(),
+                                                    target.getID(),
+                                                    attacker.getDamage()),
+                                     target);
                         if (target.dead()) {
                             if (monsters.contains(target)) {
                                 monsters.remove(target);
@@ -539,22 +563,54 @@ public class JavaTestServer {
 
     private class MonsterController implements Runnable {
 
-        private long spawnDelay;
+        /**
+         * Absolute delay between spawn monsters in milliseconds.
+         */
+        private final long spawnDelay;
+
+        /**
+         * Current monster count.
+         */
         private int monsterCount;
-        private final double[] speeds = new double[]{0.08, 0.07, 0.06};
-        private Random rand = new Random();
-        private ScheduledFuture future = null;
-        private boolean canceled = false;
+
+        /**
+         * Possible monster speeds.
+         */
+        private final double[] speeds = new double[] {0.08, 0.07, 0.06};
+
+        /**
+         * Count of monsters losses in current wave.
+         */
         private int curWaveMonLoss;
+
+        /**
+         * Current monster strength multiplyer.
+         */
         private int monStrMult;
+
+        /**
+         * Current monster count summand.
+         */
         private int monCountAdd;
-        private long step;
+
+        /**
+         * Current wave number since server start.
+         */
+        private long wave;
+
+        private Random rand = new Random();
+
+        private ScheduledFuture future = null;
+
+        private boolean canceled = false;
+
+        private final LinkedBlockingQueue<Monster> tdMonsters = new LinkedBlockingQueue<Monster>();
 
         public MonsterController(long spawnDelay, int monsterCount) {
             this.spawnDelay = spawnDelay;
             //this.monsterCount = monsterCount;
             this.monsterCount = 0;
-            step = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
+            wave = WanderingServerTime.getInstance().getTimeSinceStart() / spawnDelay;
             curWaveMonLoss = 0;
             monStrMult = 0;
             monCountAdd = 0;
@@ -563,51 +619,68 @@ public class JavaTestServer {
         @Override
         public void run() {
             if (!canceled) {
-
-                long tmpStep = (System.currentTimeMillis() - JavaTestServer.serverStartTime) / spawnDelay;
+                long curWave = WanderingServerTime.getInstance().getTimeSinceStart() / spawnDelay;
                 Monster m;
                 Point beg;
+
+                // Monsters destenation point.
                 Point end = new Point(705, 755);
 
-                if (tmpStep > step) {
-                    step = tmpStep;
+                // We need to start a new wave of monsters.
+                if (curWave > wave) {
+                    wave = curWave;
                     tdMonsterLoss += curWaveMonLoss;
+
+                    // If we reach the monster loss limit we remove all towers
+                    // and rest game parameters to initial values.
                     if (tdMonsterLoss >= tdMonsterLossLimit) {
                         tdMonsterLoss = 0;
                         curWaveMonLoss = 0;
-                        monStrMult = 1;
+                        monStrMult = 0;
                         monCountAdd = 0;
-                        Tower t;
 
+                        Tower t;
                         for (Iterator<Tower> li = towers.iterator(); li.hasNext();) {
                             t = li.next();
                             vm.removeTower(t);
                             units.remove(t);
                             li.remove();
                         }
-                    } else if (curWaveMonLoss == 0) {
+                    }
+
+                    // If we have no monster loss previous wave (we kill all
+                    // monsters) we monsters stronger and incrase monsters count.
+                    if (curWaveMonLoss == 0) {
                         monStrMult++;
                         monCountAdd += 5;
                     }
+
+                    // Update tower defence game status on clients.
                     sendToAll(new String[]{"(monsterloss "
                                 + tdMonsterLoss + " "
                                 + tdMonsterLossLimit + " "
                                 + monStrMult + ")"});
+
                     curWaveMonLoss = 0;
+
+                    // Spawn new monsters.
                     for (int i = 0; i < monsterCount + monCountAdd; i++) {
                         beg = new Point(544 + rand.nextInt(287), 0 + rand.nextInt(64));
                         m = new Monster(curPlayerID++, "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                         m.setSpriteSetName("poring");
+                        tdMonsters.add(m);
                         monsters.add(m);
                         units.add(m);
-                        m.move(beg.x, beg.y, end.x, end.y, System.currentTimeMillis() - JavaTestServer.serverStartTime);
+                        m.move(beg.x, beg.y, end.x, end.y, WanderingServerTime.getInstance().getTimeSinceStart());
                     }
                 }
+
+                // Process current wave of monsters.
 
                 boolean isDead;
                 boolean isStop;
 
-                for (Iterator<Monster> li = monsters.iterator(); li.hasNext();) {
+                for (Iterator<Monster> li = tdMonsters.iterator(); li.hasNext();) {
                     m = li.next();
                     isDead = m.dead();
                     isStop = !m.isMove();
@@ -622,6 +695,7 @@ public class JavaTestServer {
                     if (!isDead && isStop) {
                         vm.killMonster(m);
                         units.remove(m);
+                        monsters.remove(m);
                         li.remove();
                     }
                 }
@@ -674,7 +748,7 @@ public class JavaTestServer {
                     NukeAction a = new NukeAction(new NukeBolt((JTSUnit) t, (JTSUnit) t.getTarget(), begTime));
                     ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
                     a.setScheduledFuture(f);
-                    sendToAll(new String[]{"(bolt " + t.getID() + " " + t.getTarget().getID() + " " + (begTime) + ")"});
+                    sendToAll(new Message[] { new BoltMessage(t.getID(), t.getTarget().getID(), begTime) });
                     return true;
                 }
                 return false;

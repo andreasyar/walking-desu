@@ -1,5 +1,6 @@
 package client;
 
+import common.BoltMessage;
 import java.awt.Point;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
@@ -18,6 +19,7 @@ import common.HitMessage;
 import common.HMapMessage;
 import common.OtherMessage;
 import common.MessageType;
+import common.MoveMessage;
 
 import common.WanderingServerTime;
 
@@ -142,13 +144,6 @@ public class ServerInteraction {
                     pieces2[2]);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
             field.asyncAddPlayer(p);
-        } else if ("move".equals(pieces1[0])) {
-            long begTime = Long.parseLong(pieces1[2]);
-            WUnit u = field.getUnit(Long.parseLong(pieces1[1]));
-            //DONT DO IT!serverStartTime = System.currentTimeMillis() - begTime;
-            if (u != null) {
-                u.move(Integer.parseInt(pieces1[3]), Integer.parseInt(pieces1[4]), Integer.parseInt(pieces1[5]), Integer.parseInt(pieces1[6]), begTime);
-            }
         } else if ("delplayer".equals(pieces1[0])) {
             field.asyncDelPlayer(Long.parseLong(pieces1[1]));
         } else if ("message".equals(pieces1[0])) {
@@ -157,23 +152,6 @@ public class ServerInteraction {
 
             if (p != null) {
                 p.setText(pieces1[2].substring(1, pieces1[2].length() - 1));
-            }
-        } else if ("bolt".equals(pieces1[0])) {
-            WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
-            WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
-            long begTime = Long.parseLong(pieces1[3]);
-
-            if (attacker != null && target != null) {
-                attacker.selectUnit(target);
-                field.asyncAddNuke(attacker, target, begTime);
-            }
-        } else if ("hit".equals(pieces1[0])) {
-            WUnit attacker = field.getUnit(Long.parseLong(pieces1[1]));
-            WUnit target = field.getUnit(Long.parseLong(pieces1[2]));
-
-            if (attacker != null && target != null) {
-                field.asyncAddHitAnimation(new CanonHitAnimation("canon", (Point) target.getCurPos().clone(), Direction.SOUTH, System.currentTimeMillis() - serverStartTime));
-                target.doHit(Integer.parseInt(pieces1[3]));
             }
         } else if ("teleport".equals(pieces1[0])) {
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
@@ -267,10 +245,47 @@ public class ServerInteraction {
 
     private void commandHandler(Message m) {
         if (m.getType() == MessageType.OTHER) {
+
             commandHandler(((OtherMessage) m).getMessage());
+
         } else if (m.getType() == MessageType.HMAP) {
+
             HMapMessage tmpMessage = (HMapMessage) m;
             field.addMapFragment(new ClientMapFragment(tmpMessage.getIdx(), tmpMessage.getIdy(), tmpMessage.getHmap()));
+
+        } else if (m.getType() == MessageType.HIT) {
+
+            HitMessage tmpMessage = (HitMessage) m;
+            WUnit attacker = field.getUnit(tmpMessage.getAttackerID());
+            WUnit target = field.getUnit(tmpMessage.getTargetID());
+            if (attacker != null && target != null) {
+                field.asyncAddHitAnimation(new CanonHitAnimation("canon", (Point) target.getCurPos().clone(), Direction.SOUTH, System.currentTimeMillis() - serverStartTime));
+                target.doHit(tmpMessage.getDamage());
+            } else {
+                System.err.println("While processing HIT message, attacker or target was not found. It may be sync issue!");
+            }
+
+        } else if (m.getType() == MessageType.BOLT) {
+
+            BoltMessage tmpMessage = (BoltMessage) m;
+            WUnit attacker = field.getUnit(tmpMessage.getAttackerID());
+            WUnit target = field.getUnit(tmpMessage.getTargetID());
+            if (attacker != null && target != null) {
+                attacker.selectUnit(target);
+                field.asyncAddNuke(attacker, target, tmpMessage.getBegTime());
+            } else {
+                System.err.println("While processing BOLT message, attacker or target was not found. It may be sync issue!");
+            }
+
+        } else if (m.getType() == MessageType.MOVE) {
+
+            MoveMessage tmpMessage = (MoveMessage) m;
+            field.asyncMoveUnit(tmpMessage.getUnitID(),
+                                tmpMessage.getBegX(),
+                                tmpMessage.getBegY(),
+                                tmpMessage.getEndX(),
+                                tmpMessage.getEndY(),
+                                tmpMessage.getBegTime());
         }
     }
 
@@ -285,7 +300,7 @@ public class ServerInteraction {
                         while (commands.size() > 0) {
                             command = commands.poll();
                             out.println(command);
-                            System.out.println("--> " + command);
+                            //System.out.println("--> " + command);
                         }
                         try {
                             commands.wait();
@@ -319,7 +334,7 @@ public class ServerInteraction {
                     messages = (LinkedBlockingQueue<Message>) ois.readObject();
                     for (Message m : messages) {
                         command = m;
-                        System.out.println("<-- " + command);
+                        //System.out.println("<-- " + command);
                         try {
                             commandHandler(command);
                             if (field.getSelfPlayer() == null) {

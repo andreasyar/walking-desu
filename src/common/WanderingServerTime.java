@@ -24,11 +24,20 @@ public class WanderingServerTime {
         serverTime = 0L;
     }
 
+    @Deprecated
     public long getServerTime() {
         return serverTime;
     }
 
     public void setServerTime(long serverTime) {
         this.serverTime = serverTime;
+    }
+
+    public long getServerStartTime() {
+        return serverTime;
+    }
+
+    public long getTimeSinceStart() {
+        return System.currentTimeMillis() - serverTime;
     }
 }

@@ -26,6 +26,10 @@ public class MonsterDeathAnimation extends DeathAnimation {
         long tmpTime;
         Sprite tmpSpr;
 
+        if (step * period + delay == 0) {
+            System.err.println("Wow! " + (step * period + delay));
+            return set.getSprite(direction, period - 1);
+        }
         tmpTime = (curTime - begTime) % (step * period + delay);
 
         if (curTime > begTime + step * period + delay) {

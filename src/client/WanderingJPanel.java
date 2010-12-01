@@ -41,6 +41,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     public static long threadId;
     public static boolean resourcesInProcess;
 
+    static int repaintCalls = 0;
+
     public WanderingJPanel(GameField field, ServerInteraction inter) {
         this.field = field;
         this.inter = inter;
@@ -50,202 +52,200 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     }
 
     @Override
-    public void paintComponent(Graphics g) {
-        threadId = Thread.currentThread().getId();
-        super.paintComponent(g);
-        Player selfPlayer = field.getSelfPlayer();
+    public synchronized void paintComponent(Graphics g) {
+        try {
+            repaintCalls++;
 
-        if (field.getSelfPlayer() != null && buffDim != null) { // TODO Concurency issue
+            if (repaintCalls > 1) {
+                System.out.println("OH SHIT! " + repaintCalls);
+            }
 
-            // Поле вне карты цвета фона и по краям черная рамочка в 1 пиксел.
-            g.setColor(getBackground());
-            g.fillRect(0, 0, buffDim.width - 1, buffDim.height - 1);
-            g.setColor(Color.BLACK);
-            g.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
+            threadId = Thread.currentThread().getId();
+            super.paintComponent(g);
+            Player selfPlayer = field.getSelfPlayer();
 
-            Point curPos = field.getSelfPlayer().getCurPos();
-            ClientMapFragment curFragment = field.getMapFragment(curPos);
-            ClientMapFragment tmpFragment;
-            BufferedImage tmpImg;
-            int cutX, cutY, cutW, cutH;
-            for (int i = curFragment.getIdy() - 1; i <= curFragment.getIdy() + 1; i++) {
-                for (int j = curFragment.getIdx() - 1; j <= curFragment.getIdx() + 1; j++) {
-                    tmpFragment = field.getMapFragment(j, i);
-                    if (i >= 0 && j >= 0 && tmpFragment != null) {
-                        if (i == 0 && j == 0) {
-                            tmpImg = mapImg;
-                        } else {
-                            tmpImg = tmpFragment.getImage();
-                        }
+            if (selfPlayer != null && buffDim != null) { // TODO Concurency issue
 
-                        // Левый верхний угол фрагмента находится справа от панели (фрагмент невидим)
-                        if (j * tmpImg.getWidth() >= curPos.x + panelDim.width / 2) {
-                            continue;
-                        }
+                // Поле вне карты цвета фона и по краям черная рамочка в 1 пиксел.
+                g.setColor(getBackground());
+                g.fillRect(0, 0, buffDim.width - 1, buffDim.height - 1);
+                g.setColor(Color.BLACK);
+                g.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
 
-                        // Нижний правый угол фрагмента находится слева от панели (фрагмент невидим)
-                        if (j * tmpImg.getWidth() + tmpImg.getWidth() <= curPos.x - panelDim.width / 2) {
-                            continue;
-                        }
+                Point curPos = selfPlayer.getCurPos();
 
-                        // Левый верхний угол фрагмента находится снизу под панелью (фрагмент невидим)
-                        if (i * tmpImg.getHeight() >= curPos.y + panelDim.height / 2) {
-                            continue;
-                        }
+                ClientMapFragment curFragment, tmpFragment;
+                BufferedImage tmpImg;
 
-                        // Правый нижний угол фрагмента находится сверху над панелью (фрагмент невидим)
-                        if (i * tmpImg.getHeight() + tmpImg.getHeight() <= curPos.y - panelDim.height / 2) {
-                            continue;
-                        }
+                // Номера верхнего левого фрагмента карты, который должен быть виден
+                // на экране.
+                int begFragmIdx = 0, begFragmIdy = 0;
 
-                        // Если верхний левый угол фрагмента находится в пределах панели
-                        // то не обрезаем фрагмент слева. В потивном случае вычислим
-                        // точку начала отреза.
-                        if (curPos.x - panelDim.width / 2 <= j * tmpImg.getWidth()) {
-                            cutX = 0;
-                        } else {
-                            cutX = curPos.x - panelDim.width / 2 - j * tmpImg.getWidth();
-                        }
-                        if (curPos.y - panelDim.height / 2 <= i * tmpImg.getHeight()) {
-                            cutY = 0;
-                        } else {
-                            cutY = curPos.y - panelDim.height / 2 - i * tmpImg.getHeight();
-                        }
+                // Номера нижнего правого фрагмента карты, который может быть виден
+                // на экране.
+                int endFragmIdx = 0, endFragmIdy = 0;
 
-                        // Вычислим ширину и высоту отреза, даже если фрагмент не
-                        // обрезается слева.
+                // Определим, какому фрагменту карты принадлежит верхняя левая точка
+                // экрана. Если никакому, то значит начнем с фрагмента (0, 0).
+                curFragment = field.getMapFragmentContains(curPos.x - panelDim.width / 2,
+                                                           curPos.y - panelDim.height / 2);
+                if (curFragment != null) {
+                    begFragmIdx = curFragment.getIdx();
+                    begFragmIdy = curFragment.getIdy();
+                } else {
+                    begFragmIdx = 0;
+                    begFragmIdy = 0;
+                }
 
-                        // Фрагмент шире панели.
-                        if (tmpImg.getWidth() > panelDim.width) {   
-                            // cutX - ширина невидимой области фрагмента
-                            // tmpImg.getWidth() - cutX - ширина видимой области фрагмента
+                // Определим, какому фрагменту карты принадлежит нижняя правая точка
+                // экрана. Если никакому, то неисправимая ошибка.
+                curFragment = field.getMapFragmentContains(curPos.x + panelDim.width / 2,
+                                                           curPos.y + panelDim.height / 2);
+                if (curFragment != null) {
+                    endFragmIdx = curFragment.getIdx();
+                    endFragmIdy = curFragment.getIdy();
+                } else {
+                    System.err.println("Map fragment what contains buttom right screen point not found by unknown reason!");
+                    System.exit(1);
+                }
+                // Координаты верхнего левого угла экрана на карте.
+                int screenWorldX, screenWorldY;
 
-                            // Ширина видимой части фрагмента больше ширины панели.
-                            if (tmpImg.getWidth() - cutX > panelDim.width) {
-                                cutW = panelDim.width;
+                // Координаты верхнего левого угла фаргмента карты.
+                int mapFragmWorldX, mapFragmWorldY;
+
+                // Теперь, зная номера верхнего левого фрагмента карты, который ДОЛЖЕН быть виден
+                // на экране и номера нижнего правого фрагмента карты, который МОЖЕТ быть
+                // виден на экране, пройдём по имеющимся у нас фрагментам карты и нарисуем
+                // их в нужных местах экрана.
+                int _count = 0;
+                for (int i = begFragmIdx; i <= endFragmIdx; i++) {
+                    for (int j = begFragmIdy; j <= endFragmIdy; j++) {
+
+                        tmpFragment = field.getMapFragment(i, j);
+
+                        // Если у нас есть такой фрагмент.
+                        if (tmpFragment != null) {
+                            if (i == 0 && j == 0) {
+
+                                // Фрагмент с нулевыми номерами это наша карта, нарисованная
+                                // от руки.
+                                tmpImg = mapImg;
                             } else {
-                                cutW = tmpImg.getWidth() - cutX;
+                                tmpImg = tmpFragment.getImage();
                             }
+
+                            screenWorldX = curPos.x - panelDim.width / 2;
+                            screenWorldY = curPos.y - panelDim.height / 2;
+                            mapFragmWorldX = i * tmpImg.getWidth();
+                            mapFragmWorldY = j * tmpImg.getHeight();
+                            g.drawImage(tmpImg,
+                                        mapFragmWorldX - screenWorldX,
+                                        mapFragmWorldY - screenWorldY,
+                                        null);
+                            _count++;
                         } else {
-                            if (cutX > 0) {
-                                cutW = tmpImg.getWidth() - cutX;
-                            } else {
-                                cutW = panelDim.width;
-                            }
+
+                            // А если нет, то будет пустота.
                         }
-
-                        // Фрагмент выше панели (шире по высоте)
-                        if (tmpImg.getHeight() > panelDim.height) {
-                            // cutY - высота невидимой области фрагмента
-                            // tmpImg.getHeight() - cutY - высота видимой области фрагмента
-
-                            // Высота видимой части фрагмента больше высоты панели.
-                            if (tmpImg.getHeight() - cutY > panelDim.height) {
-                                cutH = panelDim.height;
-                            } else {
-                                cutH = tmpImg.getHeight() - cutY;
-                            }
-                        } else {
-                            if (cutY > 0) {
-                                cutH = tmpImg.getHeight() - cutY;
-                            } else {
-                                cutH = panelDim.height;
-                            }
-                        }
-
-                        g.drawImage(tmpImg.getSubimage(cutX, cutY, cutW, cutH),
-                                            cutX > 0 ? 0 : (j) * tmpImg.getWidth() - (curPos.x - panelDim.width / 2)/*mapOfst.width + (j - curFragment.getIdx()) * 1024*/,
-                                            cutY > 0 ? 0 : (i) * tmpImg.getHeight() - (curPos.y - panelDim.height / 2)/*mapOfst.height + (i - curFragment.getIdy()) * 768*/,
-                                            null);
-//                        System.out.println("Fragment " + j + ", " + i + " drow "
-//                                           + (cutX > 0 ? 0 : (j) * tmpImg.getWidth() - (curPos.x - panelDim.width / 2)) + ", "
-//                                           + (cutY > 0 ? 0 : (i) * tmpImg.getHeight() - (curPos.y - panelDim.height / 2)) + "; "
-//                                           + cutW + ", "
-//                                           + cutH);
                     }
                 }
-            }
+                g.drawString("" + _count, 10, 20);
 
-            // Вычислим новое смещение карты (временно это делается здесь)
-            if (panelDim.width / 2 != mapOfst.width + curPos.x
-                    || panelDim.height / 2 != mapOfst.height + curPos.y) {
-                mapOfst.width += panelDim.width / 2 - (curPos.x + mapOfst.width);
-                mapOfst.height += panelDim.height / 2 - (curPos.y + mapOfst.height);
-            }
-
-            if (selfPlayer.getSelectedUnit() != null) {
-                g.drawString(selfPlayer.getSelectedUnit().getNick() + " (" + selfPlayer.getSelectedUnit().getID() + ")", 10, panelDim.height - 50);
-                g.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
-            }
-
-            // Lets lock all lists.
-            Sprite s = null;
-            resourcesInProcess = true;
-
-            // For all units we draw their sprite and nick name.
-            Point selfPos = field.getSelfPlayer().getCurPos();
-            Point pos;
-
-            for (WUnit u : field.getYSortedUnits()) {
-                s = u.getSprite();
-                pos = u.getCurPos();
-                if (selfPos.distance(pos) <= 500.0) {
-                    g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
-                    g.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                // Вычислим новое смещение карты (временно это делается здесь)
+                if (panelDim.width / 2 != mapOfst.width + curPos.x
+                        || panelDim.height / 2 != mapOfst.height + curPos.y) {
+                    mapOfst.width += panelDim.width / 2 - (curPos.x + mapOfst.width);
+                    mapOfst.height += panelDim.height / 2 - (curPos.y + mapOfst.height);
                 }
-            }
 
-            // For players we draw text cloud if it.
-            BufferedImage textCloud;
-
-            for (Player p : field.getPlayers()) {
-                s = p.getSprite();
-                textCloud = p.getTextCloud();
-                if (textCloud != null) {
-                    g.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
+                if (selfPlayer.getSelectedUnit() != null) {
+                    g.drawString("deathAnim: " + selfPlayer.getSelectedUnit().deathAnimationDone(), 10, panelDim.height - 110);
+                    g.drawString("dead: " + selfPlayer.getSelectedUnit().dead(), 10, panelDim.height - 90);
+                    g.drawString("isMove: " + selfPlayer.getSelectedUnit().isMove(), 10, panelDim.height - 70);
+                    g.drawString(selfPlayer.getSelectedUnit().getNick() + " (" + selfPlayer.getSelectedUnit().getID() + ")", 10, panelDim.height - 50);
+                    g.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
                 }
-                if (showTowerRange && p.isMove()) {
-                    curPos = p.getCurPos();
-                    g.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEnd().x + mapOfst.width, p.getEnd().y + mapOfst.height);
-                    g.drawOval(curPos.x + mapOfst.width - 500, curPos.y + mapOfst.height - 500, 1000, 1000);
+
+                // Lets lock all lists.
+                Sprite s = null;
+                resourcesInProcess = true;
+
+                // For all units we draw their sprite and nick name.
+                Point selfPos = field.getSelfPlayer().getCurPos();
+                Point pos;
+
+                for (WUnit u : field.getYSortedUnits()) {
+                    s = u.getSprite();
+                    pos = u.getCurPos();
+                    if (selfPos.distance(pos) <= 500.0) {
+                        g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                        g.drawString(u.getNick(), s.x + mapOfst.width + s.image.getWidth() / 2 - 20, s.y + mapOfst.height + s.image.getHeight() + 20);
+                    }
                 }
-            }
 
-            // Draw towers range if enabled.
-            if (showTowerRange) {
-                for (Tower t : field.getTowers()) {
-                    g.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
+                // For players we draw text cloud if it.
+                BufferedImage textCloud;
+
+                for (Player p : field.getPlayers()) {
+                    s = p.getSprite();
+                    textCloud = p.getTextCloud();
+                    if (textCloud != null) {
+                        g.drawImage(textCloud, s.x + mapOfst.width + s.image.getWidth(), s.y + mapOfst.height, null);
+                    }
+                    if (showTowerRange && p.isMove()) {
+                        curPos = p.getCurPos();
+                        g.drawLine(curPos.x + mapOfst.width, curPos.y + mapOfst.height, p.getEnd().x + mapOfst.width, p.getEnd().y + mapOfst.height);
+                        g.drawOval(curPos.x + mapOfst.width - 500, curPos.y + mapOfst.height - 500, 1000, 1000);
+                    }
                 }
-            }
 
-            // Draw nuke bolts.
-            for (Nuke n : field.getNukes()) {
-                if (n.isMove() && ((s = n.getSprite()) != null)) {
-                    g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
-                }/* else if (s == null) {
-                System.err.println("Sprite is null.");
-                }*/
-            }
-
-            // Draw hit animation.
-            for (HitAnimation a : field.getHitAnimations()) {
-                if (!a.isDone()) {
-                    s = a.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime);
-                    g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                // Draw towers range if enabled.
+                if (showTowerRange) {
+                    for (Tower t : field.getTowers()) {
+                        g.drawOval(t.getCurPos().x + mapOfst.width - (int) t.getRange(), t.getCurPos().y + mapOfst.height - (int) t.getRange(), (int) t.getRange() * 2, (int) t.getRange() * 2);
+                    }
                 }
+
+                // Draw nuke bolts.
+                for (Nuke n : field.getNukes()) {
+
+                    if (n == null) {
+                        System.err.println("OMG nuke is null LOAL.");
+                        continue;
+                    }
+
+                    if (n.isMove() && ((s = n.getSprite()) != null)) {
+                        g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                    }
+                }
+
+                // Draw hit animation.
+                for (HitAnimation a : field.getHitAnimations()) {
+                    if (!a.isDone()) {
+                        s = a.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime);
+                        g.drawImage(s.image, s.x + mapOfst.width, s.y + mapOfst.height, null);
+                    }
+                }
+
+                // Lets lock all lists.
+                resourcesInProcess = false;
+
+                g.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
+
+                String tdStatus = field.getTDStatus();
+                if (tdStatus != null) {
+                    g.drawString(tdStatus, panelDim.width / 2, 50);
+                }
+
+                //g.drawImage(buffImg, 0, 0, null);
             }
 
-            // Lets lock all lists.
-            resourcesInProcess = false;
-
-            g.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
-
-            String tdStatus = field.getTDStatus();
-            if (tdStatus != null) {
-                g.drawString(tdStatus, panelDim.width / 2, 50);
-            }
-
-            //g.drawImage(buffImg, 0, 0, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        } finally {
+            repaintCalls--;
         }
     }
 
@@ -423,7 +423,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 inter.addCommand("(attack " + self.getSelectedUnit().getID() + ")");
             }
         } else if (key == KeyEvent.VK_F4) {
-            if (System.currentTimeMillis() - ServerInteraction.serverStartTime - lastBuildTime > buildDelay) {
+            if (true || System.currentTimeMillis() - ServerInteraction.serverStartTime - lastBuildTime > buildDelay) {
                 Point cur = field.getSelfPlayer().getCurPos();
                 inter.addCommand("(tower " + cur.x + " " + cur.y + ")");
                 lastBuildTime = System.currentTimeMillis() - ServerInteraction.serverStartTime;
