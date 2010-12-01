@@ -81,6 +81,9 @@ public abstract class Unit {
         return mv.getCurPos();
     }
 
+    /**
+     * Return start time of movement since server started.
+     */
     public long getBegTime() {
         return mv.getBegTime();
     }

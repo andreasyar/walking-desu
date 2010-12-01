@@ -181,8 +181,19 @@ public class DirectionalSpriteSet {
     }
 
     public Sprite getSprite(Direction d, int index) {
-        curSpr.image = sprites.get(d).get(index);
-        return curSpr;
+        if (d == null) {
+            throw new IllegalArgumentException("Direction cannot be null!");
+        }
+
+        ArrayList<BufferedImage> tmp = sprites.get(d);
+        if (tmp != null) {
+            curSpr.image = tmp.get(index);
+            if (curSpr.image != null) {
+                return curSpr;
+            }
+        }
+        
+        throw new NullPointerException("Sprite " + index + " Direction " + d.name() + " not found!");
     }
 
     public int getSpriteCount(Direction d) {

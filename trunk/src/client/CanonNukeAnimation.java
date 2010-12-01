@@ -39,4 +39,11 @@ public class CanonNukeAnimation extends NukeAnimation {
         this.end = end;
         direction = Direction.getDirection(beg, end);
     }
+
+    public void run(int begX, int begY, int endX, int endY, int curX, int curY) {
+        this.cur = new Point(curX, curY);
+        this.beg = new Point(begX, begY);
+        this.end = new Point(endX, endY);
+        direction = Direction.getDirection(beg, end);
+    }
 }

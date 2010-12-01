@@ -109,6 +109,18 @@ public class WanderingMap {
         p.addPoint(606, 645);
         p.addPoint(606, 703);
         geoData.add(p);
+        p = new WanderingPolygon(WanderingPolygon.WallType.SPECIAL) {
+
+            @Override
+            public void trigger(Player player) {
+                player.teleportTo(2000, 2000);
+            }
+        };
+        p.addPoint(487, 695);
+        p.addPoint(487, 644);
+        p.addPoint(539, 644);
+        p.addPoint(539, 695);
+        geoData.add(p);
     }
 
     public static ArrayList<WanderingPolygon> getGeoData() {

@@ -31,9 +31,14 @@ public class CanonNuke extends Nuke {
             beg = (Point) attacker.getCurPos().clone();
             cur = target.getCurPos();
             movement.move(beg.x, beg.y, cur.x, cur.y, begTime);
-            animation.run(beg, target.getEnd(), movement.getCurPos());
+            //animation.run(beg, target.getEnd(), movement.getCurPos());
+            animation.run(beg.x, beg.y, target.getEnd().x, target.getEnd().y, movement.getCurPos().x, movement.getCurPos().y);
             lastUseTime = begTime;
         }
+    }
+
+    public final Point getBeg() {
+        return movement.getBeg();
     }
 
     @Override

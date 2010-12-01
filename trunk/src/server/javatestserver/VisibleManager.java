@@ -1,5 +1,6 @@
 package server.javatestserver;
 
+import common.MoveMessage;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -71,24 +72,24 @@ public class VisibleManager implements Runnable {
                         if (p1.isMove()) {
                             beg = p1.getBeg();
                             end = p1.getEnd();
-                            server.sendTo("(move "
-                                    + p1.getID() + " "
-                                    + p1.getBegTime() + " "
-                                    + beg.x + " "
-                                    + beg.y + " "
-                                    + end.x + " "
-                                    + end.y + ")", p2);
+                            server.sendTo(new MoveMessage(p1.getID(),
+                                                          p1.getBegTime(),
+                                                          beg.x,
+                                                          beg.y,
+                                                          end.x,
+                                                          end.y),
+                                          p2);
                         }
                         if (p2.isMove()) {
                             beg = p2.getBeg();
                             end = p2.getEnd();
-                            server.sendTo("(move "
-                                    + p2.getID() + " "
-                                    + p2.getBegTime() + " "
-                                    + beg.x + " "
-                                    + beg.y + " "
-                                    + end.x + " "
-                                    + end.y + ")", p1);
+                            server.sendTo(new MoveMessage(p2.getID(),
+                                                          p2.getBegTime(),
+                                                          beg.x,
+                                                          beg.y,
+                                                          end.x,
+                                                          end.y),
+                                          p1);
                         }
                     } else if (!p1.inRange(p2) && p1.see(p2)) {
 
@@ -136,13 +137,13 @@ public class VisibleManager implements Runnable {
                     if (m.isMove()) {
                         beg = m.getBeg();
                         end = m.getEnd();
-                        server.sendTo("(move "
-                                + m.getID() + " "
-                                + m.getBegTime() + " "
-                                + beg.x + " "
-                                + beg.y + " "
-                                + end.x + " "
-                                + end.y + ")", p1);
+                        server.sendTo(new MoveMessage(m.getID(),
+                                                      m.getBegTime(),
+                                                      beg.x,
+                                                      beg.y,
+                                                      end.x,
+                                                      end.y),
+                                      p1);
                     }
                 } else if (!p1.inRange(m) && p1.see(m)) {
 

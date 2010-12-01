@@ -7,6 +7,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 public class GameField {
@@ -64,10 +66,23 @@ public class GameField {
         return units;
     }
 
-    public LinkedBlockingQueue<WUnit> getYSortedUnits() {
-        // TODO: SORT!
-        //Collections.sort(units, aligner);
-        return units;
+    public void moveUnit(long id, int begX, int begY, int endX, int endY, long begTime) {
+        WUnit u = getUnit(id);
+        if (u != null) {
+            u.move(begX, begY, endX, endY, begTime);
+        }
+    }
+
+    public void asyncMoveUnit(long id, int begX, int begY, int endX, int endY, long begTime) {
+        selfExecutor.add("moveUnit",
+                         new Class[] { long.class, int.class, int.class, int.class, int.class, long.class },
+                         new Object[] { id, begX, begY, endX, endY, begTime });
+    }
+
+    public ArrayList<WUnit> getYSortedUnits() {
+        ArrayList<WUnit> tmp = new ArrayList<WUnit>(units);
+        Collections.sort(tmp , aligner);
+        return tmp;
     }
     // </editor-fold>
 
@@ -136,8 +151,12 @@ public class GameField {
         }
 
         Nuke n = self.getCurrentNuke();
-        n.use(begTime);
-        nukes.add(n);
+        if (n != null) {
+            n.use(begTime);
+            nukes.add(n);
+        } else {
+            System.err.println("We try to add null!");
+        }
     }
 
     public void asyncAddNuke(WUnit self, WUnit selectedUnit, long begTime) {
@@ -282,6 +301,24 @@ public class GameField {
     }
 
     /**
+     * Возвращает фрагмент карты, содержащий точку карты с координатами x, y.
+     * @param x X точки карты.
+     * @param y Y точки карты.
+     * @return Фрагмент карты, содержащий точку карты с координатами x, y или
+     * null, если такой фрагмент не найден.
+     */
+    public ClientMapFragment getMapFragmentContains(int x, int y) {
+        int tmpX = x / ClientMapFragment.getWidth();
+        int tmpY = y / ClientMapFragment.getHeight();
+        for (ClientMapFragment mf : mfagments) {
+            if (mf.getIdx() == tmpX && mf.getIdy() == tmpY) {
+                return mf;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns neighbour map fragments count for defined screen resolution.
      * @return
      */
@@ -359,7 +396,9 @@ public class GameField {
          */
         public void add(String method, Class[] paramTypes, Object[] args) {
             try {
-                q.add(new Invokable(field.getClass().getMethod(method, paramTypes), args));
+                Method m = field.getClass().getMethod(method, paramTypes);
+                m.setAccessible(true);
+                q.add(new Invokable(m, args));
                 wakeup();
             } catch (NoSuchMethodException ex) {
                 ex.printStackTrace();
@@ -390,7 +429,7 @@ public class GameField {
 
                     Invokable i = q.remove();
                     i.getMethod().invoke(field, i.getArgs());
-                    System.out.println("I execute some method: " + i.getMethod().getName());
+                    //System.out.println("I execute some method: " + i.getMethod().getName());
                 }
             } catch (IllegalAccessException ex) {
                 ex.printStackTrace();
