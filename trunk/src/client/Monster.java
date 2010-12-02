@@ -32,6 +32,9 @@ public class Monster extends WUnit {
             d = Direction.SOUTH;
         }
         // TODO looks like some times d is null!
+        if (d == null) {
+            System.err.println("Lol d is null. HOW?");
+        }
         deathAnim.run(d, WanderingServerTime.getInstance().getTimeSinceStart());
         mv.stop();
         hitPoints = 0;
