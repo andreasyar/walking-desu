@@ -174,6 +174,15 @@ public class DirectionalSpriteSet {
             loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/sw_01.png", "img/" + name + "/sw_02.png", "img/" + name + "/sw_03.png"});
             loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/sw_01.png", "img/" + name + "/sw_02.png", "img/" + name + "/sw_03.png"});
             loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/se_01.png", "img/" + name + "/se_02.png", "img/" + name + "/se_03.png"});
+        } else if (name.equals("coin_stacks_gold")) {
+            loadSprFiles(Direction.EAST, new String[] {"img/" + name + ".png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + ".png"});
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + ".png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + ".png"});
+            loadSprFiles(Direction.WEST, new String[] {"img/" + name + ".png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + ".png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + ".png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + ".png"});
         } else {
             System.err.println("Sprite set " + name + " not found");
             System.exit(1);

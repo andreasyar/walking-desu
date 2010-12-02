@@ -1,10 +1,17 @@
 package client;
 
+/**
+ * Абстрактный класс анимации нюка. Каждая анимация нюка имеет набор направленных
+ * спрайтов, которые и составляют анимацию.
+ */
 public abstract class NukeAnimation {
-    protected DirectionalSpriteSet set;
-    protected Direction direction;
 
-    protected NukeAnimation(String set) {
-        this.set = DirectionalSpriteSet.load(set);
+    /**
+     * Набор направленных спрайтов.
+     */
+    protected final DirectionalSpriteSet dsSet;
+
+    protected NukeAnimation(String dsSet) {
+        this.dsSet = DirectionalSpriteSet.load(dsSet);
     }
 }

@@ -21,6 +21,7 @@ public class GameField {
     private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
     private final LinkedBlockingQueue<HitAnimation> hitAnimations = new LinkedBlockingQueue<HitAnimation>();
     private final LinkedBlockingQueue<ClientMapFragment> mfagments = new LinkedBlockingQueue<ClientMapFragment>();
+    private final LinkedBlockingQueue<WItem> items = new LinkedBlockingQueue<WItem>();
     private SelfExecutor selfExecutor;
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
@@ -340,6 +341,58 @@ public class GameField {
 
     public boolean availableCell(Point p) {
         return getMapFragment(p).availableCell(p);
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Items">
+    /**
+     * Return items queue.
+     * @return Items queue.
+     */
+    public LinkedBlockingQueue<WItem> getItems() {
+        return items;
+    }
+    /**
+     * Synchronously add item to items queue.
+     * @param item New item to add to queue.
+     */
+    public void addItem(WItem item) {
+        if (!items.contains(item)) {
+            items.add(item);
+        }
+    }
+
+    /**
+     * Asynchronously add item to items queue.
+     * @param item New item to add to queue.
+     * @throws IllegalArgumentException argument item cannot be null!
+     */
+    public void asyncAddItem(WItem item) throws IllegalArgumentException {
+        if (item == null) {
+            throw new IllegalArgumentException("Cannot add null in item queue!");
+        }
+
+        selfExecutor.add("addItem", new Class[]{ WItem.class }, new Object[]{ item });
+    }
+    /**
+     * Synchronously remove item from items queue.
+     * @param item Item to remove from queue.
+     */
+    public void removeItem(WItem item) {
+        items.remove(item);
+    }
+
+    /**
+     * Synchronously remove item from items queue.
+     * @param item Item to remove from queue.
+     * @throws IllegalArgumentException argument item cannot be null!
+     */
+    public void asyncRemoveItem(WItem item) throws IllegalArgumentException {
+        if (item == null) {
+            throw new IllegalArgumentException("Cannot add null in item queue!");
+        }
+
+        selfExecutor.add("removeItem", new Class[]{ WItem.class }, new Object[]{ item });
     }
     // </editor-fold>
 

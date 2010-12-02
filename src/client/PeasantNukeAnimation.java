@@ -5,6 +5,7 @@ import java.awt.Point;
 public class PeasantNukeAnimation extends NukeAnimation {
 
     private Point beg, end, cur;
+    private Direction direction;
 
     public PeasantNukeAnimation(String set) {
         super(set);
@@ -16,17 +17,17 @@ public class PeasantNukeAnimation extends NukeAnimation {
         Sprite s;
 
         if (curLength > length / 4.0) {
-            s = set.getSprite(direction, 0);
+            s = dsSet.getSprite(direction, 0);
             s.x = cur.x;
             s.y = cur.y;
             return s;
         } else if (curLength < length / 4.0 && curLength > length / 6.0) {
-            s = set.getSprite(direction, 0);
+            s = dsSet.getSprite(direction, 0);
             s.x = cur.x;
             s.y = cur.y;
             return s;
         } else {
-            s = set.getSprite(direction, 0);
+            s = dsSet.getSprite(direction, 0);
             s.x = cur.x;
             s.y = cur.y;
             return s;

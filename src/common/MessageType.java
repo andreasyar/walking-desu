@@ -5,5 +5,6 @@ public enum MessageType {
     HIT,
     BOLT,
     MOVE,
+    GOLDCOIN,
     OTHER;
 }

@@ -1,6 +1,7 @@
 package server.javatestserver;
 
 import common.BoltMessage;
+import common.GoldCoinMessage;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
@@ -622,6 +623,9 @@ public class JavaTestServer {
                 long curWave = WanderingServerTime.getInstance().getTimeSinceStart() / spawnDelay;
                 Monster m;
                 Point beg;
+                
+                // For monster current position temporary storage purpose.
+                Point mCurPos;
 
                 // Monsters destenation point.
                 Point end = new Point(705, 755);
@@ -691,9 +695,18 @@ public class JavaTestServer {
                                     + (tdMonsterLoss + curWaveMonLoss) + " "
                                     + tdMonsterLossLimit + " "
                                     + monStrMult + ")"});
-                    }
-                    if (!isDead && isStop) {
                         vm.killMonster(m);
+                        units.remove(m);
+                        monsters.remove(m);
+                        li.remove();
+                    }
+
+                    if (isDead) {
+                        mCurPos = m.getCurPos();
+                        sendToAll(new Message[] { new GoldCoinMessage(curPlayerID++,
+                                                                      mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10,
+                                                                      mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10,
+                                                                      1 + rand.nextInt(100)) });
                         units.remove(m);
                         monsters.remove(m);
                         li.remove();

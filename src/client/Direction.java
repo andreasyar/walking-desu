@@ -1,6 +1,7 @@
 package client;
 
 import java.awt.Point;
+import java.util.Random;
 
 public enum Direction {
     EAST,
@@ -12,8 +13,14 @@ public enum Direction {
     SOUTH,
     SOUTH_EAST;
 
-    public static Direction getDirection(Point beg, Point end) {
-        double angle = angle(beg, end);
+    public static Direction getRandom() {
+        Direction[] d = Direction.values();
+        Random r = new Random();
+        return d[r.nextInt(d.length)];
+    }
+
+    public static Direction getDirection(int begX, int begY, int endX, int endY) {
+        double angle = angle(begX, begY, endX, endY);
         if (angle > 337.5 || angle >= 0.0 && angle <= 22.5) {
             return EAST;
         } else if (angle > 22.5 && angle <= 67.5) {
@@ -33,10 +40,14 @@ public enum Direction {
         }
     }
 
-    private static double angle(Point a, Point b) {
+    public static Direction getDirection(Point beg, Point end) {
+        return getDirection(beg.x, beg.y, end.x, end.y);
+    }
+
+    private static double angle(int aX, int aY, int bX, int bY) {
         // TANK YOU prometheuzz @ forums.sun.com
-        double dx = b.getX() - a.getX();
-        double dy = b.getY() - a.getY();
+        double dx = bX - aX;
+        double dy = bY - aY;
         double angle = 0.0d;
 
         if (dx == 0.0) {
@@ -54,5 +65,9 @@ public enum Direction {
             else              angle = Math.atan(dy/dx);
         }
         return Math.abs(360 - (angle * 180) / Math.PI);
+    }
+
+    private static double angle(Point a, Point b) {
+        return angle(a.x, a.y, b.x, b.y);
     }
 }
