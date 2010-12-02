@@ -97,7 +97,6 @@ public class GameField {
     }
 
     public void delPlayer(long id) {
-        debug_test1(Thread.currentThread().getStackTrace());
         Player p = getPlayer(id);
         if (p != null) {
 
@@ -350,16 +349,6 @@ public class GameField {
         public final int compare(Object a, Object b) {
             return ((WUnit) a).getCurPos().y > ((WUnit) b).getCurPos().y ? 1 : 0;
         }
-    }
-
-    private void debug_test1(StackTraceElement[] trace) {
-        if (WanderingJPanel.resourcesInProcess && Thread.currentThread().getId() != WanderingJPanel.threadId) {
-            System.err.println("Some idiot try to bad thing!");
-            for (StackTraceElement e : trace) {
-                System.err.println(e.getClassName() + ":" + e.getMethodName() + ":" + e.getFileName() + ":" + e.getLineNumber());
-            }
-        }
-
     }
 
     public void startSelfExecution() {

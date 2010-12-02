@@ -25,9 +25,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private Dimension mapDim = new Dimension(mapImg.getWidth(), mapImg.getHeight());
     private Dimension mapOfst;
     private Dimension panelDim = null;
-    private BufferedImage buffImg = null;
-    private Graphics buffGraph = null;
-    private Dimension buffDim = null;
     private BufferedImage geoDebugLayer = null;
     private Graphics geoDebugLayerGraph = null;
     private Dimension geoDebugLayerDim = null;
@@ -37,11 +34,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private ServerInteraction inter;
     private static long buildDelay = 5000;  // 5 sec
     private long lastBuildTime = 0;
-    //debug
-    public static long threadId;
-    public static boolean resourcesInProcess;
-
-    static int repaintCalls = 0;
 
     public WanderingJPanel(GameField field, ServerInteraction inter) {
         this.field = field;
@@ -54,24 +46,10 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     @Override
     public synchronized void paintComponent(Graphics g) {
         try {
-            repaintCalls++;
-
-            if (repaintCalls > 1) {
-                System.out.println("OH SHIT! " + repaintCalls);
-            }
-
-            threadId = Thread.currentThread().getId();
             super.paintComponent(g);
             Player selfPlayer = field.getSelfPlayer();
 
-            if (selfPlayer != null && buffDim != null) { // TODO Concurency issue
-
-                // Поле вне карты цвета фона и по краям черная рамочка в 1 пиксел.
-                g.setColor(getBackground());
-                g.fillRect(0, 0, buffDim.width - 1, buffDim.height - 1);
-                g.setColor(Color.BLACK);
-                g.drawRect(0, 0, buffDim.width - 1, buffDim.height - 1);
-
+            if (selfPlayer != null) {
                 Point curPos = selfPlayer.getCurPos();
 
                 ClientMapFragment curFragment, tmpFragment;
@@ -167,9 +145,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     g.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
                 }
 
-                // Lets lock all lists.
                 Sprite s = null;
-                resourcesInProcess = true;
 
                 // For all units we draw their sprite and nick name.
                 Point selfPos = field.getSelfPlayer().getCurPos();
@@ -228,24 +204,17 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     }
                 }
 
-                // Lets lock all lists.
-                resourcesInProcess = false;
-
                 g.drawImage(geoDebugLayer, mapOfst.width, mapOfst.height, null);
 
                 String tdStatus = field.getTDStatus();
                 if (tdStatus != null) {
                     g.drawString(tdStatus, panelDim.width / 2, 50);
                 }
-
-                //g.drawImage(buffImg, 0, 0, null);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
-        } finally {
-            repaintCalls--;
         }
     }
 
@@ -339,12 +308,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     public void componentResized(ComponentEvent e) {
         Dimension d = e.getComponent().getSize();
 
-        if (buffImg != null && (buffImg.getWidth() != d.width || buffImg.getHeight() != d.height)) {
-            buffImg = new BufferedImage(d.width, d.height, BufferedImage.TYPE_INT_RGB);
-            buffDim = new Dimension(buffImg.getWidth(), buffImg.getHeight());
-            buffGraph = buffImg.getGraphics();
-        }
-
         if (panelDim != null && d != null && mapOfst != null && (panelDim.width != d.width || panelDim.height != d.height)) {
             mapOfst.width += d.width / 2 - panelDim.width / 2;
             mapOfst.height += d.height / 2 - panelDim.height / 2;
@@ -364,11 +327,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             // его положение на карте (0, 0) то точка (0, 0) карты должны быть в
             // центре экрана.
             mapOfst = new Dimension(panelDim.width / 2, panelDim.height / 2);
-
-            // Буфер для двойной буферизации.
-            buffImg = new BufferedImage(panelDim.width, panelDim.height, BufferedImage.TYPE_INT_RGB);
-            buffGraph = buffImg.getGraphics();
-            buffDim = new Dimension(buffImg.getWidth(), buffImg.getHeight());
 
             geoDebugLayer = new BufferedImage(mapDim.getSize().width, mapDim.getSize().height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
             geoDebugLayerGraph = geoDebugLayer.getGraphics();
@@ -441,24 +399,4 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             showTowerRange = false;
         }
     }
-
-    /* else if (key == KeyEvent.VK_F5) {
-        ConcurencyDebugClientKiller killer = new ConcurencyDebugClientKiller();
-        Thread killerThread = new Thread(killer);
-        killerThread.start();
-        }*/
-    /*private class ConcurencyDebugClientKiller implements Runnable {
-
-    @Override
-    public void run() {
-    ArrayList<Unit> units = field.getUnits();
-    Unit unit;
-
-    while (true) {
-    unit = units.get(0);
-    units.remove(0);
-    units.add(unit);
-    }
-    }
-    }*/
 }
