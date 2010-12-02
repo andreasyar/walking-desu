@@ -17,10 +17,19 @@ public class WalkingDesu {
         ClientMapFragment.setHeight(1024);
         ClientMapFragment.setCellW(32);
         ClientMapFragment.setCellH(32);
+
         field.addMapFragment(new ClientMapFragment(0, 0, new int[][]{}));
-        //field.addMapFragment(new MapFragment(0, 1, new int[][]{}));
-        //field.addMapFragment(new MapFragment(1, 1, new int[][]{}));
-        //field.addMapFragment(new MapFragment(1, 0, new int[][]{}));
+
+        WGoldCoinItem g = new WGoldCoinItem(0L, 9);
+        g.setOnGround(true);
+        g.setX(100);
+        g.setY(100);
+        field.asyncAddItem(g);
+        g = new WGoldCoinItem(0L, 18);
+        g.setOnGround(true);
+        g.setX(200);
+        g.setY(100);
+        field.asyncAddItem(g);
 
         Executor executor = Executors.newCachedThreadPool();
         ServerInteraction inter = new ServerInteraction(field, executor, args[0], Integer.parseInt(args[1]));

@@ -18,7 +18,10 @@ public class WanderingGUI implements Runnable {
 
     public WanderingGUI(GameField field, ServerInteraction inter) {
         panel = new WanderingJPanel(field, inter);
-        frame = new JFrame("Walking Desu 4");
+        panel.addMouseListener(panel);
+        panel.addComponentListener(panel);
+        panel.addKeyListener(panel);
+        frame = new JFrame("Walking Desu 5");
         dialog = new LoginDialog(frame);
         msgField = new JTextField(50);
         sendBtn = new JButton("Send");

@@ -1,6 +1,7 @@
 package client;
 
 import common.BoltMessage;
+import common.GoldCoinMessage;
 import java.awt.Point;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
@@ -286,6 +287,17 @@ public class ServerInteraction {
                                 tmpMessage.getEndX(),
                                 tmpMessage.getEndY(),
                                 tmpMessage.getBegTime());
+
+        } else if (m.getType() == MessageType.GOLDCOIN) {
+
+            GoldCoinMessage tmpMessage = (GoldCoinMessage) m;
+            WGoldCoinItem g = new WGoldCoinItem(tmpMessage.getId(),
+                                                tmpMessage.getCount());
+            g.setX(tmpMessage.getX());
+            g.setY(tmpMessage.getY());
+            g.setOnGround(true);
+            field.addItem(g);
+
         }
     }
 

@@ -2,48 +2,59 @@ package client;
 
 import java.awt.Point;
 
+/**
+ * Анимация снаряда пушки.
+ */
 public class CanonNukeAnimation extends NukeAnimation {
 
-    private Point beg, end, cur;
-
-    public CanonNukeAnimation(String set) {
-        super(set);
+    /**
+     * Создаёт новую анимацию снаряда пушки.
+     * @param Имя набора направленных спрайтов.
+     */
+    public CanonNukeAnimation(String dsSet) {
+        super(dsSet);
     }
 
-    public Sprite getSprite() {
-        double length = beg.distance(end);
-        double curLength = beg.distance(cur);
+    /**
+     * Возвращает текущий спрайт анимациии снаряда пушки.
+     * @param cX текущяя X-координата пушки на карте.
+     * @param cY текущяя Y-координата пушки на карте.
+     * @param tX текущяя X-координата цели на карте.
+     * @param tY текущяя Y-координата цели на карте.
+     * @param nX текущяя X-координата снаряда на карте.
+     * @param nY текущяя Y-координата снаряда на карте.
+     */
+    public Sprite getSprite(int cX, int cY, int tX, int tY, int nX, int nY) {
+        Direction d = Direction.getDirection(cX, cY, tX, tY);
+        double length = Point.distance(cX, cY, tX, tY);
+        double curLength = Point.distance(cX, cY, nX, nY);
         Sprite s;
 
         if (curLength > length / 4.0) {
-            s = set.getSprite(direction, 2);
-            s.x = cur.x;
-            s.y = cur.y;
+            s = dsSet.getSprite(d, 2);
+            s.x = nX;
+            s.y = nY;
             return s;
         } else if (curLength < length / 4.0 && curLength > length / 6.0) {
-            s = set.getSprite(direction, 1);
-            s.x = cur.x;
-            s.y = cur.y;
+            s = dsSet.getSprite(d, 1);
+            s.x = nX;
+            s.y = nY;
             return s;
         } else {
-            s = set.getSprite(direction, 0);
-            s.x = cur.x;
-            s.y = cur.y;
+            s = dsSet.getSprite(d, 0);
+            s.x = nX;
+            s.y = nY;
             return s;
         }
     }
 
-    public void run(final Point beg, final Point end, final Point cur) {
-        this.cur = cur;
-        this.beg = beg;
-        this.end = end;
-        direction = Direction.getDirection(beg, end);
-    }
-
-    public void run(int begX, int begY, int endX, int endY, int curX, int curY) {
-        this.cur = new Point(curX, curY);
-        this.beg = new Point(begX, begY);
-        this.end = new Point(endX, endY);
-        direction = Direction.getDirection(beg, end);
+    /**
+     * Возвращает текущий спрайт анимациии снаряда пушки.
+     * @param canon текущее место пушки на карте.
+     * @param target текущее место цели на карте.
+     * @param nuke текущее место снаряда на карте.
+     */
+    public Sprite getSprite(Point canon, Point target, Point nuke) {
+        return getSprite(canon.x, canon.y, target.x, target.y, nuke.x, nuke.y);
     }
 }
