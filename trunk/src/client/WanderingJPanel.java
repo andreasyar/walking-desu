@@ -81,9 +81,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 // Buffered image for temporary storage purpose.
                 BufferedImage img;
 
-                // Point for temporary storage purpose.
-                Point pos;
-
                 // <editor-fold defaultstate="collapsed" desc="Draw map">
                 ClientMapFragment curFragment, tmpFragment;
 
@@ -169,35 +166,9 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     g.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
                 }// </editor-fold>
 
-                // <editor-fold defaultstate="collapsed" desc="Draw items.">
-                for (WItem item : field.getItems()) {
-                    s = item.getSprite();
-                    if (s != null) {
-                        g.drawImage(s.image,
-                                    s.x - screenWorldX,
-                                    s.y - screenWorldY,
-                                    null);
-                        g.drawString(item.getName() + "(" + item.getCount() + ")",
-                                     s.x - screenWorldX,
-                                     s.y - screenWorldY + 2 * s.image.getHeight());
-                    }
-                }
-                // </editor-fold>
+                field.drawItems(g, screenWorldX, screenWorldY);
 
-                // <editor-fold defaultstate="collapsed" desc="Draw units sprite and nick.">
-                for (WUnit u : field.getYSortedUnits()) {
-                    s = u.getSprite();
-                    pos = u.getCurPos();
-                    if (playerWorldPos.distance(pos) <= 500.0) {
-                        g.drawImage(s.image,
-                                s.x - screenWorldX,
-                                s.y - screenWorldY,
-                                null);
-                        g.drawString(u.getNick(),
-                                s.x - screenWorldX + s.image.getWidth() / 2 - 20,
-                                s.y - screenWorldY + s.image.getHeight() + 20);
-                    }
-                }// </editor-fold>
+                field.drawUnits(g, screenWorldX, screenWorldY);
 
                 // <editor-fold defaultstate="collapsed" desc="Draw players text and other player-specifed things.">
                 for (Player p : field.getPlayers()) {
@@ -220,7 +191,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                                 1000,
                                 1000);
                     }
-                }// </editor-fold>
+                }
+                // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="Draw towers range.">
                 if (showTowerRange) {
@@ -230,32 +202,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                                 (int) t.getRange() * 2,
                                 (int) t.getRange() * 2);
                     }
-                }// </editor-fold>
-
-                // <editor-fold defaultstate="collapsed" desc="Draw nuke bolts.">
-                for (Nuke n : field.getNukes()) {
-
-                    if (n == null) {
-                        System.err.println("OMG nuke is null LOAL.");
-                        continue;
-                    }
-
-                    if (n.isMove() && ((s = n.getSprite()) != null)) {
-                        g.drawImage(s.image,
-                                s.x - screenWorldX,
-                                s.y - screenWorldY,
-                                null);
-                    }
-                }// </editor-fold>
-
-                // <editor-fold defaultstate="collapsed" desc="Draw hit animation.">
-                for (HitAnimation a : field.getHitAnimations()) {
-                    if (!a.isDone()) {
-                        s = a.getSprite(WanderingServerTime.getInstance().getTimeSinceStart());
-                        g.drawImage(s.image, s.x - screenWorldX, s.y - screenWorldY, null);
-                    }
                 }
                 // </editor-fold>
+
+                field.drawNukes(g, screenWorldX, screenWorldY);
+
+                field.drawHitAnimation(g, screenWorldX, screenWorldY);
 
                 g.drawImage(geoDebugLayer, - screenWorldX, - screenWorldY, null);
 
@@ -300,21 +252,19 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 Sprite spr;
 
                 if (selectMode) {
-                    synchronized (field.getUnits()) {
-                        for (Iterator<WUnit> li = field.getUnits().iterator(); li.hasNext();) {
-                            unit = li.next();
-                            spr = unit.getSprite();
-                            poly = new Polygon();
-                            poly.addPoint(spr.x, spr.y);
-                            poly.addPoint(spr.x + spr.image.getWidth(), spr.y);
-                            poly.addPoint(spr.x + spr.image.getWidth(), spr.y + spr.image.getHeight());
-                            poly.addPoint(spr.x, spr.y + spr.image.getHeight());
+                    for (Iterator<WUnit> li = field.getUnits().iterator(); li.hasNext();) {
+                        unit = li.next();
+                        spr = unit.getSprite();
+                        poly = new Polygon();
+                        poly.addPoint(spr.x, spr.y);
+                        poly.addPoint(spr.x + spr.image.getWidth(), spr.y);
+                        poly.addPoint(spr.x + spr.image.getWidth(), spr.y + spr.image.getHeight());
+                        poly.addPoint(spr.x, spr.y + spr.image.getHeight());
 
-                            if (poly.contains(x + screenWorldX, y + screenWorldY)) {
-                                field.getSelfPlayer().selectUnit(unit);
-                                selected = true;
-                                break;
-                            }
+                        if (poly.contains(x + screenWorldX, y + screenWorldY)) {
+                            field.getSelfPlayer().selectUnit(unit);
+                            selected = true;
+                            break;
                         }
                     }
                 }
