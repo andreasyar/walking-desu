@@ -2,7 +2,7 @@ package client;
 
 import java.awt.Point;
 
-public abstract class HitAnimation {
+public abstract class HitAnimation implements WDrawable {
 
     protected DirectionalSpriteSet set;
     protected Direction direction;
@@ -15,7 +15,8 @@ public abstract class HitAnimation {
         this.direction = direction;
     }
 
-    public abstract Sprite getSprite(long curTime);
+    @Override
+    public abstract Sprite getSprite();
 
     public boolean isDone() {
         return done;

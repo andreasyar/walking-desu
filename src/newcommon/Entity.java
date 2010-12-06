@@ -24,7 +24,7 @@ public abstract class Entity {
         this.id = id;
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Name">
+    // <editor-fold defaultstate="expanded" desc="Name">
     /**
      * Возвращает имя сущности.
      * @return имя сущности.

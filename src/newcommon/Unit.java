@@ -24,7 +24,7 @@ public abstract class Unit extends Entity {
         super(id);
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Health">
+    // <editor-fold defaultstate="expanded" desc="Health">
     /**
      * Возвращает максимальный уровень здоровья существа.
      * @return Максимальный уровень здоровья существа.

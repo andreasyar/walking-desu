@@ -1,5 +1,6 @@
 package client;
 
+import common.WanderingServerTime;
 import java.awt.Point;
 
 public class CanonHitAnimation extends HitAnimation {
@@ -23,9 +24,10 @@ public class CanonHitAnimation extends HitAnimation {
     }
 
     @Override
-    public Sprite getSprite(long curTime) {
+    public Sprite getSprite() {
         long tmpTime;
         Sprite tmpSpr;
+        long curTime = WanderingServerTime.getInstance().getTimeSinceStart();
 
         tmpTime = (curTime - begTime) % (step * period + delay);
 

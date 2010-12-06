@@ -6,7 +6,7 @@ package newcommon;
  */
 public interface Movable {
 
-    // <editor-fold defaultstate="collapsed" desc="Position">
+    // <editor-fold defaultstate="expanded" desc="Position">
     /**
      * Возвращает X-координату начальной точки траектории движения.
      * @return X-координата начальной точки траектории движения.
@@ -44,7 +44,7 @@ public interface Movable {
     public abstract int getCurY();
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Time">
+    // <editor-fold defaultstate="expanded" desc="Time">
     /**
      * Возвращает время начала движения.
      * @return Время начала движения.
@@ -58,7 +58,7 @@ public interface Movable {
     public abstract long getEndTime();
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Speed">
+    // <editor-fold defaultstate="expanded" desc="Speed">
     /**
      * Возвращает скорость движения.
      * @return скорость движения.
@@ -72,7 +72,7 @@ public interface Movable {
     public abstract void setSpeed(double speed);
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Control and status">
+    // <editor-fold defaultstate="expanded" desc="Control and status">
     /**
      * Возвращает флаг движения.
      */
