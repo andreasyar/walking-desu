@@ -1,5 +1,7 @@
 package client;
 
+import java.awt.Graphics;
+
 public class Player extends WUnit {
 
     public Player(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {

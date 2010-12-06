@@ -20,10 +20,14 @@ import java.util.concurrent.ScheduledFuture;
 import common.HMapMessage;
 import common.HitMessage;
 import common.Message;
+import common.MessageType;
 import common.MoveMessage;
 import common.Movement;
 import common.OtherMessage;
+import common.WPickupMessage;
 import common.WanderingServerTime;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Главный класс тестового ява сервера блуждающей же.
@@ -257,16 +261,51 @@ public class JavaTestServer {
             senderThread.setDaemon(true);
             senderThread.start();
 
+            Message message;
+            ObjectInputStream ois = null;
+
+            try {
+                ois = new ObjectInputStream(s.getInputStream());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+
+            readNextMessage:
             while (!s.isClosed()) {
+
                 String line = null;
                 String[] pieces;
 
                 try {
-                    line = br.readLine();
+                    //line = br.readLine();
+                    message = (Message) ois.readObject();
+
+                    switch (message.getType()) {
+                        case OTHER:
+
+                            line = ((OtherMessage) message).getMessage();
+                            break;
+
+                        case WPICKUP:
+
+                            WPickupMessage tmpMsg = ((WPickupMessage) message);
+                            System.out.println(s.getInetAddress() + " --> " + tmpMsg);
+                            continue readNextMessage;
+
+                        default:
+
+                            System.err.println("Unknown message type.");
+                            System.exit(1);
+                    }
+
                 } catch (IOException e) {
                     close();
                     // Мы не возвращаем управление, потому что в строке
                     // таки может что-то быть?
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                    System.exit(1);
                 }
 
                 if (line == null) {
@@ -623,7 +662,7 @@ public class JavaTestServer {
                 long curWave = WanderingServerTime.getInstance().getTimeSinceStart() / spawnDelay;
                 Monster m;
                 Point beg;
-                
+
                 // For monster current position temporary storage purpose.
                 Point mCurPos;
 

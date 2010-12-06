@@ -1,5 +1,7 @@
 package client;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 
 import common.Movement;
@@ -49,5 +51,14 @@ public class CanonNuke extends Nuke {
     @Override
     public boolean isMove() {
         return movement.isMove();
+    }
+
+    @Override
+    public void draw(Graphics g, int x, int y, Dimension d) {
+        Sprite s = getSprite();
+
+        if (s != null && isMove()) {
+            g.drawImage(s.image, s.x - x, s.y - y, null);
+        }
     }
 }

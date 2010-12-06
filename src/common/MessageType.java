@@ -6,5 +6,6 @@ public enum MessageType {
     BOLT,
     MOVE,
     GOLDCOIN,
+    WPICKUP,
     OTHER;
 }

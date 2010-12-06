@@ -2,6 +2,8 @@ package client;
 
 import common.Unit;
 import common.Movement;
+import common.WanderingServerTime;
+import java.awt.AlphaComposite;
 
 import java.awt.image.BufferedImage;
 import java.awt.Point;
@@ -13,8 +15,12 @@ import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.Hashtable;
 import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.font.LineMetrics;
 
 public abstract class WUnit extends Unit implements WDrawable {
 
@@ -31,6 +37,8 @@ public abstract class WUnit extends Unit implements WDrawable {
     protected WUnit selectedUnit;
 
     protected Nuke currentNuke;
+
+    private FontMetrics metrics = null;
 
     public WUnit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
 
@@ -72,36 +80,90 @@ public abstract class WUnit extends Unit implements WDrawable {
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Sprite and Animation">
-    @Override
     public Sprite getSprite() {
-        boolean isMove = mv.isMove();
-        boolean isAttack = isAttack();
-        boolean isDead = dead();
+        Sprite s = null;
 
-        if (!isDead && isMove) {
-            return moveAnim.getSprite(mv.getCurPos());
-        } else if (!isDead && !isMove && !isAttack) {
-            return standAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
-        } else if (!isDead && !isMove && isAttack) {
-            Sprite s = null;
-            try {
-                s = useAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
-            } catch (Exception ex) {
-                ex.printStackTrace();
+        try {
+            boolean isMove = mv.isMove();
+            boolean isAttack = isAttack();
+            boolean isDead = dead();
+            Point cur = mv.getCurPos();
+
+            if (!isDead && isMove) {
+                s = moveAnim.getSprite(cur);
+            } else if (!isDead && !isMove && !isAttack) {
+                s = standAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
+            } else if (!isDead && !isMove && isAttack) {
+                s = useAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
+            } else if (isDead) {
+                s = deathAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
+            } else {
+                System.err.println("Illegal unit state.");
                 System.exit(1);
             }
-            return s;
-        } else if (isDead) {
-            return deathAnim.getSprite(System.currentTimeMillis() - ServerInteraction.serverStartTime, mv.getCurPos());
-        } else {
-            System.err.println("Illegal unit state.");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
             System.exit(1);
-            return null;
+        }
+
+        return s;
+    }
+
+    void drawTextCloud(Graphics g, int x, int y) {
+        Sprite s = getSprite();
+
+        if (textCloud != null) {
+            g.drawImage(textCloud,
+                        s.x - x + s.image.getWidth(),
+                        s.y - y,
+                        null);
+        }
+    }
+
+    @Override
+    public void draw(Graphics g, int x, int y, Dimension d) {
+        Sprite s = getSprite();
+
+        // Before any drawing check our distance from center of screen. If it is
+        // more than visible distance limit we do nothing and just return.
+        if (Point.distance(x + d.width / 2, y + d.height / 2, s.baseX, s.baseY) > GameField.visibleDistance) {
+            return;
+        }
+
+        // Get once. Use all time.
+        if (metrics == null) {
+            metrics = g.getFontMetrics(g.getFont());
+        }
+
+        int renderedNickWidth = metrics.stringWidth(getNick());
+        int sprImgW = s.image.getWidth();
+
+        if (renderedNickWidth + 2 > sprImgW) {
+            g.drawImage(s.image,
+                        s.x - x + (renderedNickWidth + 2) / 2 - sprImgW / 2,
+                        s.y - y + metrics.getHeight() + 1,
+                        null);
+            g.drawString(getNick(),
+                         s.x - x + 1,
+                         s.y - y + 1 + metrics.getMaxAscent());
+        } else {
+            g.drawImage(s.image,
+                        s.x - x,
+                        s.y - y + metrics.getHeight(),
+                        null);
+            g.drawString(getNick(),
+                         s.x - x + sprImgW / 2 - renderedNickWidth / 2,
+                         s.y - y + 1 + metrics.getMaxAscent());
         }
     }
 
     public boolean deathAnimationDone() {
-        return deathAnim.isDone();
+        if (deathAnim != null) {
+            return deathAnim.isDone();
+        } else {
+            return true;
+        }
     }
 
     public void changeSpriteSet(String spriteSetName) {

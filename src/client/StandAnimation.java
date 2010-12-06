@@ -48,6 +48,8 @@ public class StandAnimation {
             System.out.println();
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         }
 
@@ -65,6 +67,8 @@ public class StandAnimation {
             }
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         } else {
             // Now time to delay before new animation cycle. So return last
@@ -72,6 +76,8 @@ public class StandAnimation {
             tmpSpr = set.getSprite(direct, period - 1);
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         }
     }

@@ -4,6 +4,7 @@ import common.WanderingServerTime;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.image.BufferedImage;
 import java.util.Comparator;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,6 +16,8 @@ import java.util.Collections;
 import java.util.Iterator;
 
 public class GameField {
+
+    public static double visibleDistance = 500.0;
 
     private Player selfPlayer;
     private final LinkedBlockingQueue<WUnit> units = new LinkedBlockingQueue<WUnit>();
@@ -50,59 +53,103 @@ public class GameField {
      * @params x x-axis of top left screen position on world map.
      * @params y y-axis of top left screen position on world map.
      */
-    public void drawAll(Graphics g, int x, int y) {
-        Sprite s;
-        Point selfPos = selfPlayer.getCurPos();
+    public void drawAll(Graphics g, int x, int y, Dimension dim) {
 
         for (WDrawable d : units) {
-            s = d.getSprite();
-            if (Point.distance(selfPos.x, selfPos.y, s.x, s.y) <= 500.0) {  // TODO Unhardcode range.
-                g.drawImage(s.image,
-                            s.x - x,
-                            s.y - y,
-                            null);
-                g.drawString(((WUnit) d).getNick(),
-                             s.x - x + s.image.getWidth() / 2 - 20,
-                             s.y - y + s.image.getHeight() + 20);
+            if (d != null) {
+                d.draw(g, x, y, dim);
+            }
+            else {
+                System.err.println("WDrawable unit is null. LOL? It cannot be!");
+                continue;
             }
         }
 
         for (WDrawable d : nukes) {
-            if (d == null) {
+            if (d != null) {
+                d.draw(g, x, y, dim);
+            }
+            else {
                 System.err.println("Nuke is null. LOL? It cannot be!");
                 continue;
-            }
-
-            if (((Nuke) d).isMove() && ((s = d.getSprite()) != null)) {
-                g.drawImage(s.image, s.x - x, s.y - y, null);
             }
         }
 
         for (WDrawable d : hitAnimations) {
-            if (!((HitAnimation) d).isDone()) {
-                s = ((HitAnimation) d).getSprite();
-                g.drawImage(s.image, s.x - x, s.y - y, null);
+            if (d != null) {
+                d.draw(g, x, y, dim);
+            }
+            else {
+                System.err.println("Hit animation is null. LOL? It cannot be!");
+                continue;
             }
         }
 
         for (WDrawable d : items) {
-            s = d.getSprite();
-            if (s != null) {
-                g.drawImage(s.image,
-                            s.x - x - s.image.getWidth() / 2,
-                            s.y - y - s.image.getHeight() / 2,
-                            null);
-                g.drawString(((WItem) d).getName() + "(" + ((WItem) d).getCount() + ")",
-                             s.x - x,
-                             s.y - y + 2 * s.image.getHeight());
+            if (d != null) {
+                d.draw(g, x, y, dim);
+            }
+            else {
+                System.err.println("Items is null. LOL? It cannot be!");
+                continue;
+            }
+        }
+    }
 
-                // Point where item placed in world map and border around sprite
-                // image.
-                g.drawLine(s.x - x, s.y - y, s.x - x, s.y - y);
-                g.drawRect(s.x - x - s.image.getWidth() / 2 - 1,
-                           s.y - y - s.image.getHeight() / 2,
-                           s.image.getWidth() + 1,
-                           s.image.getHeight() + 1);
+    public void recalcUnitsZ(ArrayList<ArrayList<WDrawable>> zbuffer, int x, int y) {
+        Point tmpPos;
+
+        synchronized (zbuffer) {
+            for (WUnit u : units) {
+                if (u != null) {
+                    tmpPos = u.getCurPos();
+                    if (tmpPos.y - y >= 0 && tmpPos.y - y < zbuffer.size()) {
+                        zbuffer.get(tmpPos.y - y).add(u);
+                    }
+                }
+                else {
+                    System.err.println("WUnit is null. LOL? It cannot be!");
+                    continue;
+                }
+            }
+
+            for (Nuke n : nukes) {
+                if (n != null) {
+                    tmpPos = n.getCurPos();
+                    if (tmpPos.y - y >= 0 && tmpPos.y - y < zbuffer.size()) {
+                        zbuffer.get(tmpPos.y - y).add(n);
+                    }
+                }
+                else {
+                    System.err.println("Nuke is null. LOL? It cannot be!");
+                    continue;
+                }
+            }
+
+            for (HitAnimation h : hitAnimations) {
+                if (h != null) {
+                    tmpPos = h.getCurPos();
+                    if (tmpPos.y - y >= 0 && tmpPos.y - y < zbuffer.size()) {
+                        zbuffer.get(tmpPos.y - y).add(h);
+                    }
+                }
+                else {
+                    System.err.println("Hit animation is null. LOL? It cannot be!");
+                    continue;
+                }
+            }
+
+            for (WItem i : items) {
+                if (i != null) {
+                    tmpPos = i.getCurPos();
+                    if (tmpPos.y - y >= 0 && tmpPos.y - y < zbuffer.size()) {
+                        zbuffer.get(tmpPos.y - y).add(i);
+                    }
+                }
+                else {
+                    System.err.println("Items is null. LOL? It cannot be!");
+                    continue;
+                }
             }
         }
     }
@@ -239,18 +286,8 @@ public class GameField {
      * @params y y-axis of top left screen position on world map.
      */
     public void drawTextClouds(Graphics g, int x, int y) {
-        Sprite s;
-        BufferedImage textCloud;
-
         for (Player p : players) {
-            s = p.getSprite();
-            textCloud = p.getTextCloud();
-            if (textCloud != null) {
-                g.drawImage(textCloud,
-                            s.x - x + s.image.getWidth(),
-                            s.y - y,
-                            null);
-            }
+            p.drawTextCloud(g, x, y);
         }
     }
 
@@ -568,6 +605,28 @@ public class GameField {
         }
 
         selfExecutor.add("removeItem", new Class[]{ WItem.class }, new Object[]{ item });
+    }
+
+    /**
+     * Check if x, y lay on some item sprite.
+     */
+    public WItem onItemSprite(int x, int y) {
+        Polygon p;
+
+        for (WItem i : items) {
+            p = i.getDimensionOnWorld();
+            if (p.contains(x, y)) {
+                return i;
+            }
+        }
+
+        return null;
+    }
+
+    public double distanceToItem(WItem i) {
+        Polygon p = i.getDimensionOnWorld();
+        Point cur = selfPlayer.getCurPos();
+        return Point.distance(p.xpoints[0], p.ypoints[0], cur.x, cur.y);
     }
     // </editor-fold>
 

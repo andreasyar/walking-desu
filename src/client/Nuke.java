@@ -1,5 +1,7 @@
 package client;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 
 abstract public class Nuke implements WDrawable {
@@ -17,8 +19,10 @@ abstract public class Nuke implements WDrawable {
         return Math.abs(System.currentTimeMillis() - ServerInteraction.serverStartTime) - lastUseTime > reuse ? false : true;
     }
 
-    @Override
     public abstract Sprite getSprite();
+
+    @Override
+    public abstract void draw(Graphics g, int x, int y, Dimension d);
 
     public abstract void use(long begTime);
 

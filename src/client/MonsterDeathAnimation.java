@@ -49,6 +49,8 @@ public class MonsterDeathAnimation extends DeathAnimation {
             }
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         } else {
 
@@ -57,6 +59,8 @@ public class MonsterDeathAnimation extends DeathAnimation {
             tmpSpr = set.getSprite(direction, period - 1);
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         }
     }

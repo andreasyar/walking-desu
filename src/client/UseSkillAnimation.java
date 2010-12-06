@@ -53,6 +53,8 @@ public class UseSkillAnimation {
             tmpSpr = set.getSprite(direction, sprCount - 1);
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         }
 
@@ -70,11 +72,15 @@ public class UseSkillAnimation {
             }
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         } else {
             tmpSpr = set.getSprite(direction, sprCount - 1);
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
+            tmpSpr.baseX = curPos.x;
+            tmpSpr.baseY = curPos.y;
             return tmpSpr;
         }
     }
