@@ -5,7 +5,7 @@ import common.GoldCoinItem;
 /**
  * Gold coin(s) for client.
  */
-public class WGoldCoinItem extends GoldCoinItem implements WItem {
+public class WGoldCoinItem extends GoldCoinItem implements WItem, WDrawable {
 
     private LayGroundAnimation animation;
 

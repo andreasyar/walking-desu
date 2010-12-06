@@ -16,7 +16,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
-public abstract class WUnit extends Unit {
+public abstract class WUnit extends Unit implements WDrawable {
 
     protected MovementAnimation moveAnim;
 
@@ -72,6 +72,7 @@ public abstract class WUnit extends Unit {
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Sprite and Animation">
+    @Override
     public Sprite getSprite() {
         boolean isMove = mv.isMove();
         boolean isAttack = isAttack();

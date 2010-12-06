@@ -4,6 +4,7 @@ import common.WanderingServerTime;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
 import java.util.Comparator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -43,6 +44,69 @@ public class GameField {
         selfExecutor = new SelfExecutor(this);
     }
 
+    /**
+     * Draws units, items, nukes, hit animation.
+     * @params g graphics context for drawing in.
+     * @params x x-axis of top left screen position on world map.
+     * @params y y-axis of top left screen position on world map.
+     */
+    public void drawAll(Graphics g, int x, int y) {
+        Sprite s;
+        Point selfPos = selfPlayer.getCurPos();
+
+        for (WDrawable d : units) {
+            s = d.getSprite();
+            if (Point.distance(selfPos.x, selfPos.y, s.x, s.y) <= 500.0) {  // TODO Unhardcode range.
+                g.drawImage(s.image,
+                            s.x - x,
+                            s.y - y,
+                            null);
+                g.drawString(((WUnit) d).getNick(),
+                             s.x - x + s.image.getWidth() / 2 - 20,
+                             s.y - y + s.image.getHeight() + 20);
+            }
+        }
+
+        for (WDrawable d : nukes) {
+            if (d == null) {
+                System.err.println("Nuke is null. LOL? It cannot be!");
+                continue;
+            }
+
+            if (((Nuke) d).isMove() && ((s = d.getSprite()) != null)) {
+                g.drawImage(s.image, s.x - x, s.y - y, null);
+            }
+        }
+
+        for (WDrawable d : hitAnimations) {
+            if (!((HitAnimation) d).isDone()) {
+                s = ((HitAnimation) d).getSprite();
+                g.drawImage(s.image, s.x - x, s.y - y, null);
+            }
+        }
+
+        for (WDrawable d : items) {
+            s = d.getSprite();
+            if (s != null) {
+                g.drawImage(s.image,
+                            s.x - x - s.image.getWidth() / 2,
+                            s.y - y - s.image.getHeight() / 2,
+                            null);
+                g.drawString(((WItem) d).getName() + "(" + ((WItem) d).getCount() + ")",
+                             s.x - x,
+                             s.y - y + 2 * s.image.getHeight());
+
+                // Point where item placed in world map and border around sprite
+                // image.
+                g.drawLine(s.x - x, s.y - y, s.x - x, s.y - y);
+                g.drawRect(s.x - x - s.image.getWidth() / 2 - 1,
+                           s.y - y - s.image.getHeight() / 2,
+                           s.image.getWidth() + 1,
+                           s.image.getHeight() + 1);
+            }
+        }
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Self player">
     public void addSelfPlayer(Player selfPlayer) {
         this.selfPlayer = selfPlayer;
@@ -51,6 +115,33 @@ public class GameField {
 
     public Player getSelfPlayer() {
         return selfPlayer;
+    }
+
+    /**
+     * Draw information about selected target.
+     * @params g graphics context for drawing in.
+     * @params d drawing panel dimenstions.
+     */
+    public void drawTargetInfo(Graphics g, Dimension d) {
+        WUnit t = selfPlayer.getSelectedUnit();
+
+        if (t != null) {
+            g.drawString("deathAnim: " + t.deathAnimationDone(),
+                         10,
+                         d.height - 110);
+            g.drawString("dead: " + t.dead(),
+                         10,
+                         d.height - 90);
+            g.drawString("isMove: " + t.isMove(),
+                         10,
+                         d.height - 70);
+            g.drawString(t.getNick() + " (" + t.getID() + ")",
+                         10,
+                         d.height - 50);
+            g.drawString("HP: " + t.getHitPoints(),
+                         10,
+                         d.height - 30);
+        }
     }
     // </editor-fold>
 
@@ -86,32 +177,6 @@ public class GameField {
         ArrayList<WUnit> tmp = new ArrayList<WUnit>(units);
         Collections.sort(tmp , aligner);
         return tmp;
-    }
-
-    /**
-     * Draw units.
-     * @params g graphics context for drawing in.
-     * @params x x-axis of top left screen position on world map.
-     * @params y y-axis of top left screen position on world map.
-     */
-    public void drawUnits(Graphics g, int x, int y) {
-        Sprite s;
-        Point p;
-        Point selfPos = selfPlayer.getCurPos();
-
-        for (WUnit u : getYSortedUnits()) {
-            s = u.getSprite();
-            p = u.getCurPos();
-            if (selfPos.distance(p) <= 500.0) {
-                g.drawImage(s.image,
-                        s.x - x,
-                        s.y - y,
-                        null);
-                g.drawString(u.getNick(),
-                        s.x - x + s.image.getWidth() / 2 - 20,
-                        s.y - y + s.image.getHeight() + 20);
-            }
-        }
     }
     // </editor-fold>
 
@@ -166,6 +231,66 @@ public class GameField {
     public LinkedBlockingQueue<Player> getPlayers() {
         return players;
     }
+
+    /**
+     * Draw players text cluds.
+     * @params g graphics context for drawing in.
+     * @params x x-axis of top left screen position on world map.
+     * @params y y-axis of top left screen position on world map.
+     */
+    public void drawTextClouds(Graphics g, int x, int y) {
+        Sprite s;
+        BufferedImage textCloud;
+
+        for (Player p : players) {
+            s = p.getSprite();
+            textCloud = p.getTextCloud();
+            if (textCloud != null) {
+                g.drawImage(textCloud,
+                            s.x - x + s.image.getWidth(),
+                            s.y - y,
+                            null);
+            }
+        }
+    }
+
+    /**
+     * Draw players movement track if he moves.
+     * @params g graphics context for drawing in.
+     * @params x x-axis of top left screen position on world map.
+     * @params y y-axis of top left screen position on world map.
+     */
+    public void drawMoveTrack(Graphics g, int x, int y) {
+        Point cur;
+
+        for (Player p : players) {
+            if (p.isMove()) {
+                cur = p.getCurPos();
+                g.drawLine(cur.x - x,
+                           cur.y - y,
+                           p.getEnd().x - x,
+                           p.getEnd().y - y);
+            }
+        }
+    }
+
+    /**
+     * Draw players visible range.
+     * @params g graphics context for drawing in.
+     * @params x x-axis of top left screen position on world map.
+     * @params y y-axis of top left screen position on world map.
+     */
+    public void drawVisibleRange(Graphics g, int x, int y) {
+        Point cur;
+
+        for (Player p : players) {
+            cur = p.getCurPos();
+            g.drawOval(cur.x - x - 500,
+                       cur.y - y - 500,
+                       1000,
+                       1000);
+        }
+    }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Nukes works">
@@ -195,27 +320,6 @@ public class GameField {
 
     public LinkedBlockingQueue<Nuke> getNukes() {
         return nukes;
-    }
-
-    /**
-     * Draw nuke bolts.
-     * @params g graphics context for drawing in.
-     * @params x x-axis of top left screen position on world map.
-     * @params y y-axis of top left screen position on world map.
-     */
-    public void drawNukes(Graphics g, int x, int y) {
-        Sprite s;
-
-        for (Nuke n : nukes) {
-            if (n == null) {
-                System.err.println("Nuke is null. LOL? It cannot be!");
-                continue;
-            }
-
-            if (n.isMove() && ((s = n.getSprite()) != null)) {
-                g.drawImage(s.image, s.x - x, s.y - y, null);
-            }
-        }
     }
     // </editor-fold>
 
@@ -253,6 +357,26 @@ public class GameField {
 
     public LinkedBlockingQueue<Tower> getTowers() {
         return towers;
+    }
+
+    /**
+     * Draw towers range.
+     * @params g graphics context for drawing in.
+     * @params x x-axis of top left screen position on world map.
+     * @params y y-axis of top left screen position on world map.
+     */
+    public void drawTowersRange(Graphics g, int x, int y) {
+        Point tPos;
+        double range;
+
+        for (Tower t : towers) {
+            tPos = t.getCurPos();
+            range = t.getRange();
+            g.drawOval(tPos.x - x - (int) range,
+                       tPos.y - y - (int) range,
+                       (int) range * 2,
+                       (int) range * 2);
+        }
     }
     // </editor-fold>
 
@@ -324,23 +448,6 @@ public class GameField {
         for (Iterator<HitAnimation> l = hitAnimations.iterator(); l.hasNext();) {
             if (l.next().isDone()) {
                 l.remove();
-            }
-        }
-    }
-
-    /**
-     * Draw hit animations.
-     * @params g graphics context for drawing in.
-     * @params x x-axis of top left screen position on world map.
-     * @params y y-axis of top left screen position on world map.
-     */
-    public void drawHitAnimation(Graphics g, int x, int y) {
-        Sprite s;
-
-        for (HitAnimation a : hitAnimations) {
-            if (!a.isDone()) {
-                s = a.getSprite(WanderingServerTime.getInstance().getTimeSinceStart());
-                g.drawImage(s.image, s.x - x, s.y - y, null);
             }
         }
     }
@@ -461,37 +568,6 @@ public class GameField {
         }
 
         selfExecutor.add("removeItem", new Class[]{ WItem.class }, new Object[]{ item });
-    }
-
-    /**
-     * Draw items.
-     * @params g graphics context for drawing in.
-     * @params x x-axis of top left screen position on world map.
-     * @params y y-axis of top left screen position on world map.
-     */
-    public void drawItems(Graphics g, int x, int y) {
-        Sprite s;
-
-        for (WItem item : items) {
-            s = item.getSprite();
-            if (s != null) {
-                g.drawImage(s.image,
-                            s.x - x - s.image.getWidth() / 2,
-                            s.y - y - s.image.getHeight() / 2,
-                            null);
-                g.drawString(item.getName() + "(" + item.getCount() + ")",
-                             s.x - x,
-                             s.y - y + 2 * s.image.getHeight());
-
-                // Point where item placed in world map and border around sprite
-                // image.
-                g.drawLine(s.x - x, s.y - y, s.x - x, s.y - y);
-                g.drawRect(s.x - x - s.image.getWidth() / 2 - 1,
-                           s.y - y - s.image.getHeight() / 2,
-                           s.image.getWidth() + 1,
-                           s.image.getHeight() + 1);
-            }
-        }
     }
     // </editor-fold>
 

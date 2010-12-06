@@ -69,19 +69,13 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 Point playerWorldPos = selfPlayer.getCurPos();
 
                 // Координаты верхнего левого угла экрана на карте.
-                int screenWorldX = screenWorldX = playerWorldPos.x - panelDim.width / 2;
-                int screenWorldY = screenWorldY = playerWorldPos.y - panelDim.height / 2;
+                int screenWorldX = playerWorldPos.x - panelDim.width / 2;
+                int screenWorldY = playerWorldPos.y - panelDim.height / 2;
 
-                // Text cloud contains the player message.
-                BufferedImage textCloud;
-
-                // Sprite for temporary storage purpose.
-                Sprite s = null;
-
+                // <editor-fold defaultstate="collapsed" desc="Draw map">
                 // Buffered image for temporary storage purpose.
                 BufferedImage img;
 
-                // <editor-fold defaultstate="collapsed" desc="Draw map">
                 ClientMapFragment curFragment, tmpFragment;
 
                 // Номера верхнего левого фрагмента карты, который должен быть виден
@@ -157,57 +151,25 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 }
                 g.drawString("" + _count, 10, 20);// </editor-fold>
 
-                // <editor-fold defaultstate="collapsed" desc="Draw info about selected unit.">
-                if (selfPlayer.getSelectedUnit() != null) {
-                    g.drawString("deathAnim: " + selfPlayer.getSelectedUnit().deathAnimationDone(), 10, panelDim.height - 110);
-                    g.drawString("dead: " + selfPlayer.getSelectedUnit().dead(), 10, panelDim.height - 90);
-                    g.drawString("isMove: " + selfPlayer.getSelectedUnit().isMove(), 10, panelDim.height - 70);
-                    g.drawString(selfPlayer.getSelectedUnit().getNick() + " (" + selfPlayer.getSelectedUnit().getID() + ")", 10, panelDim.height - 50);
-                    g.drawString("HP: " + selfPlayer.getSelectedUnit().getHitPoints(), 10, panelDim.height - 30);
-                }// </editor-fold>
+                field.drawAll(g, screenWorldX, screenWorldY);
 
-                field.drawItems(g, screenWorldX, screenWorldY);
+                field.drawTargetInfo(g, panelDim);
 
-                field.drawUnits(g, screenWorldX, screenWorldY);
+                //field.drawItems(g, screenWorldX, screenWorldY);
 
-                // <editor-fold defaultstate="collapsed" desc="Draw players text and other player-specifed things.">
-                for (Player p : field.getPlayers()) {
-                    s = p.getSprite();
-                    textCloud = p.getTextCloud();
-                    if (textCloud != null) {
-                        g.drawImage(textCloud,
-                                s.x - screenWorldX + s.image.getWidth(),
-                                s.y - screenWorldY,
-                                null);
-                    }
-                    if (showTowerRange && p.isMove()) {
-                        playerWorldPos = p.getCurPos();
-                        g.drawLine(playerWorldPos.x - screenWorldX,
-                                playerWorldPos.y - screenWorldY,
-                                p.getEnd().x - screenWorldX,
-                                p.getEnd().y - screenWorldY);
-                        g.drawOval(playerWorldPos.x - screenWorldX - 500,
-                                playerWorldPos.y - screenWorldY - 500,
-                                1000,
-                                1000);
-                    }
-                }
-                // </editor-fold>
+                //field.drawUnits(g, screenWorldX, screenWorldY);
 
-                // <editor-fold defaultstate="collapsed" desc="Draw towers range.">
+                field.drawTextClouds(g, screenWorldX, screenWorldY);
+
                 if (showTowerRange) {
-                    for (Tower t : field.getTowers()) {
-                        g.drawOval(t.getCurPos().x - screenWorldX - (int) t.getRange(),
-                                t.getCurPos().y - screenWorldY - (int) t.getRange(),
-                                (int) t.getRange() * 2,
-                                (int) t.getRange() * 2);
-                    }
+                    field.drawMoveTrack(g, screenWorldX, screenWorldY);
+                    field.drawVisibleRange(g, screenWorldX, screenWorldY);
+                    field.drawTowersRange(g, screenWorldX, screenWorldY);
                 }
-                // </editor-fold>
 
-                field.drawNukes(g, screenWorldX, screenWorldY);
+                //field.drawNukes(g, screenWorldX, screenWorldY);
 
-                field.drawHitAnimation(g, screenWorldX, screenWorldY);
+                //field.drawHitAnimation(g, screenWorldX, screenWorldY);
 
                 g.drawImage(geoDebugLayer, - screenWorldX, - screenWorldY, null);
 

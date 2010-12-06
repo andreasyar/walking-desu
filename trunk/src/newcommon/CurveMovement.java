@@ -14,7 +14,7 @@ public class CurveMovement extends Movement {
      */
     private final ArrayList<TrackPoint> track = new ArrayList<TrackPoint>();
 
-    // <editor-fold defaultstate="collapsed" desc="Position">
+    // <editor-fold defaultstate="expanded" desc="Position">
     /**
      * Возвращает X-координату начальной точки траектории движения.
      * @return X-координата начальной точки траектории движения.
@@ -72,7 +72,7 @@ public class CurveMovement extends Movement {
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Time">
+    // <editor-fold defaultstate="expanded" desc="Time">
     /**
      * Возвращает время начала движения.
      * @return Время начала движения.
@@ -102,7 +102,7 @@ public class CurveMovement extends Movement {
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Speed">
+    // <editor-fold defaultstate="expanded" desc="Speed">
     /**
      * Возвращает скорость движения.
      * @return скорость движения.
