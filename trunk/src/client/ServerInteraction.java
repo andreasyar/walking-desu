@@ -2,6 +2,7 @@ package client;
 
 import common.BoltMessage;
 import common.GoldCoinMessage;
+import common.WPickupMessage;
 import java.awt.Point;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
@@ -23,6 +24,7 @@ import common.MessageType;
 import common.MoveMessage;
 
 import common.WanderingServerTime;
+import java.io.ObjectOutputStream;
 
 public class ServerInteraction {
     public static long serverStartTime = 0;
@@ -30,8 +32,9 @@ public class ServerInteraction {
     private Socket serverSocket = null;
     private PrintWriter out = null;
     private BufferedReader in = null;
-    private final LinkedBlockingDeque<String> commands = new LinkedBlockingDeque<String>();
+    private final LinkedBlockingDeque<Message> commands = new LinkedBlockingDeque<Message>();
     private Executor executor;
+    private ObjectOutputStream oos = null;
     
     private GameField field;
 
@@ -40,6 +43,7 @@ public class ServerInteraction {
             serverSocket = new Socket(ip, port);
             out = new PrintWriter(new OutputStreamWriter(serverSocket.getOutputStream(), "UTF-8"), true);
             in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF-8"));
+            oos = new ObjectOutputStream(serverSocket.getOutputStream());
         } catch (UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
@@ -57,23 +61,11 @@ public class ServerInteraction {
         synchronized(commands) {
             commands.clear();
             command = "(hello)";
-            out.println(command);
+            oos.writeObject(new OtherMessage(command));
             System.out.println("--> " + command);
             command = "(nick \"" + nick + "\")";
-            out.println(command);
+            oos.writeObject(new OtherMessage(command));
             System.out.println("--> " + command);
-
-            /*try {
-                command = in.readLine();
-                System.out.println("<-- " + command);
-                commandHandler(command);
-                if (field.getSelfPlayer() == null) {
-                    throw new Exception("Self player was not created. May be server was not respond correctly. ");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }*/
         }
         executor.execute(new ServerReaderTask());
         executor.execute(new ServerWriterTask());
@@ -81,7 +73,7 @@ public class ServerInteraction {
 
     public void addCommand(String command) {
         synchronized(commands) {
-            commands.offer(command);
+            commands.offer(new OtherMessage(command));
             commands.notify();
         }
     }
@@ -301,17 +293,25 @@ public class ServerInteraction {
         }
     }
 
+    void addCommand(Message m) {
+        synchronized(commands) {
+            commands.offer(m);
+            commands.notify();
+        }
+    }
+
     private class ServerWriterTask extends SwingWorker<Void, Void> {
         @Override
         protected Void doInBackground() {
-            String command;
+            Message command;
 
             try {
                 while (serverSocket.isConnected()) {
                     synchronized(commands) {
                         while (commands.size() > 0) {
                             command = commands.poll();
-                            out.println(command);
+                            oos.writeObject(command);
+                            oos.reset();
                             //System.out.println("--> " + command);
                         }
                         try {
@@ -323,7 +323,7 @@ public class ServerInteraction {
                 out.close();
                 in.close();
                 serverSocket.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 

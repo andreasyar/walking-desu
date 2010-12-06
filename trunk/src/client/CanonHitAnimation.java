@@ -1,6 +1,8 @@
 package client;
 
 import common.WanderingServerTime;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 
 public class CanonHitAnimation extends HitAnimation {
@@ -57,6 +59,14 @@ public class CanonHitAnimation extends HitAnimation {
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
             return tmpSpr;
+        }
+    }
+
+    @Override
+    public void draw(Graphics g, int x, int y, Dimension d) {
+        Sprite s = getSprite();
+        if (!isDone()) {
+            g.drawImage(s.image, s.x - x, s.y - y, null);
         }
     }
 }

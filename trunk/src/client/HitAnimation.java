@@ -1,5 +1,7 @@
 package client;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 
 public abstract class HitAnimation implements WDrawable {
@@ -15,10 +17,16 @@ public abstract class HitAnimation implements WDrawable {
         this.direction = direction;
     }
 
-    @Override
     public abstract Sprite getSprite();
 
     public boolean isDone() {
         return done;
+    }
+
+    @Override
+    public abstract void draw(Graphics g, int x, int y, Dimension d);
+
+    public Point getCurPos() {
+        return curPos;
     }
 }

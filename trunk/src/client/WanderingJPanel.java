@@ -1,5 +1,6 @@
 package client;
 
+import common.WPickupMessage;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -20,6 +21,10 @@ import javax.swing.JPanel;
 
 import common.WanderingServerTime;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 public class WanderingJPanel extends JPanel implements KeyListener, MouseListener, ComponentListener {
 
@@ -40,6 +45,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     private boolean showGeoDataTypes = false;
 
+    private final ArrayList<ArrayList<WDrawable>> zbuffer;
+
     /**
      * Tower build delay.
      */
@@ -53,6 +60,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     public WanderingJPanel(GameField field, ServerInteraction inter) {
         this.field = field;
         this.inter = inter;
+        zbuffer = new ArrayList<ArrayList<WDrawable>>();
     }
 
     @Override
@@ -151,7 +159,18 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 }
                 g.drawString("" + _count, 10, 20);// </editor-fold>
 
-                field.drawAll(g, screenWorldX, screenWorldY);
+                //field.drawAll(g, screenWorldX, screenWorldY, panelDim);
+                field.recalcUnitsZ(zbuffer, screenWorldX, screenWorldY);
+                for (ArrayList<WDrawable> l : zbuffer) {
+                    for (WDrawable d : l) {
+                        d.draw(g, screenWorldX, screenWorldY, panelDim);
+                    }
+                }
+                synchronized (zbuffer) {
+                    for (int i = 0; i < panelDim.height; i++) {
+                        zbuffer.get(i).clear();
+                    }
+                }
 
                 field.drawTargetInfo(g, panelDim);
 
@@ -212,6 +231,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 Polygon poly;
                 WUnit unit;
                 Sprite spr;
+                boolean pickup = false;
 
                 if (selectMode) {
                     for (Iterator<WUnit> li = field.getUnits().iterator(); li.hasNext();) {
@@ -229,8 +249,19 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                             break;
                         }
                     }
+
+                    WItem w = null;
+                    if ( (w = field.onItemSprite(x + screenWorldX, y + screenWorldY)) != null) {
+                        if (field.distanceToItem(w) <= 100) {
+                            field.asyncRemoveItem(w);
+                            pickup = true;
+                            inter.addCommand(new WPickupMessage(w.getID()));
+                        } else {
+                            // we move to item if we can. See below.
+                        }
+                    }
                 }
-                if (!selected) {
+                if (!selected && !pickup) {
                     Point p = new Point(x + screenWorldX, y + screenWorldY);
                     Point cur = field.getSelfPlayer().getCurPos();
                     poly = new Polygon();
@@ -295,6 +326,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         }*/
 
         panelDim = d;
+        synchronized (zbuffer) {
+            zbuffer.clear();
+            for (int i = 0; i < d.height; i++) {
+                zbuffer.add(new ArrayList<WDrawable>());
+            }
+        }
     }
 
     @Override

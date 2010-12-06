@@ -1,5 +1,6 @@
 package client;
 
+import java.awt.Graphics;
 import java.awt.Point;
 
 public class MovementAnimation {
@@ -25,6 +26,8 @@ public class MovementAnimation {
         tmpSpr = set.getSprite(direct, (int) stepCount % period);
         tmpSpr.x = cur.x - tmpSpr.image.getWidth() / 2;
         tmpSpr.y = cur.y - tmpSpr.image.getHeight();
+        tmpSpr.baseX = cur.x;
+        tmpSpr.baseY = cur.y;
         return tmpSpr;
     }
 
