@@ -40,6 +40,11 @@ public abstract class WUnit extends Unit implements WDrawable {
 
     private FontMetrics metrics = null;
 
+    /**
+     * Selected item. Item what we want to pick up.
+     */
+    protected WItem selectedItem = null;
+
     public WUnit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
 
         super();
@@ -267,5 +272,48 @@ public abstract class WUnit extends Unit implements WDrawable {
     public boolean isAttack() {
         return useAnim != null && !useAnim.isStoped();
     }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Selected item">
+    /**
+     * Returns selected item.
+     * @return Selected item.
+     */
+    public WItem getSelectedItem() {
+        return selectedItem;
+    }
+
+    /**
+     * Selects <i>item</i>.
+     * @param item New selected item.
+     */
+    public void selectItem(WItem item) {
+        this.selectedItem = item;
+    }
+
+    /**
+     * Unselect item.
+     */
+    public void unselectItem() {
+        selectItem(null);
+    }
+
+    /**
+     * Return is item selected or not.
+     * @return Is item selected or not.
+     */
+    public boolean isItemSelected() {
+        return selectedItem == null;
+    }
+
+    /**
+     * Unlesect <i>item</i> if it selected. If anoter item selected do nothig.
+     * @param item Item to unselect.
+     */
+    public void unselectItem(WItem item) {
+            if (selectedItem == item) {
+                selectedItem = null;
+            }
+        }
     // </editor-fold>
 }

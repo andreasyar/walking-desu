@@ -1,5 +1,6 @@
 package client;
 
+import common.WPickupMessage;
 import common.WanderingServerTime;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -17,9 +18,13 @@ import java.util.Iterator;
 
 public class GameField {
 
+    private static int debugLevel = 0;
+
     public static double visibleDistance = 500.0;
+    public static double pickupDistance = 50.0;
 
     private Player selfPlayer;
+    private PickupTask pickupTask;
     private final LinkedBlockingQueue<WUnit> units = new LinkedBlockingQueue<WUnit>();
     private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
     private final LinkedBlockingQueue<Nuke> nukes = new LinkedBlockingQueue<Nuke>();
@@ -187,6 +192,14 @@ public class GameField {
                          d.height - 50);
             g.drawString("HP: " + t.getHitPoints(),
                          10,
+                         d.height - 30);
+        }
+    }
+
+    public void drawGoldCount(Graphics g, Dimension d) {
+        if (selfPlayer != null) {
+            g.drawString("Gold: " + selfPlayer.getGoldCount(),
+                         100,
                          d.height - 30);
         }
     }
@@ -573,7 +586,6 @@ public class GameField {
             items.add(item);
         }
     }
-
     /**
      * Asynchronously add item to items queue.
      * @param item New item to add to queue.
@@ -593,7 +605,6 @@ public class GameField {
     public void removeItem(WItem item) {
         items.remove(item);
     }
-
     /**
      * Synchronously remove item from items queue.
      * @param item Item to remove from queue.
@@ -606,7 +617,6 @@ public class GameField {
 
         selfExecutor.add("removeItem", new Class[]{ WItem.class }, new Object[]{ item });
     }
-
     /**
      * Check if x, y lay on some item sprite.
      */
@@ -622,11 +632,84 @@ public class GameField {
 
         return null;
     }
-
-    public double distanceToItem(WItem i) {
-        Polygon p = i.getDimensionOnWorld();
+    /**
+     * Calculate distace from self player to item <i>item</i>.
+     * @param item Item.
+     */
+    public double distanceToItem(WItem item) {
+        Polygon p = item.getDimensionOnWorld();
         Point cur = selfPlayer.getCurPos();
         return Point.distance(p.xpoints[0], p.ypoints[0], cur.x, cur.y);
+    }
+    /**
+     * Cause self player to pickup <i>item</i>.
+     * @param item Item to pickup.
+     * @param inter Server interaction instance to report server about our pickup
+     * try.
+     */
+    public void pickupItem(WItem item, ServerInteraction inter) {
+
+        // <editor-fold defaultstate="collapsed" desc="debug">
+        if (debugLevel > 0) {
+            if (item == null) {
+                System.out.println("We try to pickup far NULL item!");
+            }
+            System.out.println("We try to pickup far item " + item.getID() + ".");
+        }// </editor-fold>
+
+        if (pickupTask != null) {
+
+            // <editor-fold defaultstate="collapsed" desc="debug">
+            if (debugLevel > 0) {
+                System.out.println("Pickup far item " + pickupTask.getItemID() + " process already in progress. Stop it.");
+            }// </editor-fold>
+
+            pickupTask.stop();
+        }
+        pickupTask = new PickupTask(item, inter);
+        new Thread(pickupTask).start();
+    }
+    /**
+     * Detect if pickup in progress.
+     */
+    public boolean isPickup() {
+        return pickupTask != null;
+    }
+    /**
+     * Stop pickup process.
+     */
+    public void stopPickup() {
+        if (pickupTask != null) {
+            pickupTask.stop();
+            selfPlayer.unselectItem();
+        }
+    }
+
+    public WItem getNearestItem() {
+        WItem nearest = null;
+        double nearestDistance = -1.0;
+        double curDistance = 0.0;
+
+        for (WItem i : items) {
+            curDistance = distanceToItem(i);
+
+            if (nearestDistance < 0.0 || curDistance < nearestDistance) {
+                nearestDistance = curDistance;
+                nearest = i;
+            }
+        }
+
+        return nearest;
+    }
+
+    public WItem getItem(long itemID) {
+        for (WItem item : items) {
+            if (item.getID() == itemID) {
+                return item;
+            }
+        }
+
+        return null;
     }
     // </editor-fold>
 
@@ -673,7 +756,7 @@ public class GameField {
         public void add(String method, Class[] paramTypes, Object[] args) {
             try {
                 Method m = field.getClass().getMethod(method, paramTypes);
-                m.setAccessible(true);
+                //m.setAccessible(true);
                 q.add(new Invokable(m, args));
                 wakeup();
             } catch (NoSuchMethodException ex) {
@@ -749,6 +832,91 @@ public class GameField {
                 this.method = method;
                 this.args = args;
             }
+        }
+    }
+
+    private class PickupTask implements Runnable {
+
+        private final WItem item;
+        private final ServerInteraction inter;
+        private boolean stopped = false;
+
+        public PickupTask(WItem item, ServerInteraction inter) throws IllegalArgumentException {
+            if (item == null) {
+                throw new IllegalArgumentException("Item cannot be null!");
+            }
+            if (inter == null) {
+                throw new IllegalArgumentException("Server interaction cannot be null!");
+            }
+
+            this.item = item;
+            this.inter = inter;
+        }
+
+        public void stop() {
+            stopped = true;
+        }
+
+        @Override
+        public void run() {
+            double distance;
+            stopped = false;
+
+            while (!stopped && (distance = item.getCurPos().distance(selfPlayer.getCurPos())) > 10) {
+
+                // <editor-fold defaultstate="collapsed" desc="debug">
+                if (debugLevel > 0) {
+                    System.out.println("Item " + getItemID() + " still far: " + distance + ".");
+                }// </editor-fold>
+
+                try {
+                    synchronized (this) {
+                        wait(500L);
+                    }
+                } catch (InterruptedException ex) {
+
+                    // <editor-fold defaultstate="collapsed" desc="debug">
+                    if (debugLevel > 0) {
+                        System.out.println("We was interrupted.");
+                    }// </editor-fold>
+
+                    if ((distance = item.getCurPos().distance(selfPlayer.getCurPos())) > 10) {
+                        asyncRemoveItem(item);
+                        inter.addCommand(new WPickupMessage(item.getID()));
+                        selfPlayer.unselectItem(item);
+
+                        // <editor-fold defaultstate="collapsed" desc="debug">
+                        if (debugLevel > 0) {
+                            System.out.println("We pickup far item " + getItemID() + ".");
+                        }// </editor-fold>
+
+                    }
+                    return;
+                }
+            }
+
+            if (!stopped) {
+                asyncRemoveItem(item);
+                inter.addCommand(new WPickupMessage(item.getID()));
+                selfPlayer.unselectItem(item);
+
+                // <editor-fold defaultstate="collapsed" desc="debug">
+                if (debugLevel > 0) {
+                    System.out.println("We pickup far item " + getItemID() + ".");
+                }// </editor-fold>
+
+            } else {
+                selfPlayer.unselectItem(item);
+
+                // <editor-fold defaultstate="collapsed" desc="debug">
+                if (debugLevel > 0) {
+                    System.out.println("We was stopped.");
+                }// </editor-fold>
+            }
+        }
+
+        private long getItemID() {
+            return item.getID();
         }
     }
 }
