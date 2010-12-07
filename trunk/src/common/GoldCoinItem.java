@@ -13,4 +13,14 @@ public class GoldCoinItem extends MultiItem {
         super(id, "Gold");
         setCount(count);
     }
+
+    @Override
+    public Message getMessage() {
+        return new GoldCoinMessage(getID(), getX(), getY(), getCount());
+    }
+
+    @Override
+    public Message getPickupMessage() {
+        return new PickupGoldCoinItem(getID(), getCount());
+    }
 }

@@ -22,6 +22,7 @@ import common.HMapMessage;
 import common.OtherMessage;
 import common.MessageType;
 import common.MoveMessage;
+import common.PickupGoldCoinItem;
 
 import common.WanderingServerTime;
 import java.io.ObjectOutputStream;
@@ -233,7 +234,19 @@ public class ServerInteraction {
                 field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime + self.getNukeAnimationDelay());
                 WanderingLocks.unlockNukes();
             }*/
+        } else if ("delitem".equals(pieces1[0])) {
+
+            WItem item = field.getItem(Long.parseLong(pieces1[1]));
+            if (item != null) {
+                field.asyncRemoveItem(item);
+            }
+
+        } else if ("delitemfrominv".equals(pieces1[0])) {
+
+            field.getSelfPlayer().removeItemFromInventory(Long.parseLong(pieces1[1]));
+
         }
+
     }
 
     private void commandHandler(Message m) {
@@ -290,10 +303,17 @@ public class ServerInteraction {
             g.setOnGround(true);
             field.addItem(g);
 
+        } else if (m.getType() == MessageType.PICKUPGOLDCOIN) {
+
+            PickupGoldCoinItem tmpMessage = (PickupGoldCoinItem) m;
+            WGoldCoinItem g = new WGoldCoinItem(tmpMessage.getId(),
+                                                tmpMessage.getCount());
+            field.getSelfPlayer().addItemToInventory(g);
+
         }
     }
 
-    void addCommand(Message m) {
+    public void addCommand(Message m) {
         synchronized(commands) {
             commands.offer(m);
             commands.notify();
@@ -346,7 +366,7 @@ public class ServerInteraction {
                     messages = (LinkedBlockingQueue<Message>) ois.readObject();
                     for (Message m : messages) {
                         command = m;
-                        //System.out.println("<-- " + command);
+                        System.out.println("<-- " + command);
                         try {
                             commandHandler(command);
                             if (field.getSelfPlayer() == null) {

@@ -117,4 +117,8 @@ public abstract class Item {
     public Point getCurPos() {
         return new Point(x, y);
     }
+
+    public abstract Message getMessage();
+
+    public abstract Message getPickupMessage();
 }

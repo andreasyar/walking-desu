@@ -20,7 +20,7 @@ public class WalkingDesu {
 
         field.addMapFragment(new ClientMapFragment(0, 0, new int[][]{}));
 
-        WGoldCoinItem g = new WGoldCoinItem(0L, 9);
+        /*WGoldCoinItem g = new WGoldCoinItem(0L, 9);
         g.setOnGround(true);
         g.setX(100);
         g.setY(100);
@@ -29,7 +29,7 @@ public class WalkingDesu {
         g.setOnGround(true);
         g.setX(200);
         g.setY(100);
-        field.asyncAddItem(g);
+        field.asyncAddItem(g);*/
 
         Executor executor = Executors.newCachedThreadPool();
         ServerInteraction inter = new ServerInteraction(field, executor, args[0], Integer.parseInt(args[1]));

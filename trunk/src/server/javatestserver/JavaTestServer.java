@@ -1,6 +1,7 @@
 package server.javatestserver;
 
 import common.BoltMessage;
+import common.GoldCoinItem;
 import common.GoldCoinMessage;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,6 +20,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import common.HMapMessage;
 import common.HitMessage;
+import common.Item;
 import common.Message;
 import common.MessageType;
 import common.MoveMessage;
@@ -43,6 +45,7 @@ public class JavaTestServer {
     private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
     private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
     private final LinkedBlockingQueue<Tower> towers = new LinkedBlockingQueue<Tower>();
+    private final LinkedBlockingQueue<Item> items = new LinkedBlockingQueue<Item>();
     private final ArrayList<MapFragment> mapfragments = new ArrayList<MapFragment>();
     private final int tdMonsterLossLimit = 100;
     private int tdMonsterLoss = 0;
@@ -70,7 +73,7 @@ public class JavaTestServer {
         c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));
         TowerController t = new TowerController();
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
-        vm = new VisibleManager(players, towers, monsters, this);
+        vm = new VisibleManager(players, towers, monsters, items, this);
         executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
         GeoDataController gdController = new GeoDataController(players);
         gdController.setScheduledFuture(executor.scheduleAtFixedRate(gdController, 0L, 200L, TimeUnit.MILLISECONDS));
@@ -291,6 +294,20 @@ public class JavaTestServer {
 
                             WPickupMessage tmpMsg = ((WPickupMessage) message);
                             System.out.println(s.getInetAddress() + " --> " + tmpMsg);
+                            for (Item i : items) {
+                                if (i.getID() == tmpMsg.getId()) {
+                                    items.remove(i);
+                                    self.addItemToInventory(i);
+                                    sendTo(i.getPickupMessage(), self);
+                                    for (Player p : players) {
+                                        if (p.see(i)) {
+                                            p.delVisibleItem(i);
+                                            sendTo("(delitem " + i.getID() + ")", p);
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
                             continue readNextMessage;
 
                         default:
@@ -574,8 +591,17 @@ public class JavaTestServer {
                                 vm.killMonster((Monster) target);
                             } else if (players.contains(target)) {
                                 Player p = (Player) target;
+                                GoldCoinItem gold = p.vipeGold();
+                                if (gold != null) {
+                                    sendTo("(delitemfrominv " + gold.getID() + ")", p);
+                                    gold.setX(p.getCurPos().x);
+                                    gold.setY(p.getCurPos().y);
+                                    gold.setOnGround(true);
+                                    items.add(gold);
+                                }
                                 p.restoreHitPoints();
                                 p.teleportToSpawn();
+                                sendToAll(new String[] { "(teleport " + p.getID() + " " + p.getCurPos().x + " " + p.getCurPos().y + ")" });
                                 vm.killPlayer(p);
                             }
                         }
@@ -742,10 +768,18 @@ public class JavaTestServer {
 
                     if (isDead) {
                         mCurPos = m.getCurPos();
-                        sendToAll(new Message[] { new GoldCoinMessage(curPlayerID++,
-                                                                      mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10,
-                                                                      mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10,
-                                                                      1 + rand.nextInt(100)) });
+
+                        // Drop coins.
+                        GoldCoinItem coins = new GoldCoinItem(curPlayerID++, 1 + rand.nextInt(100));
+                        coins.setX(mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10);
+                        coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
+                        coins.setOnGround(true);
+                        items.add(coins);
+                        /*sendToAll(new Message[] { new GoldCoinMessage(coins.getID(),
+                                                                      coins.getX(),
+                                                                      coins.getY(),
+                                                                      coins.getCount()) });*/
+
                         units.remove(m);
                         monsters.remove(m);
                         li.remove();

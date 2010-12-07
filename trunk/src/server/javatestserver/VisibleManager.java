@@ -1,5 +1,8 @@
 package server.javatestserver;
 
+import common.GoldCoinMessage;
+import common.Item;
+import common.Message;
 import common.MoveMessage;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -10,12 +13,14 @@ public class VisibleManager implements Runnable {
     private final LinkedBlockingQueue<Player> players;
     private final LinkedBlockingQueue<Tower> towers;
     private final LinkedBlockingQueue<Monster> monsters;
+    private final LinkedBlockingQueue<Item> items;
     private final JavaTestServer server;
 
-    public VisibleManager(LinkedBlockingQueue<Player> players, LinkedBlockingQueue<Tower> towers, LinkedBlockingQueue<Monster> monsters, JavaTestServer server) {
+    public VisibleManager(LinkedBlockingQueue<Player> players, LinkedBlockingQueue<Tower> towers, LinkedBlockingQueue<Monster> monsters, LinkedBlockingQueue<Item> items, JavaTestServer server) {
         this.players = players;
         this.towers = towers;
         this.monsters = monsters;
+        this.items = items;
         this.server = server;
     }
 
@@ -151,7 +156,21 @@ public class VisibleManager implements Runnable {
                     p1.delVisibleUnit(m);
                     server.sendTo("(delmonster " + m.getID() + ")", p1);
                 }
-            }
+            }//monsters
+
+            for (Item i : items) {
+                if (p1.inRange(i) && !p1.see(i)) {
+
+                    // Игрок увидел итем.
+                    p1.addVisibleItem(i);
+                    server.sendTo(i.getMessage(), p1);
+                } else if (!p1.inRange(i) && p1.see(i)) {
+
+                    // Игрок больше не видит этот итем.
+                    p1.delVisibleItem(i);
+                    server.sendTo("(delitem " + i.getID() + ")", p1);
+                }
+            }//items
         }
     }
 
