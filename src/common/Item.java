@@ -121,4 +121,8 @@ public abstract class Item {
     public abstract Message getMessage();
 
     public abstract Message getPickupMessage();
+
+    public abstract void addToInventory(Inventory inv);
+
+    public abstract Message getAddToInvenrotyMessage();
 }

@@ -8,5 +8,9 @@ public enum MessageType {
     GOLDCOIN,
     WPICKUP,
     PICKUPGOLDCOIN,
-    OTHER;
+    OTHER,
+    ADDGOLDCOIN,
+    DELGOLDCOIN,
+    DROPGOLDCOIN,
+    PICKUP;
 }

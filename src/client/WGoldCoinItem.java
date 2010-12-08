@@ -1,6 +1,6 @@
 package client;
 
-import common.GoldCoinItem;
+import common.GoldCoin;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Polygon;
@@ -8,7 +8,7 @@ import java.awt.Polygon;
 /**
  * Gold coin(s) for client.
  */
-public class WGoldCoinItem extends GoldCoinItem implements WItem, WDrawable {
+public class WGoldCoinItem extends GoldCoin implements WItem, WDrawable {
 
     private LayGroundAnimation animation;
 

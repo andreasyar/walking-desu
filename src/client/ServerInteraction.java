@@ -25,6 +25,10 @@ import common.MoveMessage;
 import common.PickupGoldCoinItem;
 
 import common.WanderingServerTime;
+import common.messages.AddGoldCoin;
+import common.messages.DelGoldCoin;
+import common.messages.DropGoldCoin;
+import common.messages.Pickup;
 import java.io.ObjectOutputStream;
 
 public class ServerInteraction {
@@ -309,6 +313,37 @@ public class ServerInteraction {
             WGoldCoinItem g = new WGoldCoinItem(tmpMessage.getId(),
                                                 tmpMessage.getCount());
             field.getSelfPlayer().addItemToInventory(g);
+
+        } else if (m.getType() == MessageType.ADDGOLDCOIN) {
+
+            AddGoldCoin tmpMsg = (AddGoldCoin) m;
+            field.getSelfPlayer().getInventory().addGoldCoin(tmpMsg.getId(), tmpMsg.getCount());
+
+        } else if (m.getType() == MessageType.DELGOLDCOIN) {
+
+            DelGoldCoin tmpMsg = (DelGoldCoin) m;
+            field.getSelfPlayer().getInventory().delGoldCoin(tmpMsg.getId(), tmpMsg.getCount());
+
+        } else if (m.getType() == MessageType.PICKUP) {
+
+            // TODO Not only players can pickup items!
+            Pickup tmpMsg = (Pickup) m;
+            Player p = field.getPlayer(tmpMsg.getPickerId());
+            WItem i = field.getItem(tmpMsg.getItemId());
+            if (p != null && i != null) {
+                p.pickup(i);
+                field.asyncRemoveItem(i);
+            }
+
+        } else if (m.getType() == MessageType.DROPGOLDCOIN) {
+
+            DropGoldCoin tmpMsg = (DropGoldCoin) m;
+            WGoldCoinItem g = new WGoldCoinItem(tmpMsg.getId(),
+                                                tmpMsg.getCount());
+            g.setX(tmpMsg.getX());
+            g.setY(tmpMsg.getY());
+            g.setOnGround(true);
+            field.addItem(g);
 
         }
     }

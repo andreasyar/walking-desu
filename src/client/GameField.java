@@ -196,9 +196,14 @@ public class GameField {
         }
     }
 
-    public void drawGoldCount(Graphics g, Dimension d) {
+    /**
+     * Draws gold coins count in clients inventory.
+     * @params g graphics context for drawing in.
+     * @params d drawing panel dimenstions.
+     */
+    public void drawGoldCoinCount(Graphics g, Dimension d) {
         if (selfPlayer != null) {
-            g.drawString("Gold: " + selfPlayer.getGoldCount(),
+            g.drawString("Gold coins: " + selfPlayer.getInventory().getGoldCoinCount(),
                          100,
                          d.height - 30);
         }
