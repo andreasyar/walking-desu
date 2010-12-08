@@ -1,7 +1,7 @@
 package server.javatestserver;
 
 import common.BoltMessage;
-import common.GoldCoinItem;
+import common.GoldCoin;
 import common.GoldCoinMessage;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -28,6 +28,7 @@ import common.Movement;
 import common.OtherMessage;
 import common.WPickupMessage;
 import common.WanderingServerTime;
+import common.messages.Pickup;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -274,7 +275,6 @@ public class JavaTestServer {
                 System.exit(1);
             }
 
-            readNextMessage:
             while (!s.isClosed()) {
 
                 String line = null;
@@ -284,36 +284,59 @@ public class JavaTestServer {
                     //line = br.readLine();
                     message = (Message) ois.readObject();
 
-                    switch (message.getType()) {
-                        case OTHER:
+                    if (message.getType() == MessageType.OTHER) {
 
-                            line = ((OtherMessage) message).getMessage();
-                            break;
+                        line = ((OtherMessage) message).getMessage();
 
-                        case WPICKUP:
+                    } else if (message.getType() == MessageType.WPICKUP) {
 
-                            WPickupMessage tmpMsg = ((WPickupMessage) message);
-                            System.out.println(s.getInetAddress() + " --> " + tmpMsg);
-                            for (Item i : items) {
-                                if (i.getID() == tmpMsg.getId()) {
-                                    items.remove(i);
-                                    self.addItemToInventory(i);
-                                    sendTo(i.getPickupMessage(), self);
-                                    for (Player p : players) {
-                                        if (p.see(i)) {
-                                            p.delVisibleItem(i);
-                                            sendTo("(delitem " + i.getID() + ")", p);
-                                        }
+                        WPickupMessage tmpMsg = ((WPickupMessage) message);
+                        System.out.println(s.getInetAddress() + " --> " + tmpMsg);
+                        for (Item i : items) {
+                            if (i.getID() == tmpMsg.getId()) {
+                                items.remove(i);
+                                self.addItemToInventory(i);
+                                sendTo(i.getPickupMessage(), self);
+                                for (Player p : players) {
+                                    if (p.see(i)) {
+                                        p.delVisibleItem(i);
+                                        sendTo("(delitem " + i.getID() + ")", p);
                                     }
-                                    break;
                                 }
+                                break;
                             }
-                            continue readNextMessage;
+                        }
+                        break;
 
-                        default:
+                    } else if (message.getType() == MessageType.PICKUP) {
 
-                            System.err.println("Unknown message type.");
-                            System.exit(1);
+                        // We ignore pickerId because we expect what all PICKUP
+                        // messages sends from self player.
+                        
+                        Pickup tmpMsg = ((Pickup) message);
+                        Item tmpItem = null;
+                        for (Item i : items) {
+                            if (i.getID() == tmpMsg.getItemId()) {
+                                tmpItem = i;
+                                break;
+                            }
+                        }
+                        if (tmpItem != null) {
+
+                            // We can pickup this item.
+                            // TODO lol may be some check if we actually can pickup?
+
+                            items.remove(tmpItem);
+                            sendToAll(new Message[] {new Pickup(self.getID(), tmpItem.getID())});
+                            tmpItem.addToInventory(self.getInventory());
+                            sendTo(tmpItem.getPickupMessage(), self);
+                        }
+
+                    } else {
+
+                        System.err.println("Unknown message type.");
+                        System.exit(1);
+
                     }
 
                 } catch (IOException e) {
@@ -591,7 +614,7 @@ public class JavaTestServer {
                                 vm.killMonster((Monster) target);
                             } else if (players.contains(target)) {
                                 Player p = (Player) target;
-                                GoldCoinItem gold = p.vipeGold();
+                                GoldCoin gold = p.vipeGold();
                                 if (gold != null) {
                                     sendTo("(delitemfrominv " + gold.getID() + ")", p);
                                     gold.setX(p.getCurPos().x);
@@ -770,7 +793,7 @@ public class JavaTestServer {
                         mCurPos = m.getCurPos();
 
                         // Drop coins.
-                        GoldCoinItem coins = new GoldCoinItem(curPlayerID++, 1 + rand.nextInt(100));
+                        GoldCoin coins = new GoldCoin(curPlayerID++, 1 + rand.nextInt(100));
                         coins.setX(mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         coins.setOnGround(true);

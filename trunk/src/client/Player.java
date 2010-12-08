@@ -1,6 +1,6 @@
 package client;
 
-import common.GoldCoinItem;
+import common.GoldCoin;
 import common.MultiItem;
 import java.util.ArrayList;
 
@@ -8,7 +8,9 @@ public class Player extends WUnit {
 
     private PickupAnimation pickupAnim;
 
-    private final ArrayList<WItem> inventory = new ArrayList<WItem>();
+    private final ArrayList<WItem> inv = new ArrayList<WItem>();
+
+    private final WInventory inventory = new WInventory();
 
     public Player(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         super(id, nick, maxHitPoints, speed, x, y, d, set);
@@ -63,12 +65,12 @@ public class Player extends WUnit {
     }
 
     public void addItemToInventory(WItem item) {
-        System.out.println(inventory.size() + " items in inventory.");
+        System.out.println(inv.size() + " items in inventory.");
 
         if (item instanceof MultiItem) {
             if (item instanceof WGoldCoinItem) {
                 WGoldCoinItem newCoins = (WGoldCoinItem) item;
-                for (WItem i : inventory) {
+                for (WItem i : inv) {
                     if (i instanceof WGoldCoinItem) {
                         WGoldCoinItem invCoins = (WGoldCoinItem) i;
                         invCoins.setCount(invCoins.getCount() + newCoins.getCount());
@@ -77,17 +79,17 @@ public class Player extends WUnit {
                 }
 
                 // not found!
-                synchronized (inventory) {
-                    inventory.add(item);
+                synchronized (inv) {
+                    inv.add(item);
                 }
             } else {
-                synchronized (inventory) {
-                    inventory.add(item);
+                synchronized (inv) {
+                    inv.add(item);
                 }
             }
         } else {
-            synchronized (inventory) {
-                inventory.add(item);
+            synchronized (inv) {
+                inv.add(item);
             }
         }
     }
@@ -95,7 +97,7 @@ public class Player extends WUnit {
     public int getGoldCount() {
         int count = 0;
 
-        for (WItem item : inventory) {
+        for (WItem item : inv) {
             if (item instanceof MultiItem) {
                 if (item instanceof WGoldCoinItem) {
                     WGoldCoinItem invCoins = (WGoldCoinItem) item;
@@ -110,7 +112,7 @@ public class Player extends WUnit {
     public void removeItemFromInventory(long itemID) {
         WItem toRemove = null;
 
-        for (WItem i : inventory) {
+        for (WItem i : inv) {
             if (i.getID() == itemID) {
                 toRemove = i;
                 break;
@@ -118,11 +120,25 @@ public class Player extends WUnit {
         }
 
         if (toRemove != null) {
-            synchronized (inventory) {
-                inventory.remove(toRemove);
+            synchronized (inv) {
+                inv.remove(toRemove);
             }
         } else {
             System.err.println("Item " + itemID + " not found in inventory.");
+        }
+    }
+
+    public WInventory getInventory() {
+        return inventory;
+    }
+
+    /**
+     * Pickup item <i>i</i>.
+     * @param i item.
+     */
+    public void pickup(WItem i) {
+        if (pickupAnim != null) {
+            // play pickup animation here.
         }
     }
 }

@@ -1,6 +1,7 @@
 package server.javatestserver;
 
-import common.GoldCoinItem;
+import common.GoldCoin;
+import common.Inventory;
 import common.Item;
 import common.MultiItem;
 import java.util.ArrayList;
@@ -9,8 +10,10 @@ public class Player extends JTSUnit {
 
     private final ArrayList<JTSUnit> visibleUnits = new ArrayList<JTSUnit>();
     private final ArrayList<Item> visibleItems = new ArrayList<Item>();
-    private final ArrayList<Item> inventory = new ArrayList<Item>();
+    private final ArrayList<Item> inv = new ArrayList<Item>();
     private static final double visibleRange = 500.0;
+
+    private final Inventory inventory = new Inventory();
 
     public Player(long id, String nick, int maxHitPoints, int x, int y, double speed) {
         super(id, nick, maxHitPoints, x, y, speed);
@@ -107,48 +110,56 @@ public class Player extends JTSUnit {
     public void addItemToInventory(Item item) {
 
         if (item instanceof MultiItem) {
-            if (item instanceof GoldCoinItem) {
-                GoldCoinItem newCoins = (GoldCoinItem) item;
-                for (Item i : inventory) {
-                    if (i instanceof GoldCoinItem) {
-                        GoldCoinItem invCoins = (GoldCoinItem) i;
+            if (item instanceof GoldCoin) {
+                GoldCoin newCoins = (GoldCoin) item;
+                for (Item i : inv) {
+                    if (i instanceof GoldCoin) {
+                        GoldCoin invCoins = (GoldCoin) i;
                         invCoins.setCount(invCoins.getCount() + newCoins.getCount());
                         return;
                     }
                 }
 
                 // not found!
-                synchronized (inventory) {
-                    inventory.add(item);
+                synchronized (inv) {
+                    inv.add(item);
                 }
             } else {
-                synchronized (inventory) {
-                    inventory.add(item);
+                synchronized (inv) {
+                    inv.add(item);
                 }
             }
         } else {
-            synchronized (inventory) {
-                inventory.add(item);
+            synchronized (inv) {
+                inv.add(item);
             }
         }
     }
 
-    public GoldCoinItem vipeGold() {
-        GoldCoinItem gold = null;
+    public GoldCoin vipeGold() {
+        GoldCoin gold = null;
 
-        for (Item i : inventory) {
-            if (i instanceof GoldCoinItem) {
-                gold = (GoldCoinItem) i;
+        for (Item i : inv) {
+            if (i instanceof GoldCoin) {
+                gold = (GoldCoin) i;
                 break;
             }
         }
 
         if (gold != null) {
-            synchronized (inventory) {
-                inventory.remove(gold);
+            synchronized (inv) {
+                inv.remove(gold);
             }
         }
 
         return gold;
+    }
+
+    /**
+     * Returns players inventory.
+     * @param players inventory.
+     */
+    public Inventory getInventory() {
+        return inventory;
     }
 }

@@ -174,7 +174,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
                 field.drawTargetInfo(g, panelDim);
 
-                field.drawGoldCount(g, panelDim);
+                field.drawGoldCoinCount(g, panelDim);
 
                 //field.drawItems(g, screenWorldX, screenWorldY);
 
