@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jnlp spec="1.0+" 
     codebase="http://localhost/WD"
-    href="WD-localhost-scheme.jnlp">
+    href="WD-java.jnlp">
     <information>
         <title>Walking Desu</title>
         <vendor>Sorcsoft</vendor>
@@ -10,12 +10,12 @@
         <!-- Application Resources -->
         <j2se version="1.6+"
               href="http://java.sun.com/products/autodl/j2se"/>
-        <jar href="WD.jar" main="true" />
+        <jar href="wand.jar" main="true" />
 
     </resources>
     <application-desc name="Walking Desu" main-class="client.WalkingDesu">
         <argument>localhost</argument>
-        <argument>45001</argument>
+        <argument>45000</argument>
     </application-desc>
     <update check="background"/>
 </jnlp>

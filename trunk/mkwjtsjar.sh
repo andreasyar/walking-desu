@@ -12,12 +12,6 @@ javac -sourcepath src \
       -d $CLASSES_DIR \
       -encoding "UTF-8" \
       -Xlint:unchecked -Xlint:deprecation \
-      src/client/*.java
-
-javac -sourcepath src \
-      -d $CLASSES_DIR \
-      -encoding "UTF-8" \
-      -Xlint:unchecked -Xlint:deprecation \
       src/common/*.java
 
 javac -sourcepath src \
@@ -26,9 +20,7 @@ javac -sourcepath src \
       -Xlint:unchecked -Xlint:deprecation \
       src/server/javatestserver/*.java
 
-jar cmf wandmanifest.txt \
-    bin/wand.jar \
-    img \
-    -C ./bin/classes client \
+jar cmf wjtsmanifest.txt \
+    bin/wjts.jar \
     -C ./bin/classes common \
     -C ./bin/classes server/javatestserver
