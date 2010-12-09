@@ -1,7 +1,7 @@
 package server.javatestserver;
 
 import common.BoltMessage;
-import common.GoldCoin;
+import common.items.GoldCoin;
 import common.GoldCoinMessage;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -26,8 +26,8 @@ import common.MessageType;
 import common.MoveMessage;
 import common.Movement;
 import common.OtherMessage;
-import common.WPickupMessage;
 import common.WanderingServerTime;
+import common.messages.InventoryDelGoldCoin;
 import common.messages.Pickup;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -135,6 +135,11 @@ public class JavaTestServer {
         }
     }
 
+    /**
+     * Отправляет сообщение игроку.
+     * @param msg сообщение.
+     * @param player игрок.
+     */
     public void sendTo(Message msg, Player player) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
@@ -142,6 +147,9 @@ public class JavaTestServer {
                 return;
             }
         }
+
+        System.err.println("Message processor for player " + player + " was not found or player not logged in.");
+        System.err.println("Message " + msg + " was not send.");
     }
 
     public void sendToAll(String[] msgs) {
@@ -284,31 +292,15 @@ public class JavaTestServer {
                     //line = br.readLine();
                     message = (Message) ois.readObject();
 
+                    System.out.println(s.getInetAddress() + " --> " + message);
+
                     if (message.getType() == MessageType.OTHER) {
 
                         line = ((OtherMessage) message).getMessage();
 
-                    } else if (message.getType() == MessageType.WPICKUP) {
-
-                        WPickupMessage tmpMsg = ((WPickupMessage) message);
-                        System.out.println(s.getInetAddress() + " --> " + tmpMsg);
-                        for (Item i : items) {
-                            if (i.getID() == tmpMsg.getId()) {
-                                items.remove(i);
-                                self.addItemToInventory(i);
-                                sendTo(i.getPickupMessage(), self);
-                                for (Player p : players) {
-                                    if (p.see(i)) {
-                                        p.delVisibleItem(i);
-                                        sendTo("(delitem " + i.getID() + ")", p);
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        break;
-
                     } else if (message.getType() == MessageType.PICKUP) {
+
+                        System.out.println(s.getInetAddress() + " --> " + message);
 
                         // We ignore pickerId because we expect what all PICKUP
                         // messages sends from self player.
@@ -329,8 +321,13 @@ public class JavaTestServer {
                             items.remove(tmpItem);
                             sendToAll(new Message[] {new Pickup(self.getID(), tmpItem.getID())});
                             tmpItem.addToInventory(self.getInventory());
-                            sendTo(tmpItem.getPickupMessage(), self);
+                            sendTo(tmpItem.getAddToInvenrotyMessage(), self);
+                        } else {
+                            System.err.println("Item " + tmpMsg.getItemId() + " not found!");
                         }
+
+                        // Read next message from client.
+                        continue;
 
                     } else {
 
@@ -340,10 +337,14 @@ public class JavaTestServer {
                     }
 
                 } catch (IOException e) {
+                    e.printStackTrace();
                     close();
                     // Мы не возвращаем управление, потому что в строке
                     // таки может что-то быть?
                 } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                    System.exit(1);
+                } catch (Exception ex) {
                     ex.printStackTrace();
                     System.exit(1);
                 }
@@ -354,7 +355,7 @@ public class JavaTestServer {
                 }
 
                 if (line.length() > 0) {
-                    System.out.println(s.getInetAddress() + " --> " + line);
+                    //System.out.println(s.getInetAddress() + " --> " + line);
 
                     if (line.startsWith("(")) {
                         line = line.substring(1, line.length() - 1); // remove ( )
@@ -540,6 +541,7 @@ public class JavaTestServer {
         }
 
         public void addMessage(Message m) {
+            //System.out.println("Message " + m + " added.");
             try {
                 messages.put(m);
             } catch (InterruptedException ex) {
@@ -553,7 +555,7 @@ public class JavaTestServer {
 
             @Override
             public void run() {
-                Message message;
+                Message message = null;
 
                 try {
                     while (true) {
@@ -573,7 +575,12 @@ public class JavaTestServer {
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
                 } catch (IOException ex) {
-                    System.err.println("Sendin packet to player " + self.getID() + " (" + self.getNick() + ") failed.");
+                    System.err.println(message);
+                    if (self != null) {
+                        System.err.println("Sendin packet to player " + self.getID() + " (" + self.getNick() + ") failed.");
+                    } else {
+                        System.err.println("Omg self player is null Sending packed failed also.");
+                    }
                     ex.printStackTrace();
                 }
             }
@@ -599,10 +606,6 @@ public class JavaTestServer {
                         JTSUnit target = bolt.getTarget();
 
                         target.doHit(attacker.getDamage());
-                        /*sendFromUnit("(hit "
-                                     + attacker.getID() + " "
-                                     + target.getID() + " "
-                                     + attacker.getDamage() + ")", target);*/
                         sendFromUnit(new HitMessage(attacker.getID(),
                                                     target.getID(),
                                                     attacker.getDamage()),
@@ -614,13 +617,14 @@ public class JavaTestServer {
                                 vm.killMonster((Monster) target);
                             } else if (players.contains(target)) {
                                 Player p = (Player) target;
-                                GoldCoin gold = p.vipeGold();
-                                if (gold != null) {
-                                    sendTo("(delitemfrominv " + gold.getID() + ")", p);
-                                    gold.setX(p.getCurPos().x);
-                                    gold.setY(p.getCurPos().y);
-                                    gold.setOnGround(true);
-                                    items.add(gold);
+                                GoldCoin goldCoin = p.getInventory().getGoldCoin();
+                                if (goldCoin != null) {
+                                    p.getInventory().delGoldCoin(goldCoin.getID(), goldCoin.getCount());
+                                    sendTo(goldCoin.getDelFromInventoryMessage(), p);
+                                    goldCoin.setX(p.getCurPos().x);
+                                    goldCoin.setY(p.getCurPos().y);
+                                    goldCoin.setOnGround(true);
+                                    items.add(goldCoin);
                                 }
                                 p.restoreHitPoints();
                                 p.teleportToSpawn();
@@ -798,10 +802,6 @@ public class JavaTestServer {
                         coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         coins.setOnGround(true);
                         items.add(coins);
-                        /*sendToAll(new Message[] { new GoldCoinMessage(coins.getID(),
-                                                                      coins.getX(),
-                                                                      coins.getY(),
-                                                                      coins.getCount()) });*/
 
                         units.remove(m);
                         monsters.remove(m);

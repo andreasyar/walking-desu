@@ -5,8 +5,7 @@ import common.MessageType;
 import java.io.Serializable;
 
 /**
- * This message notify client what some gold coins(s) was deleted from its
- * inventory.
+ * Message for notify clients about gold coins what dissappeared from the ground.
  * @author sorc
  */
 public class DelGoldCoin implements Message, Serializable {
@@ -16,23 +15,9 @@ public class DelGoldCoin implements Message, Serializable {
      */
     private final MessageType type = MessageType.DELGOLDCOIN;
     /**
-     * ID of this gold coins item.
+     * Id of deleted gold coin.
      */
     private long id;
-    /**
-     * Count of gold coins.
-     */
-    private int count;
-
-    /**
-     * Creates new message.
-     * @param id id of gold coins item.
-     * @param count count of gold coins.
-     */
-    public DelGoldCoin(long id, int count) {
-        this.id = id;
-        this.count = count;
-    }
 
     /**
      * Returns message type.
@@ -43,16 +28,16 @@ public class DelGoldCoin implements Message, Serializable {
     }
 
     /**
-     * Returns count of gold coins.
-     * @return count of gold coins.
+     * Creates new message.
+     * @param id id of deleted gold coin.
      */
-    public int getCount() {
-        return count;
+    public DelGoldCoin(long id) {
+        this.id = id;
     }
 
     /**
-     * Returns id of this gold coins item.
-     * @return id of this gold coins item.
+     * Returns id of deleted gold coin.
+     * @return id of deleted gold coin.
      */
     public long getId() {
         return id;
@@ -60,6 +45,6 @@ public class DelGoldCoin implements Message, Serializable {
 
     @Override
     public String toString() {
-        return "Delete Gold coin(" + getCount() + ") id=" + getId() + " from inventory.";
+        return "Gold coin id=" + getId() + " dissappeared.";
     }
 }

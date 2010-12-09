@@ -1,6 +1,6 @@
 package client;
 
-import common.GoldCoin;
+import common.items.GoldCoin;
 import common.MultiItem;
 import java.util.ArrayList;
 

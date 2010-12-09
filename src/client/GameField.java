@@ -1,7 +1,7 @@
 package client;
 
-import common.WPickupMessage;
 import common.WanderingServerTime;
+import common.messages.Pickup;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -867,56 +867,61 @@ public class GameField {
             double distance;
             stopped = false;
 
-            while (!stopped && (distance = item.getCurPos().distance(selfPlayer.getCurPos())) > 10) {
-
-                // <editor-fold defaultstate="collapsed" desc="debug">
-                if (debugLevel > 0) {
-                    System.out.println("Item " + getItemID() + " still far: " + distance + ".");
-                }// </editor-fold>
-
-                try {
-                    synchronized (this) {
-                        wait(500L);
-                    }
-                } catch (InterruptedException ex) {
+            try {
+                while (!stopped && (distance = item.getCurPos().distance(selfPlayer.getCurPos())) > 10) {
 
                     // <editor-fold defaultstate="collapsed" desc="debug">
                     if (debugLevel > 0) {
-                        System.out.println("We was interrupted.");
+                        System.out.println("Item " + getItemID() + " still far: " + distance + ".");
                     }// </editor-fold>
 
-                    if ((distance = item.getCurPos().distance(selfPlayer.getCurPos())) > 10) {
-                        asyncRemoveItem(item);
-                        inter.addCommand(new WPickupMessage(item.getID()));
-                        selfPlayer.unselectItem(item);
+                    try {
+                        synchronized (this) {
+                            wait(500L);
+                        }
+                    } catch (InterruptedException ex) {
 
                         // <editor-fold defaultstate="collapsed" desc="debug">
                         if (debugLevel > 0) {
-                            System.out.println("We pickup far item " + getItemID() + ".");
+                            System.out.println("We was interrupted.");
                         }// </editor-fold>
 
+                        if ((distance = item.getCurPos().distance(selfPlayer.getCurPos())) > 10) {
+                            asyncRemoveItem(item);
+                            inter.addCommand(new Pickup(selfPlayer.getID(), item.getID()));
+                            selfPlayer.unselectItem(item);
+
+                            // <editor-fold defaultstate="collapsed" desc="debug">
+                            if (debugLevel > 0) {
+                                System.out.println("We pickup far item " + getItemID() + ".");
+                            }// </editor-fold>
+
+                        }
+                        return;
                     }
-                    return;
                 }
-            }
 
-            if (!stopped) {
-                asyncRemoveItem(item);
-                inter.addCommand(new WPickupMessage(item.getID()));
-                selfPlayer.unselectItem(item);
+                if (!stopped) {
+                    asyncRemoveItem(item);
+                    inter.addCommand(new Pickup(selfPlayer.getID(), item.getID()));
+                    selfPlayer.unselectItem(item);
 
-                // <editor-fold defaultstate="collapsed" desc="debug">
-                if (debugLevel > 0) {
-                    System.out.println("We pickup far item " + getItemID() + ".");
-                }// </editor-fold>
+                    // <editor-fold defaultstate="collapsed" desc="debug">
+                    if (debugLevel > 0) {
+                        System.out.println("We pickup far item " + getItemID() + ".");
+                    }// </editor-fold>
 
-            } else {
-                selfPlayer.unselectItem(item);
+                } else {
+                    selfPlayer.unselectItem(item);
 
-                // <editor-fold defaultstate="collapsed" desc="debug">
-                if (debugLevel > 0) {
-                    System.out.println("We was stopped.");
-                }// </editor-fold>
+                    // <editor-fold defaultstate="collapsed" desc="debug">
+                    if (debugLevel > 0) {
+                        System.out.println("We was stopped.");
+                    }// </editor-fold>
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.exit(1);
             }
         }
 

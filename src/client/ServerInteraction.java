@@ -2,7 +2,6 @@ package client;
 
 import common.BoltMessage;
 import common.GoldCoinMessage;
-import common.WPickupMessage;
 import java.awt.Point;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
@@ -25,9 +24,10 @@ import common.MoveMessage;
 import common.PickupGoldCoinItem;
 
 import common.WanderingServerTime;
+import common.messages.InventoryAddGoldCoin;
+import common.messages.InventoryDelGoldCoin;
 import common.messages.AddGoldCoin;
 import common.messages.DelGoldCoin;
-import common.messages.DropGoldCoin;
 import common.messages.Pickup;
 import java.io.ObjectOutputStream;
 
@@ -79,6 +79,7 @@ public class ServerInteraction {
     public void addCommand(String command) {
         synchronized(commands) {
             commands.offer(new OtherMessage(command));
+            //System.out.println("Command added " + command);
             commands.notify();
         }
     }
@@ -297,31 +298,14 @@ public class ServerInteraction {
                                 tmpMessage.getEndY(),
                                 tmpMessage.getBegTime());
 
-        } else if (m.getType() == MessageType.GOLDCOIN) {
+        } else if (m.getType() == MessageType.INVADDGOLDCOIN) {
 
-            GoldCoinMessage tmpMessage = (GoldCoinMessage) m;
-            WGoldCoinItem g = new WGoldCoinItem(tmpMessage.getId(),
-                                                tmpMessage.getCount());
-            g.setX(tmpMessage.getX());
-            g.setY(tmpMessage.getY());
-            g.setOnGround(true);
-            field.addItem(g);
-
-        } else if (m.getType() == MessageType.PICKUPGOLDCOIN) {
-
-            PickupGoldCoinItem tmpMessage = (PickupGoldCoinItem) m;
-            WGoldCoinItem g = new WGoldCoinItem(tmpMessage.getId(),
-                                                tmpMessage.getCount());
-            field.getSelfPlayer().addItemToInventory(g);
-
-        } else if (m.getType() == MessageType.ADDGOLDCOIN) {
-
-            AddGoldCoin tmpMsg = (AddGoldCoin) m;
+            InventoryAddGoldCoin tmpMsg = (InventoryAddGoldCoin) m;
             field.getSelfPlayer().getInventory().addGoldCoin(tmpMsg.getId(), tmpMsg.getCount());
 
-        } else if (m.getType() == MessageType.DELGOLDCOIN) {
+        } else if (m.getType() == MessageType.INVDELGOLDCOIN) {
 
-            DelGoldCoin tmpMsg = (DelGoldCoin) m;
+            InventoryDelGoldCoin tmpMsg = (InventoryDelGoldCoin) m;
             field.getSelfPlayer().getInventory().delGoldCoin(tmpMsg.getId(), tmpMsg.getCount());
 
         } else if (m.getType() == MessageType.PICKUP) {
@@ -335,9 +319,9 @@ public class ServerInteraction {
                 field.asyncRemoveItem(i);
             }
 
-        } else if (m.getType() == MessageType.DROPGOLDCOIN) {
+        } else if (m.getType() == MessageType.ADDGOLDCOIN) {
 
-            DropGoldCoin tmpMsg = (DropGoldCoin) m;
+            AddGoldCoin tmpMsg = (AddGoldCoin) m;
             WGoldCoinItem g = new WGoldCoinItem(tmpMsg.getId(),
                                                 tmpMsg.getCount());
             g.setX(tmpMsg.getX());
@@ -345,12 +329,21 @@ public class ServerInteraction {
             g.setOnGround(true);
             field.addItem(g);
 
+        } else if (m.getType() == MessageType.DELGOLDCOIN) {
+
+            DelGoldCoin tmpMsg = (DelGoldCoin) m;
+            WItem i = field.getItem(tmpMsg.getId());
+            if (i != null) {
+                field.asyncRemoveItem(i);
+            }
+
         }
     }
 
     public void addCommand(Message m) {
         synchronized(commands) {
             commands.offer(m);
+            //System.out.println("Message added " + m);
             commands.notify();
         }
     }
@@ -367,7 +360,7 @@ public class ServerInteraction {
                             command = commands.poll();
                             oos.writeObject(command);
                             oos.reset();
-                            //System.out.println("--> " + command);
+                            System.out.println("--> " + command);
                         }
                         try {
                             commands.wait();

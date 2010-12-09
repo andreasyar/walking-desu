@@ -1,6 +1,6 @@
 package client;
 
-import common.WPickupMessage;
+import common.Message;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import common.messages.Pickup;
 
 public class WanderingJPanel extends JPanel implements KeyListener, MouseListener, ComponentListener {
 
@@ -257,7 +258,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     if ( (w = field.onItemSprite(x + screenWorldX, y + screenWorldY)) != null) {
                         if (field.distanceToItem(w) <= GameField.pickupDistance) {
                             field.asyncRemoveItem(w);
-                            inter.addCommand(new WPickupMessage(w.getID()));
+                            inter.addCommand(new Pickup(selfPlayer.getID(), w.getID()));
                             return;
                         } else {
                             pickup = true;
@@ -270,7 +271,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     Point p;
                     if (pickup) {
                         p = new Point(selectedItemPos.x, selectedItemPos.y);
-                        System.out.println(p);
+                        //System.out.println(p);
                     } else {
                         p = new Point(x + screenWorldX, y + screenWorldY);
                     }
@@ -430,46 +431,52 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         } else if (key == KeyEvent.VK_N) {
             showGeoDataTypes = false;
         } else if (key == KeyEvent.VK_F5) {
-            WItem w = field.getNearestItem();
-            if (w != null) {
-                if (field.distanceToItem(w) <= GameField.pickupDistance) {
-                    field.asyncRemoveItem(w);
-                    inter.addCommand(new WPickupMessage(w.getID()));
-                } else {
-                    Point p = w.getCurPos();
-                    Point cur = field.getSelfPlayer().getCurPos();
-                    Polygon poly = new Polygon();
-                    poly.addPoint(p.x, p.y);
-                    poly.addPoint(p.x - 1, p.y - 1);
-                    poly.addPoint(cur.x, cur.y);
-                    poly.addPoint(cur.x - 1, cur.y - 1);
-                    Area c = new Area(poly);
-                    boolean canGo = true;
-                    for (ListIterator<WanderingPolygon> li = WanderingMap.getGeoData().listIterator(); li.hasNext();) {
-                        WanderingPolygon curPoly = li.next();
-                        c.intersect(new Area(curPoly));
-                        if (curPoly.getType() == WanderingPolygon.WallType.MONOLITH) {
-                            if (curPoly.contains(p) || !c.isEmpty()) {
-                                canGo = false;
-                            }
-                        }
-                    }
-                    if (canGo) {
-                        ClientMapFragment curFragment = field.getMapFragment(p);
-                        int n = field.getAroundFragCount(mapDim);
-                        for (int i = curFragment.getIdy() - n; i <= curFragment.getIdy() + n; i++) {
-                            for (int j = curFragment.getIdx() - n; j <= curFragment.getIdx() + n; j++) {
-                                if (i >= 0 && j >= 0 && field.getMapFragment(j, i) == null) {
-                                    inter.addCommand("(getmapfragm " + j + " " + i + ")");
+            try {
+                WItem w = field.getNearestItem();
+                if (w != null) {
+                    if (field.distanceToItem(w) <= GameField.pickupDistance) {
+                        field.asyncRemoveItem(w);
+                        Message m = new Pickup(field.getSelfPlayer().getID(), w.getID());
+                        inter.addCommand(m);
+                    } else {
+                        Point p = w.getCurPos();
+                        Point cur = field.getSelfPlayer().getCurPos();
+                        Polygon poly = new Polygon();
+                        poly.addPoint(p.x, p.y);
+                        poly.addPoint(p.x - 1, p.y - 1);
+                        poly.addPoint(cur.x, cur.y);
+                        poly.addPoint(cur.x - 1, cur.y - 1);
+                        Area c = new Area(poly);
+                        boolean canGo = true;
+                        for (ListIterator<WanderingPolygon> li = WanderingMap.getGeoData().listIterator(); li.hasNext();) {
+                            WanderingPolygon curPoly = li.next();
+                            c.intersect(new Area(curPoly));
+                            if (curPoly.getType() == WanderingPolygon.WallType.MONOLITH) {
+                                if (curPoly.contains(p) || !c.isEmpty()) {
+                                    canGo = false;
                                 }
                             }
                         }
+                        if (canGo) {
+                            ClientMapFragment curFragment = field.getMapFragment(p);
+                            int n = field.getAroundFragCount(mapDim);
+                            for (int i = curFragment.getIdy() - n; i <= curFragment.getIdy() + n; i++) {
+                                for (int j = curFragment.getIdx() - n; j <= curFragment.getIdx() + n; j++) {
+                                    if (i >= 0 && j >= 0 && field.getMapFragment(j, i) == null) {
+                                        inter.addCommand("(getmapfragm " + j + " " + i + ")");
+                                    }
+                                }
+                            }
 
-                        field.pickupItem(w, inter);
-                        field.getSelfPlayer().move(cur.x, cur.y, p.x, p.y, WanderingServerTime.getInstance().getTimeSinceStart());
-                        inter.addCommand("(move " + p.x + " " + p.y + ")");
+                            field.pickupItem(w, inter);
+                            field.getSelfPlayer().move(cur.x, cur.y, p.x, p.y, WanderingServerTime.getInstance().getTimeSinceStart());
+                            inter.addCommand("(move " + p.x + " " + p.y + ")");
+                        }
                     }
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.exit(1);
             }
         }
     }

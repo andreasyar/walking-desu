@@ -1,6 +1,6 @@
 package server.javatestserver;
 
-import common.GoldCoin;
+import common.items.GoldCoin;
 import common.Inventory;
 import common.Item;
 import common.MultiItem;
@@ -9,6 +9,9 @@ import java.util.ArrayList;
 public class Player extends JTSUnit {
 
     private final ArrayList<JTSUnit> visibleUnits = new ArrayList<JTSUnit>();
+    /**
+     * List of visible items.
+     */
     private final ArrayList<Item> visibleItems = new ArrayList<Item>();
     private final ArrayList<Item> inv = new ArrayList<Item>();
     private static final double visibleRange = 500.0;
@@ -53,9 +56,21 @@ public class Player extends JTSUnit {
         }
     }
 
-    public void addVisibleItem(Item i) {
+    /**
+     * Adds item <i>i</i> to list of visible items if it not contain this item
+     * yet.
+     * @param i item to add to list of visible items.
+     * @return if list of visible items already contains item <i>i</i> return
+     * false, otherwise return true.
+     */
+    public boolean addVisibleItem(Item i) {
         synchronized (visibleItems) {
-            visibleItems.add(i);
+            if (visibleItems.contains(i)) {
+                return false;
+            } else {
+                visibleItems.add(i);
+                return true;
+            }
         }
     }
 
@@ -66,10 +81,13 @@ public class Player extends JTSUnit {
         }
     }
 
+    /**
+     * Deletes item <i>i</i> from list of visible items.
+     * @param i item to delete from list of visible items.
+     */
     public void delVisibleItem(Item i) {
         synchronized (visibleItems) {
-            while (visibleItems.remove(i)) {
-            }
+            while (visibleItems.remove(i)) {}
         }
     }
 
@@ -85,6 +103,12 @@ public class Player extends JTSUnit {
         }
     }
 
+    /**
+     * Checks what item <i>item</i> is in visible range.
+     * @param item item to check is it in visible range.
+     * @return return TRUE if item <i>item</i> is in visible range, FALSE
+     * otherwise.
+     */
     public boolean inRange(Item item) {
         if (getCurPos().distance(item.getCurPos()) <= visibleRange) {
             return true;
@@ -97,6 +121,12 @@ public class Player extends JTSUnit {
         return visibleUnits.contains(unit);
     }
 
+    /**
+     * Check what item <i>items</i> is in list of visible items.
+     * @param item item to check is it in list of visible items.
+     * @return TRUE if item <i>item</i> is in list of visible items, FALSE
+     * otherwise.
+     */
     public boolean see(Item item) {
         return visibleItems.contains(item);
     }
@@ -134,25 +164,6 @@ public class Player extends JTSUnit {
                 inv.add(item);
             }
         }
-    }
-
-    public GoldCoin vipeGold() {
-        GoldCoin gold = null;
-
-        for (Item i : inv) {
-            if (i instanceof GoldCoin) {
-                gold = (GoldCoin) i;
-                break;
-            }
-        }
-
-        if (gold != null) {
-            synchronized (inv) {
-                inv.remove(gold);
-            }
-        }
-
-        return gold;
     }
 
     /**
