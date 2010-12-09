@@ -5,6 +5,8 @@
 
 package common;
 
+import common.items.GoldCoin;
+
 /**
  * Inventory.
  * @author sorc
@@ -32,7 +34,6 @@ public class Inventory {
 
     /**
      * Delete <i>count</i> of gold coin from inventory.
-     * @param id id of new gold coin item.
      * @param count count of gold coins.
      */
     public void delGoldCoin(long id, int count) {
@@ -40,13 +41,14 @@ public class Inventory {
             // TODO It is abnormal. We must react to this.
             System.err.println("We try to delete gold coins but we have no gold coins.");
         } else {
-            goldCoin.setCount(goldCoin.getCount() - count);
-            if (goldCoin.getCount() == 0) {
+            if (goldCoin.getCount() - count == 0) {
                 goldCoin = null;
             } else if (goldCoin.getCount() < 0) {
                 // TODO It is abnormal. We must react to this.
                 goldCoin = null;
                 System.err.println("We delete gold coins more than we have.");
+            } else {
+                goldCoin.setCount(goldCoin.getCount() - count);
             }
         }
     }
@@ -61,5 +63,13 @@ public class Inventory {
         } else {
             return goldCoin.getCount();
         }
+    }
+
+    /**
+     * Return gold coins.
+     * @return gold coins.
+     */
+    public GoldCoin getGoldCoin() {
+            return goldCoin;
     }
 }

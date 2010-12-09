@@ -1,6 +1,6 @@
 package client;
 
-import common.GoldCoin;
+import common.items.GoldCoin;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Polygon;
