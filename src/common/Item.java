@@ -1,37 +1,36 @@
 package common;
 
-import java.awt.Point;
-
 /**
  * Abstract item. Like sword, laser canon, money.
  */
 public abstract class Item {
 
     /**
-     * Global identifer of this itme. Everything in Wandering world have one.
+     * Global identifer of this item. Everything in Wand world have one.
      */
-    protected final long id;
-
+    private final long id;
     /**
      * Name of this item. Like Gold, Shell, Long sword, Laser rifle.
      */
-    protected final String name;
-
-    /**
-     * Flag what indicats when item lay on the ground or not.
-     */
-    protected boolean onGround;
-
+    private final String name;
     /**
      * X-coord in world of this item. Used for items what lay to the ground.
      */
-    protected int x;
-
+    private int x;
     /**
      * Y-coord in world of this item. Used for items what lay to the ground.
      */
-    protected int y;
+    private int y;
+    /**
+     * Count of this item.
+     */
+    private int count;
 
+    /**
+     * Creates new item.
+     * @param id id of new item.
+     * @param name name of new item.
+     */
     protected Item(long id, String name) {
         this.id = id;
         this.name = name;
@@ -39,6 +38,7 @@ public abstract class Item {
 
     /**
      * Return id of this item.
+     * @return id of this item.
      */
     public long getID() {
         return id;
@@ -47,26 +47,10 @@ public abstract class Item {
     // <editor-fold defaultstate="collapsed" desc="Name">
     /**
      * Return name of this item.
+     * @return name of item.
      */
     public String getName() {
         return name;
-    }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Layed on the ground">
-    /**
-     * Return item status: layed on ground or not.
-     * @return item status: layed on ground or not.
-     */
-    public boolean isOnGround() {
-        return onGround;
-    }
-
-    /**
-     * Set item status: layed on ground or not.
-     */
-    public void setOnGround(boolean onGround) {
-        this.onGround = onGround;
     }
     // </editor-fold>
 
@@ -92,13 +76,11 @@ public abstract class Item {
     // <editor-fold defaultstate="collapsed" desc="Y-coord">
     /**
      * Return Y-coord in world of this item.
-     * Used for items what lay to the ground.
      * @return Y-coord in world of this item.
      */
     public int getY() {
         return y;
     }
-
 
     /**
      * Set item Y-coord in world to y.
@@ -109,24 +91,55 @@ public abstract class Item {
     }
     // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="Count">
     /**
-     * Return position (in world coords) of item what layed on the ground.
-     * If item not layed on the ground return null.
-     * @return position (in world coords) of layed on the ground item or null.
+     * Return count of item.
+     * @return count of item.
      */
-    public Point getCurPos() {
-        return new Point(x, y);
+    public int getCount() {
+        return count;
     }
 
-    public abstract Message getMessage();
+    /**
+     * Set item count to count.
+     * @param count item new count.
+     */
+    public void setCount(int count) throws IllegalArgumentException {
+        if (count <= 0) {
+            throw new IllegalArgumentException("Count of item must be 1 or more.");
+        }
 
+        this.count = count;
+    }
+    // </editor-fold>
+
+    /**
+     * Adds item to inventory <i>inv</i>.
+     * @param inv inventory.
+     */
     public abstract void addToInventory(Inventory inv);
 
+    /**
+     * Removes item from inventory <i>inv</i>.
+     * @param inv inventory.
+     */
+    public abstract void removeFromInventory(Inventory inv);
+
+    /**
+     * Returns message notify user what item added to his inventory.
+     * @return message what notify user what item added to his inventory.
+     */
     public abstract Message getAddToInvenrotyMessage();
 
-    public abstract Message getAddMessage();
+    /**
+     * Returns message notify user what item removed from his inventory.
+     * @return message waht notify user what item removed from his inventory.
+     */
+    public abstract Message getRemoveFromInventoryMessage();
 
-    public abstract Message getDelMessage();
-
-    public abstract Message getDelFromInventoryMessage();
+    /**
+     * Returns message notify user what item dropped to the ground.
+     * @return message what notify user what item dropped to the ground.
+     */
+    public abstract Message getDropMessage();
 }

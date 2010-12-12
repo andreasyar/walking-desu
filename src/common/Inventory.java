@@ -1,75 +1,70 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package common;
 
-import common.items.GoldCoin;
+import common.items.Etc;
+import common.items.Items;
+import java.util.ArrayList;
 
 /**
  * Inventory.
  * @author sorc
  */
 public class Inventory {
+    /**
+     * List of etc items.
+     */
+    private final ArrayList<Etc> etcs = new ArrayList<Etc>();
 
     /**
-     * Gold coin(s).
+     * Returns etc items of <i>type</i> type.
+     * @param type type of etc items.
      */
-    private GoldCoin goldCoin = null;
+    public ArrayList<Etc> getEtc(Items type) {
+        ArrayList<Etc> tmpEtcs = null;
 
-    /**
-     * Adds new gold coin to inventory if there is no gold coin yet or modify
-     * count of gold coins if some gold coins already in inventory.
-     * @param id id of new gold coin item.
-     * @param count count of gold coins.
-     */
-    public void addGoldCoin(long id, int count) {
-        if (goldCoin == null) {
-            goldCoin = new GoldCoin(id, count);
-        } else {
-            goldCoin.setCount(goldCoin.getCount() + count);
+        synchronized (etcs) {
+            for (Etc items : etcs) {
+                if (items.getType() == type) {
+                    if (tmpEtcs == null) {
+                        tmpEtcs = new ArrayList<Etc>();
+                    }
+                    tmpEtcs.add(items);
+                }
+            }
         }
+
+        return tmpEtcs;
     }
 
     /**
-     * Delete <i>count</i> of gold coin from inventory.
-     * @param count count of gold coins.
+     * Adds etc item to inventory.
+     * @param etc item item to add.
      */
-    public void delGoldCoin(long id, int count) {
-        if (goldCoin == null) {
-            // TODO It is abnormal. We must react to this.
-            System.err.println("We try to delete gold coins but we have no gold coins.");
-        } else {
-            if (goldCoin.getCount() - count == 0) {
-                goldCoin = null;
-            } else if (goldCoin.getCount() < 0) {
-                // TODO It is abnormal. We must react to this.
-                goldCoin = null;
-                System.err.println("We delete gold coins more than we have.");
-            } else {
-                goldCoin.setCount(goldCoin.getCount() - count);
+    public void addEtc(Etc item) {
+        synchronized (etcs) {
+            switch (item.getType()) {
+                case GOLD:
+                    ArrayList<Etc> tmpEtcs = getEtc(Items.GOLD);
+                    if (tmpEtcs == null) {
+                        etcs.add(item);
+                    } else {
+                        tmpEtcs.get(0).setCount(tmpEtcs.get(0).getCount() + item.getCount());
+                    }
+                    break;
             }
         }
     }
 
     /**
-     * Return gold coins count. If we have no gold coins it return 0 anyway.
-     * @return gold coins count.
+     * Removes etc item from inventory.
+     * @param item etc item to remove.
      */
-    public int getGoldCoinCount() {
-        if (goldCoin == null) {
-            return 0;
-        } else {
-            return goldCoin.getCount();
+    public void removeEtc(Etc item) {
+        synchronized (etcs) {
+            switch (item.getType()) {
+                case GOLD:
+                    etcs.remove(item);
+                    break;
+            }
         }
-    }
-
-    /**
-     * Return gold coins.
-     * @return gold coins.
-     */
-    public GoldCoin getGoldCoin() {
-            return goldCoin;
     }
 }

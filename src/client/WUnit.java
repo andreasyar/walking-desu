@@ -1,5 +1,6 @@
 package client;
 
+import client.items.ClientItem;
 import common.Unit;
 import common.Movement;
 import common.WanderingServerTime;
@@ -22,7 +23,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.font.LineMetrics;
 
-public abstract class WUnit extends Unit implements WDrawable {
+public abstract class WUnit extends Unit implements Drawable {
 
     protected MovementAnimation moveAnim;
 
@@ -43,7 +44,7 @@ public abstract class WUnit extends Unit implements WDrawable {
     /**
      * Selected item. Item what we want to pick up.
      */
-    protected WItem selectedItem = null;
+    protected ClientItem selectedItem = null;
 
     public WUnit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
 
@@ -279,7 +280,7 @@ public abstract class WUnit extends Unit implements WDrawable {
      * Returns selected item.
      * @return Selected item.
      */
-    public WItem getSelectedItem() {
+    public ClientItem getSelectedItem() {
         return selectedItem;
     }
 
@@ -287,7 +288,7 @@ public abstract class WUnit extends Unit implements WDrawable {
      * Selects <i>item</i>.
      * @param item New selected item.
      */
-    public void selectItem(WItem item) {
+    public void selectItem(ClientItem item) {
         this.selectedItem = item;
     }
 
@@ -310,7 +311,7 @@ public abstract class WUnit extends Unit implements WDrawable {
      * Unlesect <i>item</i> if it selected. If anoter item selected do nothig.
      * @param item Item to unselect.
      */
-    public void unselectItem(WItem item) {
+    public void unselectItem(ClientItem item) {
             if (selectedItem == item) {
                 selectedItem = null;
             }

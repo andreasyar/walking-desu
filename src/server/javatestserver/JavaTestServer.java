@@ -620,7 +620,7 @@ public class JavaTestServer {
                                 GoldCoin goldCoin = p.getInventory().getGoldCoin();
                                 if (goldCoin != null) {
                                     p.getInventory().delGoldCoin(goldCoin.getID(), goldCoin.getCount());
-                                    sendTo(goldCoin.getDelFromInventoryMessage(), p);
+                                    sendTo(goldCoin.getRemoveFromInventoryMessage(), p);
                                     goldCoin.setX(p.getCurPos().x);
                                     goldCoin.setY(p.getCurPos().y);
                                     goldCoin.setOnGround(true);

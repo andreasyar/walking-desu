@@ -4,7 +4,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 
-public abstract class HitAnimation implements WDrawable {
+public abstract class HitAnimation implements Drawable {
 
     protected DirectionalSpriteSet set;
     protected Direction direction;

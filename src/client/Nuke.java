@@ -4,7 +4,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 
-abstract public class Nuke implements WDrawable {
+abstract public class Nuke implements Drawable {
 
     /**
      * Время между использованиями нюка.

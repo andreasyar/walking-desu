@@ -40,17 +40,17 @@ public class GoldCoin extends MultiItem {
     }
 
     @Override
-    public Message getAddMessage() {
+    public Message getDropMessage() {
         return new AddGoldCoin(getID(), getX(), getY(), getCount());
     }
 
     @Override
-    public Message getDelMessage() {
+    public Message getPickupMessage() {
         return new DelGoldCoin(getID());
     }
 
     @Override
-    public Message getDelFromInventoryMessage() {
+    public Message getRemoveFromInventoryMessage() {
         return new InventoryDelGoldCoin(getID(), getCount());
     }
 }
