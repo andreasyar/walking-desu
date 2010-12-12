@@ -1,5 +1,6 @@
 package client;
 
+import client.items.ClientItem;
 import common.BoltMessage;
 import common.GoldCoinMessage;
 import java.awt.Point;
@@ -241,7 +242,7 @@ public class ServerInteraction {
             }*/
         } else if ("delitem".equals(pieces1[0])) {
 
-            WItem item = field.getItem(Long.parseLong(pieces1[1]));
+            ClientItem item = field.getItem(Long.parseLong(pieces1[1]));
             if (item != null) {
                 field.asyncRemoveItem(item);
             }
@@ -313,7 +314,7 @@ public class ServerInteraction {
             // TODO Not only players can pickup items!
             Pickup tmpMsg = (Pickup) m;
             Player p = field.getPlayer(tmpMsg.getPickerId());
-            WItem i = field.getItem(tmpMsg.getItemId());
+            ClientItem i = field.getItem(tmpMsg.getItemId());
             if (p != null && i != null) {
                 p.pickup(i);
                 field.asyncRemoveItem(i);
@@ -332,7 +333,7 @@ public class ServerInteraction {
         } else if (m.getType() == MessageType.DELGOLDCOIN) {
 
             DelGoldCoin tmpMsg = (DelGoldCoin) m;
-            WItem i = field.getItem(tmpMsg.getId());
+            ClientItem i = field.getItem(tmpMsg.getId());
             if (i != null) {
                 field.asyncRemoveItem(i);
             }

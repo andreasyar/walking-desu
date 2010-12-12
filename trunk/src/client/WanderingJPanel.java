@@ -1,5 +1,6 @@
 package client;
 
+import client.items.ClientItem;
 import common.Message;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -46,7 +47,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     private boolean showGeoDataTypes = false;
 
-    private final ArrayList<ArrayList<WDrawable>> zbuffer;
+    private final ArrayList<ArrayList<Drawable>> zbuffer;
 
     /**
      * Tower build delay.
@@ -61,7 +62,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     public WanderingJPanel(GameField field, ServerInteraction inter) {
         this.field = field;
         this.inter = inter;
-        zbuffer = new ArrayList<ArrayList<WDrawable>>();
+        zbuffer = new ArrayList<ArrayList<Drawable>>();
     }
 
     @Override
@@ -162,8 +163,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
                 //field.drawAll(g, screenWorldX, screenWorldY, panelDim);
                 field.recalcUnitsZ(zbuffer, screenWorldX, screenWorldY);
-                for (ArrayList<WDrawable> l : zbuffer) {
-                    for (WDrawable d : l) {
+                for (ArrayList<Drawable> l : zbuffer) {
+                    for (Drawable d : l) {
                         d.draw(g, screenWorldX, screenWorldY, panelDim);
                     }
                 }
@@ -235,7 +236,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 WUnit unit;
                 Sprite spr;
                 boolean pickup = false;
-                WItem w = null;
+                ClientItem w = null;
                 Point selectedItemPos = null;
 
                 if (selectMode) {
@@ -349,7 +350,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         synchronized (zbuffer) {
             zbuffer.clear();
             for (int i = 0; i < d.height; i++) {
-                zbuffer.add(new ArrayList<WDrawable>());
+                zbuffer.add(new ArrayList<Drawable>());
             }
         }
     }
@@ -432,7 +433,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             showGeoDataTypes = false;
         } else if (key == KeyEvent.VK_F5) {
             try {
-                WItem w = field.getNearestItem();
+                ClientItem w = field.getNearestItem();
                 if (w != null) {
                     if (field.distanceToItem(w) <= GameField.pickupDistance) {
                         field.asyncRemoveItem(w);

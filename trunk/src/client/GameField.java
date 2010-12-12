@@ -1,5 +1,6 @@
 package client;
 
+import client.items.ClientItem;
 import common.WanderingServerTime;
 import common.messages.Pickup;
 import java.awt.Dimension;
@@ -32,7 +33,7 @@ public class GameField {
     private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
     private final LinkedBlockingQueue<HitAnimation> hitAnimations = new LinkedBlockingQueue<HitAnimation>();
     private final LinkedBlockingQueue<ClientMapFragment> mfagments = new LinkedBlockingQueue<ClientMapFragment>();
-    private final LinkedBlockingQueue<WItem> items = new LinkedBlockingQueue<WItem>();
+    private final LinkedBlockingQueue<ClientItem> items = new LinkedBlockingQueue<ClientItem>();
     private SelfExecutor selfExecutor;
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
@@ -60,7 +61,7 @@ public class GameField {
      */
     public void drawAll(Graphics g, int x, int y, Dimension dim) {
 
-        for (WDrawable d : units) {
+        for (Drawable d : units) {
             if (d != null) {
                 d.draw(g, x, y, dim);
             }
@@ -70,7 +71,7 @@ public class GameField {
             }
         }
 
-        for (WDrawable d : nukes) {
+        for (Drawable d : nukes) {
             if (d != null) {
                 d.draw(g, x, y, dim);
             }
@@ -80,7 +81,7 @@ public class GameField {
             }
         }
 
-        for (WDrawable d : hitAnimations) {
+        for (Drawable d : hitAnimations) {
             if (d != null) {
                 d.draw(g, x, y, dim);
             }
@@ -90,7 +91,7 @@ public class GameField {
             }
         }
 
-        for (WDrawable d : items) {
+        for (Drawable d : items) {
             if (d != null) {
                 d.draw(g, x, y, dim);
             }
@@ -101,7 +102,7 @@ public class GameField {
         }
     }
 
-    public void recalcUnitsZ(ArrayList<ArrayList<WDrawable>> zbuffer, int x, int y) {
+    public void recalcUnitsZ(ArrayList<ArrayList<Drawable>> zbuffer, int x, int y) {
         Point tmpPos;
 
         synchronized (zbuffer) {
@@ -144,7 +145,7 @@ public class GameField {
                 }
             }
 
-            for (WItem i : items) {
+            for (ClientItem i : items) {
                 if (i != null) {
                     tmpPos = i.getCurPos();
                     if (tmpPos.y - y >= 0 && tmpPos.y - y < zbuffer.size()) {
@@ -579,14 +580,14 @@ public class GameField {
      * Return items queue.
      * @return Items queue.
      */
-    public LinkedBlockingQueue<WItem> getItems() {
+    public LinkedBlockingQueue<ClientItem> getItems() {
         return items;
     }
     /**
      * Synchronously add item to items queue.
      * @param item New item to add to queue.
      */
-    public void addItem(WItem item) {
+    public void addItem(ClientItem item) {
         if (!items.contains(item)) {
             items.add(item);
         }
@@ -596,18 +597,18 @@ public class GameField {
      * @param item New item to add to queue.
      * @throws IllegalArgumentException argument item cannot be null!
      */
-    public void asyncAddItem(WItem item) throws IllegalArgumentException {
+    public void asyncAddItem(ClientItem item) throws IllegalArgumentException {
         if (item == null) {
             throw new IllegalArgumentException("Cannot add null in item queue!");
         }
 
-        selfExecutor.add("addItem", new Class[]{ WItem.class }, new Object[]{ item });
+        selfExecutor.add("addItem", new Class[]{ ClientItem.class }, new Object[]{ item });
     }
     /**
      * Synchronously remove item from items queue.
      * @param item Item to remove from queue.
      */
-    public void removeItem(WItem item) {
+    public void removeItem(ClientItem item) {
         items.remove(item);
     }
     /**
@@ -615,20 +616,20 @@ public class GameField {
      * @param item Item to remove from queue.
      * @throws IllegalArgumentException argument item cannot be null!
      */
-    public void asyncRemoveItem(WItem item) throws IllegalArgumentException {
+    public void asyncRemoveItem(ClientItem item) throws IllegalArgumentException {
         if (item == null) {
             throw new IllegalArgumentException("Cannot add null in item queue!");
         }
 
-        selfExecutor.add("removeItem", new Class[]{ WItem.class }, new Object[]{ item });
+        selfExecutor.add("removeItem", new Class[]{ ClientItem.class }, new Object[]{ item });
     }
     /**
      * Check if x, y lay on some item sprite.
      */
-    public WItem onItemSprite(int x, int y) {
+    public ClientItem onItemSprite(int x, int y) {
         Polygon p;
 
-        for (WItem i : items) {
+        for (ClientItem i : items) {
             p = i.getDimensionOnWorld();
             if (p.contains(x, y)) {
                 return i;
@@ -641,7 +642,7 @@ public class GameField {
      * Calculate distace from self player to item <i>item</i>.
      * @param item Item.
      */
-    public double distanceToItem(WItem item) {
+    public double distanceToItem(ClientItem item) {
         Polygon p = item.getDimensionOnWorld();
         Point cur = selfPlayer.getCurPos();
         return Point.distance(p.xpoints[0], p.ypoints[0], cur.x, cur.y);
@@ -652,7 +653,7 @@ public class GameField {
      * @param inter Server interaction instance to report server about our pickup
      * try.
      */
-    public void pickupItem(WItem item, ServerInteraction inter) {
+    public void pickupItem(ClientItem item, ServerInteraction inter) {
 
         // <editor-fold defaultstate="collapsed" desc="debug">
         if (debugLevel > 0) {
@@ -690,12 +691,12 @@ public class GameField {
         }
     }
 
-    public WItem getNearestItem() {
-        WItem nearest = null;
+    public ClientItem getNearestItem() {
+        ClientItem nearest = null;
         double nearestDistance = -1.0;
         double curDistance = 0.0;
 
-        for (WItem i : items) {
+        for (ClientItem i : items) {
             curDistance = distanceToItem(i);
 
             if (nearestDistance < 0.0 || curDistance < nearestDistance) {
@@ -707,8 +708,8 @@ public class GameField {
         return nearest;
     }
 
-    public WItem getItem(long itemID) {
-        for (WItem item : items) {
+    public ClientItem getItem(long itemID) {
+        for (ClientItem item : items) {
             if (item.getID() == itemID) {
                 return item;
             }
@@ -842,11 +843,11 @@ public class GameField {
 
     private class PickupTask implements Runnable {
 
-        private final WItem item;
+        private final ClientItem item;
         private final ServerInteraction inter;
         private boolean stopped = false;
 
-        public PickupTask(WItem item, ServerInteraction inter) throws IllegalArgumentException {
+        public PickupTask(ClientItem item, ServerInteraction inter) throws IllegalArgumentException {
             if (item == null) {
                 throw new IllegalArgumentException("Item cannot be null!");
             }

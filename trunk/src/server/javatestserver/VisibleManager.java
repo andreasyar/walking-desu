@@ -163,12 +163,12 @@ public class VisibleManager implements Runnable {
 
                     // Игрок увидел предмет.
                     p1.addVisibleItem(i);
-                    server.sendTo(i.getAddMessage(), p1);
+                    server.sendTo(i.getDropMessage(), p1);
                 } else if (!p1.inRange(i) && p1.see(i)) {
 
                     // Игрок больше не видит этот итем.
                     p1.delVisibleItem(i);
-                    server.sendTo(i.getDelMessage(), p1);
+                    server.sendTo(i.getPickupMessage(), p1);
                 }
             }//items
         }
