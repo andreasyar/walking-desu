@@ -1,18 +1,24 @@
 package client.items;
 
+import client.Drawable;
+import client.LayGroundAnimation;
+import client.Sprite;
 import common.Message;
 import common.items.Etc;
 import common.items.Items;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.Polygon;
 
 /**
- * Etc item. Examples: gold, piece of metal, cap.
+ * Etc item for client use.
  * @author CatsPaw
  */
-public class ClientEtc extends Etc implements ClientItem {
+public class ClientEtc extends Etc implements Drawable {
+
+    /**
+     * Lay on the ground animation.
+     */
+    private final LayGroundAnimation layAnimation;
 
     /**
      * Creates new etc item.
@@ -22,6 +28,31 @@ public class ClientEtc extends Etc implements ClientItem {
      */
     public ClientEtc (long id, String name, Items type) {
         super(id, name, type);
+        layAnimation = new LayGroundAnimation(name);
+    }
+
+    /**
+     * Returns message notify user what etc item added to his inventory.
+     * @return message what notify user what etc item added to his inventory.
+     */
+    public Message getAddToInvenrotyMessage() {
+        throw new UnsupportedOperationException("Client cannot send to server this message.");
+    }
+
+    /**
+     * Returns message notify user what etc item removed from his inventory.
+     * @return message waht notify user what etc item removed from his inventory.
+     */
+    public Message getRemoveFromInventoryMessage() {
+        throw new UnsupportedOperationException("Client cannot send to server this message.");
+    }
+
+    /**
+     * Returns message notify user what etc item dropped to the ground.
+     * @return message what notify user what etc item dropped to the ground.
+     */
+    public Message getDropMessage() {
+        throw new UnsupportedOperationException("Client cannot send to server this message.");
     }
 
     /**
@@ -32,49 +63,32 @@ public class ClientEtc extends Etc implements ClientItem {
      * @param d dimensions of drawing context on world map.
      */
     public void draw(Graphics g, int x, int y, Dimension d) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Sprite s = layAnimation.getSprite(getX(), getY());
+
+        if (s != null) {
+            g.drawImage(s.image,
+                        s.x - x - s.image.getWidth() / 2,
+                        s.y - y - s.image.getHeight() / 2,
+                        null);
+            g.drawString(getName() + "(" + getCount() + ")",
+                         s.x - x,
+                         s.y - y + 2 * s.image.getHeight());
+
+            // Point where item placed in world map and border around sprite
+            // image.
+            g.drawLine(s.x - x, s.y - y, s.x - x, s.y - y);
+            g.drawRect(s.x - x - s.image.getWidth() / 2 - 1,
+                       s.y - y - s.image.getHeight() / 2,
+                       s.image.getWidth() + 1,
+                       s.image.getHeight() + 1);
+        }
     }
 
     /**
-     * Returns message notify user what etc item added to his inventory.
-     * @return message what notify user what etc item added to his inventory.
+     * Returns sprite for delayed drawing in z-buffer or anoter purpose.
+     * @return sprite.
      */
-    @Override
-    public Message getAddToInvenrotyMessage() {
-        throw new UnsupportedOperationException("Client cannot send to server this message.");
-    }
-
-    /**
-     * Returns message notify user what etc item removed from his inventory.
-     * @return message waht notify user what etc item removed from his inventory.
-     */
-    @Override
-    public Message getRemoveFromInventoryMessage() {
-        throw new UnsupportedOperationException("Client cannot send to server this message.");
-    }
-
-    /**
-     * Returns message notify user what etc item dropped to the ground.
-     * @return message what notify user what etc item dropped to the ground.
-     */
-    @Override
-    public Message getDropMessage() {
-        throw new UnsupportedOperationException("Client cannot send to server this message.");
-    }
-
-    /**
-     * Return current position of etc item on world map.
-     * @return current position of etc item on world map.
-     */
-    public Point getCurPos() {
-        return new Point(getX(), getY());
-    }
-
-    /**
-     * Returns polygon what represents "hit-box" of etc item in world.
-     * @return polygon what represents "hit-box" of etc item in world.
-     */
-    public Polygon getDimensionOnWorld() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Sprite getSprite() {
+        return layAnimation.getSprite(getX(), getY());
     }
 }

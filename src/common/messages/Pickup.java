@@ -1,7 +1,6 @@
 package common.messages;
 
 import common.Message;
-import common.MessageType;
 import java.io.Serializable;
 
 /**

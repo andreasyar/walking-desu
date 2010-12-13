@@ -1,11 +1,9 @@
 package server.javatestserver;
 
-import common.GoldCoinMessage;
-import common.Item;
-import common.Message;
+import client.items.Item;
 import common.MoveMessage;
+import common.messages.Pickup;
 import java.awt.Point;
-import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class VisibleManager implements Runnable {
@@ -168,7 +166,7 @@ public class VisibleManager implements Runnable {
 
                     // Игрок больше не видит этот итем.
                     p1.delVisibleItem(i);
-                    server.sendTo(i.getPickupMessage(), p1);
+                    server.sendTo(new Pickup(p1.getID(), i.getID()), p1);
                 }
             }//items
         }

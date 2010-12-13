@@ -1,5 +1,7 @@
 package common;
 
+import common.messages.MessageType;
+
 public interface Message {
 
     public abstract MessageType getType();

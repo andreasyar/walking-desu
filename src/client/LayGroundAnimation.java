@@ -4,7 +4,7 @@ package client;
  * Lay ground animation. Used for layed down items.
  * @author sorc
  */
-class LayGroundAnimation {
+public class LayGroundAnimation {
 
     /**
      * Directional sprite set.

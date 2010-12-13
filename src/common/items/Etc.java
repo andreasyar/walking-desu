@@ -1,18 +1,14 @@
 package common.items;
 
 import common.Inventory;
-import common.Item;
-import common.Message;
-import common.messages.AddEtcItem;
-import common.messages.InventoryAddEtcItem;
-import common.messages.InventoryRemoveEtcItem;
+import client.items.Item;
 
 /**
  * Прочий предмет. Например: золото, кусок металла, пробка. Все предметы, для
  * которых нет (пока?) обобщения.
  * @author CatsPaw
  */
-public class Etc extends Item {
+public abstract class Etc extends Item {
 
     /**
      * Тип прочего предмета.
@@ -52,29 +48,5 @@ public class Etc extends Item {
      */
     public void removeFromInventory(Inventory inv) {
         inv.removeEtc(this);
-    }
-
-    /**
-     * Returns message notify user what etc item added to his inventory.
-     * @return message what notify user what etc item added to his inventory.
-     */
-    public Message getAddToInvenrotyMessage() {
-        return new InventoryAddEtcItem(getID(), getCount(), getType());
-    }
-
-    /**
-     * Returns message notify user what etc item removed from his inventory.
-     * @return message waht notify user what etc item removed from his inventory.
-     */
-    public Message getRemoveFromInventoryMessage() {
-        return new InventoryRemoveEtcItem(getID(), getCount(), getType());
-    }
-
-    /**
-     * Returns message notify user what etc item dropped to the ground.
-     * @return message what notify user what etc item dropped to the ground.
-     */
-    public Message getDropMessage() {
-        return new AddEtcItem(getID(), getX(), getY(), getCount(), getType());
     }
 }

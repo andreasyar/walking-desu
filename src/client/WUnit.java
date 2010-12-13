@@ -1,6 +1,6 @@
 package client;
 
-import client.items.ClientItem;
+import client.items.Item;
 import common.Unit;
 import common.Movement;
 import common.WanderingServerTime;
@@ -44,7 +44,7 @@ public abstract class WUnit extends Unit implements Drawable {
     /**
      * Selected item. Item what we want to pick up.
      */
-    protected ClientItem selectedItem = null;
+    protected Item selectedItem = null;
 
     public WUnit(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
 
@@ -280,7 +280,7 @@ public abstract class WUnit extends Unit implements Drawable {
      * Returns selected item.
      * @return Selected item.
      */
-    public ClientItem getSelectedItem() {
+    public Item getSelectedItem() {
         return selectedItem;
     }
 
@@ -288,7 +288,7 @@ public abstract class WUnit extends Unit implements Drawable {
      * Selects <i>item</i>.
      * @param item New selected item.
      */
-    public void selectItem(ClientItem item) {
+    public void selectItem(Item item) {
         this.selectedItem = item;
     }
 
@@ -311,7 +311,7 @@ public abstract class WUnit extends Unit implements Drawable {
      * Unlesect <i>item</i> if it selected. If anoter item selected do nothig.
      * @param item Item to unselect.
      */
-    public void unselectItem(ClientItem item) {
+    public void unselectItem(Item item) {
             if (selectedItem == item) {
                 selectedItem = null;
             }
