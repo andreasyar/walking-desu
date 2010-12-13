@@ -1,8 +1,6 @@
 package server.javatestserver;
 
 import common.BoltMessage;
-import common.items.GoldCoin;
-import common.GoldCoinMessage;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
@@ -20,17 +18,17 @@ import java.util.concurrent.ScheduledFuture;
 
 import common.HMapMessage;
 import common.HitMessage;
-import common.Item;
+import client.items.Item;
 import common.Message;
-import common.MessageType;
+import common.messages.MessageType;
 import common.MoveMessage;
 import common.Movement;
 import common.OtherMessage;
 import common.WanderingServerTime;
-import common.messages.InventoryDelGoldCoin;
+import common.items.Etc;
+import common.items.Items;
 import common.messages.Pickup;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import server.javatestserver.items.ServerEtc;
 
 /**
  * Главный класс тестового ява сервера блуждающей же.
@@ -617,14 +615,13 @@ public class JavaTestServer {
                                 vm.killMonster((Monster) target);
                             } else if (players.contains(target)) {
                                 Player p = (Player) target;
-                                GoldCoin goldCoin = p.getInventory().getGoldCoin();
-                                if (goldCoin != null) {
-                                    p.getInventory().delGoldCoin(goldCoin.getID(), goldCoin.getCount());
-                                    sendTo(goldCoin.getRemoveFromInventoryMessage(), p);
-                                    goldCoin.setX(p.getCurPos().x);
-                                    goldCoin.setY(p.getCurPos().y);
-                                    goldCoin.setOnGround(true);
-                                    items.add(goldCoin);
+                                ArrayList<Etc> gold = p.getInventory().getEtc(Items.GOLD);
+                                if (gold != null) {
+                                    p.getInventory().removeEtc(gold.get(0));
+                                    sendTo(gold.get(0).getRemoveFromInventoryMessage(), p);
+                                    gold.get(0).setX(p.getCurPos().x);
+                                    gold.get(0).setY(p.getCurPos().y);
+                                    items.add(gold.get(0));
                                 }
                                 p.restoreHitPoints();
                                 p.teleportToSpawn();
@@ -797,10 +794,9 @@ public class JavaTestServer {
                         mCurPos = m.getCurPos();
 
                         // Drop coins.
-                        GoldCoin coins = new GoldCoin(curPlayerID++, 1 + rand.nextInt(100));
+                        ServerEtc coins = new ServerEtc(curPlayerID++, "Gold", Items.GOLD);
                         coins.setX(mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
-                        coins.setOnGround(true);
                         items.add(coins);
 
                         units.remove(m);

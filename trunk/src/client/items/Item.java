@@ -1,10 +1,14 @@
-package common;
+package client.items;
+
+import common.Inventory;
+import common.Message;
 
 /**
  * Abstract item. Like sword, laser canon, money.
  */
 public abstract class Item {
 
+    // <editor-fold defaultstate="collapsed" desc="Fields">
     /**
      * Global identifer of this item. Everything in Wand world have one.
      */
@@ -22,9 +26,18 @@ public abstract class Item {
      */
     private int y;
     /**
+     * Width of item.
+     */
+    private int w;
+    /**
+     * Height of item.
+     */
+    private int h;
+    /**
      * Count of this item.
      */
     private int count;
+    // </editor-fold>
 
     /**
      * Creates new item.
@@ -91,6 +104,57 @@ public abstract class Item {
     }
     // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="Height">
+    /**
+     * Returns height of item.
+     * @return height of item.
+     */
+    public int getH() {
+        return h;
+    }
+
+    /**
+     * Set height of item.
+     * @param h height of item.
+     */
+    public void setH(int h) {
+        this.h = h;
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Width.">
+    /**
+     * Returns width of item.
+     * @return width of item.
+     */
+    public int getW() {
+        return w;
+    }
+
+    /**
+     * Set width of item.
+     * @param w width of item.
+     */
+    public void setW(int w) {
+        this.w = w;
+    }
+    // </editor-fold>
+
+    /**
+     * Return TRUE if dot [<i>x</i>, <i>y</i>] inside item bounds, FALSE otherwise.
+     * @param x x-axys of dot.
+     * @param y y-axys of dot.
+     */
+    public boolean onItem(int x, int y) {
+        if (x >= this.x && x <= this.x + this.w
+                && y >= this.y && y <= this.y + this.h) {
+
+            return true;
+        }
+
+        return false;
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Count">
     /**
      * Return count of item.
@@ -113,6 +177,7 @@ public abstract class Item {
     }
     // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="Inventory">
     /**
      * Adds item to inventory <i>inv</i>.
      * @param inv inventory.
@@ -124,7 +189,9 @@ public abstract class Item {
      * @param inv inventory.
      */
     public abstract void removeFromInventory(Inventory inv);
+    // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="Server-client interaction messages.">
     /**
      * Returns message notify user what item added to his inventory.
      * @return message what notify user what item added to his inventory.
@@ -142,4 +209,5 @@ public abstract class Item {
      * @return message what notify user what item dropped to the ground.
      */
     public abstract Message getDropMessage();
+    // </editor-fold>
 }

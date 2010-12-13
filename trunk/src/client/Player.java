@@ -1,16 +1,15 @@
 package client;
 
-import client.items.ClientItem;
+import client.items.ClientEtc;
 import common.Inventory;
-import common.Item;
-import common.MultiItem;
+import client.items.Item;
+import common.items.Etc;
+import common.items.Items;
 import java.util.ArrayList;
 
 public class Player extends WUnit {
 
     private PickupAnimation pickupAnim;
-
-    private final ArrayList<ClientItem> inv = new ArrayList<ClientItem>();
 
     private final Inventory inventory = new Inventory();
 
@@ -66,39 +65,36 @@ public class Player extends WUnit {
         return hitPoints <= 0;
     }
 
+    /**
+     * Adds item to inventory.
+     * @param item item to add.
+     */
     public void addItemToInventory(Item item) {
         item.addToInventory(getInventory());
     }
 
-    public void removeItemFromInventory(long itemID) {
-        ClientItem toRemove = null;
+    /**
+     * Removes item from inventory by item <i>id</i>.
+     * @param id item id.
+     */
+    public void removeItemFromInventory(long id) {
+        getInventory().removeById(id);
+    }
 
-        for (ClientItem i : inv) {
-            if (i.getID() == itemID) {
-                toRemove = i;
-                break;
-            }
-        }
-
-        if (toRemove != null) {
-            synchronized (inv) {
-                inv.remove(toRemove);
-            }
-        } else {
-            System.err.println("Item " + itemID + " not found in inventory.");
-        }
+    /**
+     * Removes item from inventory.
+     * @param item item.
+     */
+    void removeItemFromInventory(Item item) {
+        item.removeFromInventory(getInventory());
     }
 
     public int getGoldCount() {
         int count = 0;
 
-        for (ClientItem item : inv) {
-            if (item instanceof MultiItem) {
-                if (item instanceof WGoldCoinItem) {
-                    WGoldCoinItem invCoins = (WGoldCoinItem) item;
-                    count += invCoins.getCount();
-                }
-            }
+        ArrayList<Etc> etc = inventory.getEtc(Items.GOLD);
+        if (etc != null) {
+            count += etc.get(0).getCount();
         }
 
         return count;
@@ -112,7 +108,7 @@ public class Player extends WUnit {
      * Pickup item <i>i</i>.
      * @param i item.
      */
-    public void pickup(ClientItem i) {
+    public void pickup(Item i) {
         if (pickupAnim != null) {
             // play pickup animation here.
         }

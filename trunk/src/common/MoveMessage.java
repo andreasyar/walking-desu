@@ -1,5 +1,6 @@
 package common;
 
+import common.messages.MessageType;
 import java.io.Serializable;
 
 public class MoveMessage implements Message, Serializable {

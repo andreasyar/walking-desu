@@ -1,8 +1,8 @@
 package client;
 
-import client.items.ClientItem;
+import client.items.ClientEtc;
+import client.items.Item;
 import common.BoltMessage;
-import common.GoldCoinMessage;
 import java.awt.Point;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
@@ -20,15 +20,12 @@ import common.Message;
 import common.HitMessage;
 import common.HMapMessage;
 import common.OtherMessage;
-import common.MessageType;
+import common.messages.MessageType;
 import common.MoveMessage;
-import common.PickupGoldCoinItem;
 
 import common.WanderingServerTime;
-import common.messages.InventoryAddGoldCoin;
-import common.messages.InventoryDelGoldCoin;
-import common.messages.AddGoldCoin;
-import common.messages.DelGoldCoin;
+import common.messages.InventoryAddEtcItem;
+import common.messages.InventoryRemoveEtcItem;
 import common.messages.Pickup;
 import java.io.ObjectOutputStream;
 
@@ -242,7 +239,7 @@ public class ServerInteraction {
             }*/
         } else if ("delitem".equals(pieces1[0])) {
 
-            ClientItem item = field.getItem(Long.parseLong(pieces1[1]));
+            Item item = field.getItem(Long.parseLong(pieces1[1]));
             if (item != null) {
                 field.asyncRemoveItem(item);
             }
@@ -299,42 +296,28 @@ public class ServerInteraction {
                                 tmpMessage.getEndY(),
                                 tmpMessage.getBegTime());
 
-        } else if (m.getType() == MessageType.INVADDGOLDCOIN) {
+        } else if (m.getType() == MessageType.INVENTORYADDETCITEM) {
 
-            InventoryAddGoldCoin tmpMsg = (InventoryAddGoldCoin) m;
-            field.getSelfPlayer().getInventory().addGoldCoin(tmpMsg.getId(), tmpMsg.getCount());
+            InventoryAddEtcItem tmpMsg = (InventoryAddEtcItem) m;
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
+            etcItem.setCount(tmpMsg.getCount());
+            field.getSelfPlayer().addItemToInventory(etcItem);
 
-        } else if (m.getType() == MessageType.INVDELGOLDCOIN) {
+        } else if (m.getType() == MessageType.INVENTORYREMOVEETCITEM) {
 
-            InventoryDelGoldCoin tmpMsg = (InventoryDelGoldCoin) m;
-            field.getSelfPlayer().getInventory().delGoldCoin(tmpMsg.getId(), tmpMsg.getCount());
+            InventoryRemoveEtcItem tmpMsg = (InventoryRemoveEtcItem) m;
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
+            etcItem.setCount(tmpMsg.getCount());
+            field.getSelfPlayer().removeItemFromInventory(etcItem);
 
         } else if (m.getType() == MessageType.PICKUP) {
 
             // TODO Not only players can pickup items!
             Pickup tmpMsg = (Pickup) m;
             Player p = field.getPlayer(tmpMsg.getPickerId());
-            ClientItem i = field.getItem(tmpMsg.getItemId());
+            Item i = field.getItem(tmpMsg.getItemId());
             if (p != null && i != null) {
                 p.pickup(i);
-                field.asyncRemoveItem(i);
-            }
-
-        } else if (m.getType() == MessageType.ADDGOLDCOIN) {
-
-            AddGoldCoin tmpMsg = (AddGoldCoin) m;
-            WGoldCoinItem g = new WGoldCoinItem(tmpMsg.getId(),
-                                                tmpMsg.getCount());
-            g.setX(tmpMsg.getX());
-            g.setY(tmpMsg.getY());
-            g.setOnGround(true);
-            field.addItem(g);
-
-        } else if (m.getType() == MessageType.DELGOLDCOIN) {
-
-            DelGoldCoin tmpMsg = (DelGoldCoin) m;
-            ClientItem i = field.getItem(tmpMsg.getId());
-            if (i != null) {
                 field.asyncRemoveItem(i);
             }
 

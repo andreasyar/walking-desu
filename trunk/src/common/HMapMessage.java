@@ -5,6 +5,7 @@
 
 package common;
 
+import common.messages.MessageType;
 import java.io.Serializable;
 
 public class HMapMessage implements Message, Serializable {

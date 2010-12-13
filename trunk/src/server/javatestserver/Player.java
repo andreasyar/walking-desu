@@ -1,9 +1,8 @@
 package server.javatestserver;
 
-import common.items.GoldCoin;
 import common.Inventory;
-import common.Item;
-import common.MultiItem;
+import client.items.Item;
+import java.awt.Point;
 import java.util.ArrayList;
 
 public class Player extends JTSUnit {
@@ -13,9 +12,7 @@ public class Player extends JTSUnit {
      * List of visible items.
      */
     private final ArrayList<Item> visibleItems = new ArrayList<Item>();
-    private final ArrayList<Item> inv = new ArrayList<Item>();
     private static final double visibleRange = 500.0;
-
     private final Inventory inventory = new Inventory();
 
     public Player(long id, String nick, int maxHitPoints, int x, int y, double speed) {
@@ -110,7 +107,7 @@ public class Player extends JTSUnit {
      * otherwise.
      */
     public boolean inRange(Item item) {
-        if (getCurPos().distance(item.getCurPos()) <= visibleRange) {
+        if (getCurPos().distance(new Point(item.getX(), item.getY())) <= visibleRange) {
             return true;
         } else {
             return false;
@@ -137,33 +134,28 @@ public class Player extends JTSUnit {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    /**
+     * Adds item to inventory.
+     * @param item item to add.
+     */
     public void addItemToInventory(Item item) {
+        item.addToInventory(getInventory());
+    }
 
-        if (item instanceof MultiItem) {
-            if (item instanceof GoldCoin) {
-                GoldCoin newCoins = (GoldCoin) item;
-                for (Item i : inv) {
-                    if (i instanceof GoldCoin) {
-                        GoldCoin invCoins = (GoldCoin) i;
-                        invCoins.setCount(invCoins.getCount() + newCoins.getCount());
-                        return;
-                    }
-                }
+    /**
+     * Removes item from inventory by item <i>id</i>.
+     * @param id item id.
+     */
+    public void removeItemFromInventory(long id) {
+        getInventory().removeById(id);
+    }
 
-                // not found!
-                synchronized (inv) {
-                    inv.add(item);
-                }
-            } else {
-                synchronized (inv) {
-                    inv.add(item);
-                }
-            }
-        } else {
-            synchronized (inv) {
-                inv.add(item);
-            }
-        }
+    /**
+     * Removes item from inventory.
+     * @param item item.
+     */
+    void removeItemFromInventory(Item item) {
+        item.removeFromInventory(getInventory());
     }
 
     /**

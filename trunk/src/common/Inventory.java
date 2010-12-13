@@ -67,4 +67,17 @@ public class Inventory {
             }
         }
     }
+
+    /**
+     * Removes item by id.
+     * @param id item id.
+     */
+    public void removeById(long id) {
+        for (Etc etc : etcs) {
+            if (etc.getID() == id) {
+                etc.removeFromInventory(this);
+                return;
+            }
+        }
+    }
 }
