@@ -1,6 +1,6 @@
 package client;
 
-import client.items.Item;
+import common.items.Item;
 import common.Message;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -20,7 +20,7 @@ import javax.swing.JPanel;
 
 import common.WanderingServerTime;
 import java.util.ArrayList;
-import common.messages.Pickup;
+import common.messages.PickupEtcItem;
 
 public class WanderingJPanel extends JPanel implements KeyListener, MouseListener, ComponentListener {
 
@@ -41,7 +41,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     private boolean showGeoDataTypes = false;
 
-    private final ArrayList<ArrayList<Sprite>> zbuffer;
+    private final ZBuffer zbuffer = new ZBuffer();
 
     /**
      * Tower build delay.
@@ -52,17 +52,18 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
      * Tower last build time.
      */
     private long lastBuildTime = 0;
+    private boolean showSpriteBounds;
 
     public WanderingJPanel(GameField field, ServerInteraction inter) {
         this.field = field;
         this.inter = inter;
-        zbuffer = new ArrayList<ArrayList<Sprite>>();
     }
 
     @Override
     public synchronized void paintComponent(Graphics g) {
         try {
             super.paintComponent(g);
+            field.setGraphics(g);
 
             // Наш игрок.
             Player selfPlayer = field.getSelfPlayer();
@@ -157,33 +158,11 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
                 //field.drawAll(g, screenWorldX, screenWorldY, panelDim);
                 field.updateZBuffer(zbuffer, screenWorldX, screenWorldY, panelDim);
-                for (ArrayList<Sprite> l : zbuffer) {
-                    for (Sprite s : l) {
-                        g.drawImage(s.image,
-                                    s.x - screenWorldX - s.image.getWidth() / 2,
-                                    s.y - screenWorldY - s.image.getHeight() / 2,
-                                    null);
-                        g.drawLine(s.x - screenWorldX,
-                                   s.y - screenWorldY,
-                                   s.x - screenWorldX,
-                                   s.y - screenWorldY);
-                        g.drawRect(s.x - screenWorldX - s.image.getWidth() / 2 - 1,
-                                   s.y - screenWorldY - s.image.getHeight() / 2,
-                                   s.image.getWidth() + 1,
-                                   s.image.getHeight() + 1);
-                    }
-                }
-                for (int i = 0; i < panelDim.height; i++) {
-                    zbuffer.get(i).clear();
-                }
+                zbuffer.draw(g, screenWorldX, screenWorldY, panelDim);
 
                 field.drawTargetInfo(g, panelDim);
 
                 field.drawGoldCoinCount(g, panelDim);
-
-                //field.drawItems(g, screenWorldX, screenWorldY);
-
-                //field.drawUnits(g, screenWorldX, screenWorldY);
 
                 field.drawTextClouds(g, screenWorldX, screenWorldY);
 
@@ -192,10 +171,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                     field.drawVisibleRange(g, screenWorldX, screenWorldY);
                     field.drawTowersRange(g, screenWorldX, screenWorldY);
                 }
-
-                //field.drawNukes(g, screenWorldX, screenWorldY);
-
-                //field.drawHitAnimation(g, screenWorldX, screenWorldY);
 
                 g.drawImage(geoDebugLayer, - screenWorldX, - screenWorldY, null);
 
@@ -261,8 +236,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
                     if ( (w = field.selectItem(x + screenWorldX, y + screenWorldY)) != null) {
                         if (field.distanceToItem(w) <= GameField.pickupDistance) {
-                            field.asyncRemoveItem(w);
-                            inter.addCommand(new Pickup(selfPlayer.getID(), w.getID()));
+                            inter.addCommand(new PickupEtcItem(selfPlayer.getID(), w.getID()));
                             return;
                         } else {
                             pickup = true;
@@ -316,7 +290,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                             }
                         }
 
-                        field.getSelfPlayer().move(cur.x, cur.y, p.x, p.y, WanderingServerTime.getInstance().getTimeSinceStart());
+                        //field.getSelfPlayer().move(cur.x, cur.y, p.x, p.y, WanderingServerTime.getInstance().getTimeSinceStart());
                         inter.addCommand("(move " + p.x + " " + p.y + ")");
                     }
                 }
@@ -342,20 +316,8 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     @Override
     public void componentResized(ComponentEvent e) {
-        Dimension d = e.getComponent().getSize();
-
-        /*if (panelDim != null && d != null && mapOfst != null && (panelDim.width != d.width || panelDim.height != d.height)) {
-            mapOfst.width += d.width / 2 - panelDim.width / 2;
-            mapOfst.height += d.height / 2 - panelDim.height / 2;
-        }*/
-
-        panelDim = d;
-        synchronized (zbuffer) {
-            zbuffer.clear();
-            for (int i = 0; i < d.height; i++) {
-                zbuffer.add(new ArrayList<Sprite>());
-            }
-        }
+        panelDim = e.getComponent().getSize();
+        zbuffer.resize(panelDim.height);
     }
 
     @Override
@@ -429,18 +391,17 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 lastBuildTime = System.currentTimeMillis() - ServerInteraction.serverStartTime;
             }
         } else if (key == KeyEvent.VK_T) {
-            showTowerRange = true;
+            showTowerRange = showTowerRange ? false : true;
         } else if (key == KeyEvent.VK_B) {
-            showGeoDataBorders = false;
+            showGeoDataBorders = showGeoDataBorders ? false : true;
         } else if (key == KeyEvent.VK_N) {
-            showGeoDataTypes = false;
+            showGeoDataTypes = showGeoDataTypes ? false : true;
         } else if (key == KeyEvent.VK_F5) {
             try {
                 Item w = field.getNearestItem();
                 if (w != null) {
                     if (field.distanceToItem(w) <= GameField.pickupDistance) {
-                        field.asyncRemoveItem(w);
-                        Message m = new Pickup(field.getSelfPlayer().getID(), w.getID());
+                        Message m = new PickupEtcItem(field.getSelfPlayer().getID(), w.getID());
                         inter.addCommand(m);
                     } else {
                         Point p = new Point(w.getX(), w.getY());
@@ -482,6 +443,9 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 ex.printStackTrace();
                 System.exit(1);
             }
+        } else if (e.getKeyCode() == KeyEvent.VK_Y) {
+            showSpriteBounds = showSpriteBounds ? false : true;
+            zbuffer.drawSpriteBounds(showSpriteBounds);
         }
     }
 
@@ -489,12 +453,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             selectMode = false;
-        } else if (e.getKeyCode() == KeyEvent.VK_T) {
-            showTowerRange = false;
-        } else if (e.getKeyCode() == KeyEvent.VK_B) {
-            showGeoDataBorders = false;
-        } else if (e.getKeyCode() == KeyEvent.VK_N) {
-            showGeoDataTypes = false;
         }
     }
 }

@@ -1,10 +1,9 @@
 package client;
 
-import client.items.Item;
+import common.items.Item;
 import common.Unit;
 import common.Movement;
 import common.WanderingServerTime;
-import java.awt.AlphaComposite;
 
 import java.awt.image.BufferedImage;
 import java.awt.Point;
@@ -14,14 +13,16 @@ import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
-import java.util.Hashtable;
 import java.awt.Color;
-import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.font.LineMetrics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Transparency;
+import java.util.Hashtable;
 
 public abstract class WUnit extends Unit implements Drawable {
 
@@ -40,6 +41,8 @@ public abstract class WUnit extends Unit implements Drawable {
     protected Nuke currentNuke;
 
     private FontMetrics metrics = null;
+
+    private Graphics g = null;
 
     /**
      * Selected item. Item what we want to pick up.
@@ -76,6 +79,10 @@ public abstract class WUnit extends Unit implements Drawable {
         mv = new Movement(x, y, speed);
     }
 
+    public void setGraphics(Graphics g) {
+        this.g = g;
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Movement">
     @Override
     public void move(int begX, int begY, int endX, int endY, long begTime) {
@@ -86,36 +93,6 @@ public abstract class WUnit extends Unit implements Drawable {
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Sprite and Animation">
-    public Sprite getSprite() {
-        Sprite s = null;
-
-        try {
-            boolean isMove = mv.isMove();
-            boolean isAttack = isAttack();
-            boolean isDead = dead();
-            Point cur = mv.getCurPos();
-
-            if (!isDead && isMove) {
-                s = moveAnim.getSprite(cur);
-            } else if (!isDead && !isMove && !isAttack) {
-                s = standAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
-            } else if (!isDead && !isMove && isAttack) {
-                s = useAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
-            } else if (isDead) {
-                s = deathAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
-            } else {
-                System.err.println("Illegal unit state.");
-                System.exit(1);
-            }
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
-        }
-
-        return s;
-    }
-
     void drawTextCloud(Graphics g, int x, int y) {
         Sprite s = getSprite();
 
@@ -124,43 +101,6 @@ public abstract class WUnit extends Unit implements Drawable {
                         s.x - x + s.image.getWidth(),
                         s.y - y,
                         null);
-        }
-    }
-
-    @Override
-    public void draw(Graphics g, int x, int y, Dimension d) {
-        Sprite s = getSprite();
-
-        // Before any drawing check our distance from center of screen. If it is
-        // more than visible distance limit we do nothing and just return.
-        if (Point.distance(x + d.width / 2, y + d.height / 2, s.baseX, s.baseY) > GameField.visibleDistance) {
-            return;
-        }
-
-        // Get once. Use all time.
-        if (metrics == null) {
-            metrics = g.getFontMetrics(g.getFont());
-        }
-
-        int renderedNickWidth = metrics.stringWidth(getNick());
-        int sprImgW = s.image.getWidth();
-
-        if (renderedNickWidth + 2 > sprImgW) {
-            g.drawImage(s.image,
-                        s.x - x + (renderedNickWidth + 2) / 2 - sprImgW / 2,
-                        s.y - y + metrics.getHeight() + 1,
-                        null);
-            g.drawString(getNick(),
-                         s.x - x + 1,
-                         s.y - y + 1 + metrics.getMaxAscent());
-        } else {
-            g.drawImage(s.image,
-                        s.x - x,
-                        s.y - y + metrics.getHeight(),
-                        null);
-            g.drawString(getNick(),
-                         s.x - x + sprImgW / 2 - renderedNickWidth / 2,
-                         s.y - y + 1 + metrics.getMaxAscent());
         }
     }
 
@@ -317,4 +257,123 @@ public abstract class WUnit extends Unit implements Drawable {
             }
         }
     // </editor-fold>
+
+    /**
+     * Draw unit.
+     * @param g context for drawing.
+     * @param x x-axis of left upper corner of drawing context on world map.
+     * @param y y-axis of left upper corner of drawing context on world map.
+     * @param d dimensions of drawing context on world map.
+     */
+    @Override
+    public void draw(Graphics g, int x, int y, Dimension d) {
+        Sprite s = getSprite();
+
+        // Before any drawing check our distance from center of screen. If it is
+        // more than visible distance limit we do nothing and just return.
+        if (Point.distance(x + d.width / 2, y + d.height / 2, s.baseX, s.baseY) > GameField.visibleDistance) {
+            return;
+        }
+
+        // Get once. Use all time.
+        if (metrics == null) {
+            metrics = g.getFontMetrics(g.getFont());
+        }
+
+        int renderedNickWidth = metrics.stringWidth(getNick());
+        int sprImgW = s.image.getWidth();
+
+        if (renderedNickWidth + 2 > sprImgW) {
+            g.drawImage(s.image,
+                        s.x - x + (renderedNickWidth + 2) / 2 - sprImgW / 2,
+                        s.y - y + metrics.getHeight() + 1,
+                        null);
+            g.drawString(getNick(),
+                         s.x - x + 1,
+                         s.y - y + 1 + metrics.getMaxAscent());
+        } else {
+            g.drawImage(s.image,
+                        s.x - x,
+                        s.y - y + metrics.getHeight(),
+                        null);
+            g.drawString(getNick(),
+                         s.x - x + sprImgW / 2 - renderedNickWidth / 2,
+                         s.y - y + 1 + metrics.getMaxAscent());
+        }
+    }
+
+    /**
+     * Returns sprite for delayed drawing in z-buffer or anoter purpose.
+     * @return sprite.
+     */
+    public Sprite getSprite() {
+        Sprite s = null;
+        BufferedImage bimage;
+        Graphics bimageGraphics;
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gs = ge.getDefaultScreenDevice();
+        GraphicsConfiguration gc = gs.getDefaultConfiguration(); 
+
+        try {
+            boolean isMove = mv.isMove();
+            boolean isAttack = isAttack();
+            boolean isDead = dead();
+            Point cur = mv.getCurPos();
+
+            if (!isDead && isMove) {
+                s = moveAnim.getSprite(cur);
+            } else if (!isDead && !isMove && !isAttack) {
+                s = standAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
+            } else if (!isDead && !isMove && isAttack) {
+                s = useAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
+            } else if (isDead) {
+                s = deathAnim.getSprite(WanderingServerTime.getInstance().getTimeSinceStart(), cur);
+            } else {
+                System.err.println("Illegal unit state.");
+                System.exit(1);
+            }
+
+            // Get once. Use all time.
+            if (metrics == null) {
+                metrics = g.getFontMetrics(g.getFont());
+            }
+
+            int renderedNickWidth = metrics.stringWidth(getNick());
+            int sprImgW = s.image.getWidth();
+
+            if (renderedNickWidth + 2 > sprImgW) {
+
+                bimage = gc.createCompatibleImage(renderedNickWidth + 2,
+                        s.image.getHeight() + metrics.getHeight() + 1,
+                        Transparency.BITMASK);
+                bimageGraphics = bimage.createGraphics();
+
+                bimageGraphics.drawImage(s.image,
+                                         (renderedNickWidth + 2) / 2 - sprImgW / 2,
+                                         metrics.getHeight() + 1,
+                                         null);
+                bimageGraphics.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
+                bimageGraphics.drawString(getNick(), 1, 1 + metrics.getMaxAscent());
+            } else {
+
+                bimage = gc.createCompatibleImage(sprImgW,
+                        s.image.getHeight() + metrics.getHeight() + 1,
+                        Transparency.BITMASK);
+                bimageGraphics = bimage.createGraphics();
+
+                bimageGraphics.drawImage(s.image, 0, metrics.getHeight(), null);
+                bimageGraphics.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
+                bimageGraphics.drawString(getNick(),
+                        sprImgW / 2 - renderedNickWidth / 2,
+                        1 + metrics.getMaxAscent());
+            }
+
+            s.image = bimage;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
+
+        return s;
+    }
 }

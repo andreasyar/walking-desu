@@ -2,7 +2,7 @@ package client;
 
 import client.items.ClientEtc;
 import common.Inventory;
-import client.items.Item;
+import common.items.Item;
 import common.items.Etc;
 import common.items.Items;
 import java.util.ArrayList;

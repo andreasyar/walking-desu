@@ -1,26 +1,23 @@
 package client;
 
-import client.items.Item;
-import common.messages.Pickup;
+import client.items.ClientEtc;
+import common.items.Item;
+import common.messages.PickupEtcItem;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.util.Comparator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 
 public class GameField {
 
     private static int debugLevel = 0;
-
     public static double visibleDistance = 500.0;
     public static double pickupDistance = 50.0;
-
     private Player selfPlayer;
     private PickupTask pickupTask;
     private final LinkedBlockingQueue<WUnit> units = new LinkedBlockingQueue<WUnit>();
@@ -31,23 +28,22 @@ public class GameField {
     private final LinkedBlockingQueue<HitAnimation> hitAnimations = new LinkedBlockingQueue<HitAnimation>();
     private final LinkedBlockingQueue<ClientMapFragment> mfagments = new LinkedBlockingQueue<ClientMapFragment>();
     /**
-     * Items layed on the ground.
-     */
-    private final LinkedBlockingQueue<Item> items = new LinkedBlockingQueue<Item>();
-    /**
      * Drawable units. It can be unit, item, nuke - anything what implemets
      * drawable interface.
      */
     private final LinkedBlockingQueue<Drawable> drawqueue = new LinkedBlockingQueue<Drawable>();
-
     private SelfExecutor selfExecutor;
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
      * monsters loss limit, S - strength multiplyer.
      */
     private String tdStatus = null;
-    //private static YAligner aligner = new YAligner();
     private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
+    /**
+     * List of etc items.
+     */
+    protected final ArrayList<ClientEtc> etcItems = new ArrayList<ClientEtc>();
+    private Graphics g = null;
 
     public GameField() {
         GeoDataController gdController = new GeoDataController(WanderingMap.getGeoData(), players);
@@ -59,74 +55,29 @@ public class GameField {
         selfExecutor = new SelfExecutor(this);
     }
 
-//    /**
-//     * Draws units, items, nukes, hit animation.
-//     * @params g graphics context for drawing in.
-//     * @params x x-axis of top left screen position on world map.
-//     * @params y y-axis of top left screen position on world map.
-//     */
-//    public void drawAll(Graphics g, int x, int y, Dimension dim) {
-//
-//        for (Drawable d : units) {
-//            if (d != null) {
-//                d.draw(g, x, y, dim);
-//            }
-//            else {
-//                System.err.println("WDrawable unit is null. LOL? It cannot be!");
-//                continue;
-//            }
-//        }
-//
-//        for (Drawable d : nukes) {
-//            if (d != null) {
-//                d.draw(g, x, y, dim);
-//            }
-//            else {
-//                System.err.println("Nuke is null. LOL? It cannot be!");
-//                continue;
-//            }
-//        }
-//
-//        for (Drawable d : hitAnimations) {
-//            if (d != null) {
-//                d.draw(g, x, y, dim);
-//            }
-//            else {
-//                System.err.println("Hit animation is null. LOL? It cannot be!");
-//                continue;
-//            }
-//        }
-//
-//        for (Drawable d : items) {
-//            if (d != null) {
-//                d.draw(g, x, y, dim);
-//            }
-//            else {
-//                System.err.println("Items is null. LOL? It cannot be!");
-//                continue;
-//            }
-//        }
-//    }
+    public void setGraphics(Graphics g) {
+        this.g = g;
+    }
 
     /**
-     * Fills the z-buffer for drawing sprites in proper order by y-axys
-     * accedering.
+     * Fills the sprites z-buffer in proper order by sprite y-axys accedering.
      * @param zbuffer z-buffer of sprites.
      * @param x x-axys of left top drawing panel corner in world.
      * @param y y-axys of left top drawing panel corner in world.
      * @param dim dimensions of drawing panel.
      */
-    public void updateZBuffer(ArrayList<ArrayList<Sprite>> zbuffer, int x, int y, Dimension dim) {
+    public void updateZBuffer(ZBuffer zbuffer, int x, int y, Dimension dim) {
         Sprite s;
 
         synchronized (zbuffer) {
             for (Drawable d : drawqueue) {
                 if (d != null) {
                     s = d.getSprite();
-                    if (s.y - y >= 0 && s.y - y < zbuffer.size()
-                            && s.x - x >= 0 && s.x - x <= dim.getWidth()) {
+                    if (s != null
+                            && s.y - y >= 0 && s.y - y + s.image.getHeight() < zbuffer.getSize()
+                            && s.x - x >= 0 && s.x - x + s.image.getWidth() <= dim.getWidth()) {
 
-                        zbuffer.get(s.y - y).add(s);
+                        zbuffer.addSprite(s, s.y - y + s.image.getHeight());
                     }
                 }
                 else {
@@ -219,8 +170,9 @@ public class GameField {
 
     // <editor-fold defaultstate="collapsed" desc="Players">
     public void addPlayer(Player player) {
-        units.add(player);
         players.add(player);
+        units.add(player);
+        addDrawable(player);
     }
 
     public void asyncAddPlayer(Player player) {
@@ -237,9 +189,8 @@ public class GameField {
                     curPlayer.unselectUnit();
                 }
             }
-
-            // Now we can safely remove him.
-            players.remove(p);
+            
+            removeDrawable(p);
 
             // Finally remove player from units list.
             for (WUnit curUnit : units) {
@@ -248,6 +199,9 @@ public class GameField {
                     return;
                 }
             }
+
+            // Now we can safely remove him.
+            players.remove(p);
         }
     }
 
@@ -320,20 +274,23 @@ public class GameField {
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Nukes works">
+    // <editor-fold defaultstate="collapsed" desc="Nukes.">
     public void addNuke(WUnit self, WUnit selectedUnit, long begTime) {
 
-        // Remove old nukes.
+        Nuke n;
         for (Iterator<Nuke> l = nukes.iterator(); l.hasNext();) {
-            if (!l.next().isMove()) {
+            n = l.next();
+            if (!n.isMove()) {
+                removeDrawable(n);
                 l.remove();
             }
         }
 
-        Nuke n = self.getCurrentNuke();
+        n = self.getCurrentNuke();
         if (n != null) {
             n.use(begTime);
             nukes.add(n);
+            addDrawable(n);
         } else {
             System.err.println("We try to add null!");
         }
@@ -354,6 +311,7 @@ public class GameField {
     public void addTower(Tower tower) {
         towers.add(tower);
         units.add(tower);
+        addDrawable(tower);
     }
 
     public void asyncAddTower(Tower tower) {
@@ -363,8 +321,9 @@ public class GameField {
     public void delTower(long id) {
         Tower t = getTower(id);
         if (t != null) {
-            towers.remove(t);
+            removeDrawable(t);
             units.remove(t);
+            towers.remove(t);
         }
     }
 
@@ -411,6 +370,7 @@ public class GameField {
     public void addMonster(Monster monster) {
         monsters.add(monster);
         units.add(monster);
+        addDrawable(monster);
     }
 
     public void asyncAddMonster(Monster monster) {
@@ -420,8 +380,9 @@ public class GameField {
     public void delMonster(long id) {
         Monster m = getMonster(id);
         if (m != null) {
-            monsters.remove(m);
+            removeDrawable(m);
             units.remove(m);
+            monsters.remove(m);
         }
     }
 
@@ -456,10 +417,11 @@ public class GameField {
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Hit animations">
+    // <editor-fold defaultstate="collapsed" desc="Hit animations.">
     public void addHitAnimation(HitAnimation hitAnimation) {
         removeEndedHitAnimations();
         hitAnimations.add(hitAnimation);
+        addDrawable(hitAnimation);
     }
 
     public void asyncAddHitAnimation(HitAnimation hitAnimation) {
@@ -471,9 +433,11 @@ public class GameField {
     }
 
     private void removeEndedHitAnimations() {
-        // Remove old hits.
+        HitAnimation a;
         for (Iterator<HitAnimation> l = hitAnimations.iterator(); l.hasNext();) {
-            if (l.next().isDone()) {
+            a = l.next();
+            if (a.isDone()) {
+                hitAnimations.remove(a);
                 l.remove();
             }
         }
@@ -548,67 +512,17 @@ public class GameField {
 
     // <editor-fold defaultstate="collapsed" desc="Items">
     /**
-     * Return items queue.
-     * @return items queue.
-     */
-    public LinkedBlockingQueue<Item> getItems() {
-        return items;
-    }
-
-    /**
-     * Synchronously add item to items queue.
-     * @param item new item to add to queue.
-     */
-    public void addItem(Item item) {
-        if (!items.contains(item)) {
-            items.add(item);
-        }
-    }
-
-    /**
-     * Asynchronously add item to items queue.
-     * @param item new item to add to queue.
-     * @throws IllegalArgumentException argument <i>item</i> cannot be null!
-     */
-    public void asyncAddItem(Item item) throws IllegalArgumentException {
-        if (item == null) {
-            throw new IllegalArgumentException("Cannot add null in item queue!");
-        }
-
-        selfExecutor.add("addItem", new Class[]{ Item.class }, new Object[]{ item });
-    }
-
-    /**
-     * Synchronously remove item from items queue.
-     * @param item item to remove from queue.
-     */
-    public void removeItem(Item item) {
-        items.remove(item);
-    }
-
-    /**
-     * Synchronously remove item from items queue.
-     * @param item item to remove from queue.
-     * @throws IllegalArgumentException argument item cannot be null!
-     */
-    public void asyncRemoveItem(Item item) throws IllegalArgumentException {
-        if (item == null) {
-            throw new IllegalArgumentException("Cannot add null in item queue!");
-        }
-
-        selfExecutor.add("removeItem", new Class[]{ Item.class }, new Object[]{ item });
-    }
-
-    /**
      * Returns item if dot [<i>x</i>, <i>y</i>] lay in some item bounds, NULL
      * otherwise.
      * @param x x-axys of dot.
      * @param y y-axys of dot.
      */
     public Item selectItem(int x, int y) {
-        for (Item i : items) {
-            if (i.onItem(x, y)) {
-                return i;
+        synchronized (etcItems) {
+            for (Item i : etcItems) {
+                if (i.onItem(x, y)) {
+                    return i;
+                }
             }
         }
 
@@ -681,31 +595,18 @@ public class GameField {
         double nearestDistance = -1.0;
         double curDistance = 0.0;
 
-        for (Item i : items) {
-            curDistance = distanceToItem(i);
+        synchronized (etcItems) {
+            for (Item i : etcItems) {
+                curDistance = distanceToItem(i);
 
-            if (nearestDistance < 0.0 || curDistance < nearestDistance) {
-                nearestDistance = curDistance;
-                nearest = i;
+                if (nearestDistance < 0.0 || curDistance < nearestDistance) {
+                    nearestDistance = curDistance;
+                    nearest = i;
+                }
             }
         }
 
         return nearest;
-    }
-
-    /**
-     * Returns item by id or NULL if no item of this id layed on the ground.
-     * @param id id of serched item.
-     * @return founded item or NULL.
-     */
-    public Item getItem(long itemID) {
-        for (Item item : items) {
-            if (item.getID() == itemID) {
-                return item;
-            }
-        }
-
-        return null;
     }
     // </editor-fold>
 
@@ -747,6 +648,7 @@ public class GameField {
      */
     public void removeDrawable(Drawable d) {
         drawqueue.remove(d);
+        //System.out.println("Drawable " + d.toString() + " removed.");
     }
 
     /**
@@ -763,16 +665,85 @@ public class GameField {
     }
     // </editor-fold>
 
-//    private static class YAligner implements Comparator {
-//
-//        @Override
-//        public final int compare(Object a, Object b) {
-//            return ((WUnit) a).getCurPos().y > ((WUnit) b).getCurPos().y ? 1 : 0;
-//        }
-//    }
+    // <editor-fold defaultstate="collapsed" desc="Inventory.">
+    /**
+     * Synchronous adds etc item to game field.
+     * @param item etc item.
+     */
+    public boolean addEtc(ClientEtc item) {
+        synchronized (etcItems) {
+            switch (item.getType()) {
+                case GOLD:
+                    etcItems.add(item);
+                    addDrawable(item);
+                    //System.out.println("Item id=" + item.getID() + " dropped to the ground.");
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
+
+    /**
+     * Asynchronous adds etc item to game field.
+     * @param item etc item.
+     * @throws IllegalArgumentException argument item cannot be null.
+     */
+    public void asyncAddEtc(ClientEtc item) throws IllegalArgumentException {
+        if (item == null) {
+            throw new IllegalArgumentException("Cannot add null item to game field!");
+        }
+
+        selfExecutor.add("addEtc", new Class[]{ ClientEtc.class }, new Object[]{ item });
+    }
+
+    /**
+     * Synchronous remove etc item from game field.
+     * @param item etc item.
+     */
+    public void removeEtc(ClientEtc item) {
+        synchronized(etcItems) {
+            removeDrawable(item);
+            etcItems.remove(item);
+        }
+    }
+
+    /**
+     * Asynchronous remove etc item from game field.
+     * @param item etc item.
+     * @throws IllegalArgumentException argument item cannot be null.
+     */
+    public void asyncRemoveEtc(ClientEtc item) throws IllegalArgumentException {
+        if (item == null) {
+            throw new IllegalArgumentException("Cannot remove null item from game field!");
+        }
+
+        selfExecutor.add("removeEtc", new Class[]{ ClientEtc.class }, new Object[]{ item });
+    }
+
+    /**
+     * Returns etc item by its id.
+     * @return etc item.
+     */
+    public ClientEtc getEtc(long id) {
+        synchronized (etcItems) {
+            for (ClientEtc item : etcItems) {
+                if (item.getID() == id) {
+                    return item;
+                }
+            }
+        }
+
+        return null;
+    }
+    // </editor-fold>
 
     public void startSelfExecution() {
         new Thread(selfExecutor).start();
+    }
+
+    public Graphics getPanelGraphics() {
+        return g;
     }
 
     /**
@@ -931,8 +902,7 @@ public class GameField {
                             System.out.println("We was interrupted.");
                         }// </editor-fold>
                         if ((distance = Point.distance(item.getX(), item.getY(), cur.x, cur.y)) > 10) {
-                            asyncRemoveItem(item);
-                            inter.addCommand(new Pickup(selfPlayer.getID(), item.getID()));
+                            inter.addCommand(new PickupEtcItem(selfPlayer.getID(), item.getID()));
                             selfPlayer.unselectItem(item);
 
                             // <editor-fold defaultstate="collapsed" desc="debug">
@@ -948,8 +918,7 @@ public class GameField {
                 }
 
                 if (!stopped) {
-                    asyncRemoveItem(item);
-                    inter.addCommand(new Pickup(selfPlayer.getID(), item.getID()));
+                    inter.addCommand(new PickupEtcItem(selfPlayer.getID(), item.getID()));
                     selfPlayer.unselectItem(item);
 
                     // <editor-fold defaultstate="collapsed" desc="debug">

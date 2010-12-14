@@ -18,7 +18,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import common.HMapMessage;
 import common.HitMessage;
-import client.items.Item;
+import common.items.Item;
 import common.Message;
 import common.messages.MessageType;
 import common.MoveMessage;
@@ -27,7 +27,7 @@ import common.OtherMessage;
 import common.WanderingServerTime;
 import common.items.Etc;
 import common.items.Items;
-import common.messages.Pickup;
+import common.messages.PickupEtcItem;
 import server.javatestserver.items.ServerEtc;
 
 /**
@@ -116,6 +116,11 @@ public class JavaTestServer {
         }
     }
 
+    /**
+     * Sends message to all players what see unit.
+     * @param msg message to send.
+     * @param unit unit.
+     */
     public void sendFromUnit(Message msg, JTSUnit unit) {
         for (SocketProcessor sp : clientQueue) {
             if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
@@ -296,14 +301,14 @@ public class JavaTestServer {
 
                         line = ((OtherMessage) message).getMessage();
 
-                    } else if (message.getType() == MessageType.PICKUP) {
+                    } else if (message.getType() == MessageType.PICKUPETCITEM) {
 
                         System.out.println(s.getInetAddress() + " --> " + message);
 
                         // We ignore pickerId because we expect what all PICKUP
                         // messages sends from self player.
                         
-                        Pickup tmpMsg = ((Pickup) message);
+                        PickupEtcItem tmpMsg = ((PickupEtcItem) message);
                         Item tmpItem = null;
                         for (Item i : items) {
                             if (i.getID() == tmpMsg.getItemId()) {
@@ -317,7 +322,7 @@ public class JavaTestServer {
                             // TODO lol may be some check if we actually can pickup?
 
                             items.remove(tmpItem);
-                            sendToAll(new Message[] {new Pickup(self.getID(), tmpItem.getID())});
+                            sendToAll(new Message[] {new PickupEtcItem(self.getID(), tmpItem.getID())});
                             tmpItem.addToInventory(self.getInventory());
                             sendTo(tmpItem.getAddToInvenrotyMessage(), self);
                         } else {
@@ -368,13 +373,14 @@ public class JavaTestServer {
                                 line = line.substring("move".length() + 1, line.length());
                                 pieces = line.split(" ");
                                 self.move(selfCurPos.x, selfCurPos.y, Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]), (System.currentTimeMillis() - serverStartTime));
-                                sendFromUnit(new MoveMessage(self.getID(),
-                                                             System.currentTimeMillis() - WanderingServerTime.getInstance().getServerTime(),
-                                                             selfCurPos.x,
-                                                             selfCurPos.y,
-                                                             Integer.parseInt(pieces[0]),
-                                                             Integer.parseInt(pieces[1])),
-                                             self);
+                                Message m = new MoveMessage(self.getID(),
+                                                            WanderingServerTime.getInstance().getTimeSinceStart(),
+                                                            selfCurPos.x,
+                                                            selfCurPos.y,
+                                                            Integer.parseInt(pieces[0]),
+                                                            Integer.parseInt(pieces[1]));
+                                sendFromUnit(m, self);
+                                sendTo(m, self);
                                 // </editor-fold>
                             } else if ("message".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Message message processing">
@@ -795,6 +801,7 @@ public class JavaTestServer {
 
                         // Drop coins.
                         ServerEtc coins = new ServerEtc(curPlayerID++, "Gold", Items.GOLD);
+                        coins.setCount(1 + rand.nextInt(99));
                         coins.setX(mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         items.add(coins);

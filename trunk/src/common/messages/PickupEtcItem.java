@@ -9,12 +9,12 @@ import java.io.Serializable;
  * client about any pickup actions.
  * @author sorc
  */
-public class Pickup implements Message, Serializable {
+public class PickupEtcItem implements Message, Serializable {
 
     /**
      * Message type.
      */
-    private final MessageType type = MessageType.PICKUP;
+    private final MessageType type = MessageType.PICKUPETCITEM;
     /**
      * Id of subject who pickup item.
      */
@@ -29,7 +29,7 @@ public class Pickup implements Message, Serializable {
      * @param pickerId id of subject who pickup item.
      * @param itemId id of item what picked up.
      */
-    public Pickup(long pickerId, long itemId) {
+    public PickupEtcItem(long pickerId, long itemId) {
         this.pickerId = pickerId;
         this.itemId = itemId;
     }

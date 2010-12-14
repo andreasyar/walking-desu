@@ -22,15 +22,6 @@ public class PeasantNuke extends Nuke {
     }
 
     @Override
-    public Sprite getSprite() {
-        if (lastUseTime + delay <= System.currentTimeMillis() - ServerInteraction.serverStartTime) {
-            return animation.getSprite();
-        } else {
-            return null;
-        }
-    }
-
-    @Override
     public void use(long begTime) {
         WUnit target = attacker.getSelectedUnit();
         Point beg, cur;
@@ -63,4 +54,12 @@ public class PeasantNuke extends Nuke {
         }
     }
 
+    @Override
+    public Sprite getSprite() {
+        if (lastUseTime + delay <= System.currentTimeMillis() - ServerInteraction.serverStartTime) {
+            return animation.getSprite();
+        } else {
+            return null;
+        }
+    }
 }
