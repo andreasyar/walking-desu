@@ -28,7 +28,14 @@ public class ClientEtc extends Etc implements Drawable {
      */
     public ClientEtc (long id, String name, Items type) {
         super(id, name, type);
-        layAnimation = new LayGroundAnimation(name);
+        switch (type) {
+            case GOLD:
+                layAnimation = new LayGroundAnimation("coin_stacks_gold");
+                break;
+            default:
+                layAnimation = new LayGroundAnimation(name);
+                break;
+        }
     }
 
     /**

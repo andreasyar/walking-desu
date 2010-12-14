@@ -1,4 +1,4 @@
-package client.items;
+package common.items;
 
 import common.Inventory;
 import common.Message;
@@ -210,4 +210,9 @@ public abstract class Item {
      */
     public abstract Message getDropMessage();
     // </editor-fold>
+
+    @Override
+    public String toString() {
+        return "Item{" + "id=" + id + "name=" + name + "x=" + x + "y=" + y + "w=" + w + "h=" + h + "count=" + count + '}';
+    }
 }

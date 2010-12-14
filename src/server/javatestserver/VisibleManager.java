@@ -1,8 +1,8 @@
 package server.javatestserver;
 
-import client.items.Item;
+import common.items.Item;
 import common.MoveMessage;
-import common.messages.Pickup;
+import common.messages.PickupEtcItem;
 import java.awt.Point;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -166,7 +166,7 @@ public class VisibleManager implements Runnable {
 
                     // Игрок больше не видит этот итем.
                     p1.delVisibleItem(i);
-                    server.sendTo(new Pickup(p1.getID(), i.getID()), p1);
+                    server.sendTo(new PickupEtcItem(p1.getID(), i.getID()), p1);
                 }
             }//items
         }

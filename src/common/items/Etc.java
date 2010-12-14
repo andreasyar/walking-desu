@@ -1,7 +1,6 @@
 package common.items;
 
 import common.Inventory;
-import client.items.Item;
 
 /**
  * Прочий предмет. Например: золото, кусок металла, пробка. Все предметы, для

@@ -1,7 +1,7 @@
 package client;
 
 import client.items.ClientEtc;
-import client.items.Item;
+import common.items.Item;
 import common.BoltMessage;
 import java.awt.Point;
 import java.io.PrintWriter;
@@ -24,9 +24,10 @@ import common.messages.MessageType;
 import common.MoveMessage;
 
 import common.WanderingServerTime;
+import common.messages.AddEtcItem;
 import common.messages.InventoryAddEtcItem;
 import common.messages.InventoryRemoveEtcItem;
-import common.messages.Pickup;
+import common.messages.PickupEtcItem;
 import java.io.ObjectOutputStream;
 
 public class ServerInteraction {
@@ -117,6 +118,7 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
+            p.setGraphics(field.getPanelGraphics());
             field.addSelfPlayer(p);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
         } else if ("timesync".equals(pieces1[0])) {
@@ -139,6 +141,7 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
+            p.setGraphics(field.getPanelGraphics());
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
             field.asyncAddPlayer(p);
         } else if ("delplayer".equals(pieces1[0])) {
@@ -167,14 +170,16 @@ public class ServerInteraction {
 
             pieces1 = command.split(" ", 7);
             pieces2 = pieces1[6].substring(1, pieces1[6].length() - 1).split("\" \"", 3);
-            field.asyncAddMonster(new Monster(Integer.parseInt(pieces1[1]),
+            Monster m = new Monster(Integer.parseInt(pieces1[1]),
                     pieces2[0],
                     Integer.parseInt(pieces1[2]),
                     Double.parseDouble(pieces1[3]),
                     Integer.parseInt(pieces1[4]),
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
-                    pieces2[2]));
+                    pieces2[2]);
+            field.asyncAddMonster(m);
+            m.setGraphics(field.getPanelGraphics());
         } else if ("delmonster".equals(pieces1[0])) {
             field.asyncDelMonster(Long.parseLong(pieces1[1]));
         } else if ("deathmonster".equals(pieces1[0])) {
@@ -209,6 +214,7 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.SOUTH,
                     "tower");
+            t.setGraphics(field.getPanelGraphics());
             t.setCurrentNuke(new CanonNuke(t));
             field.asyncAddTower(t);
         } else if ("monsterloss".equals(pieces1[0])) {
@@ -237,13 +243,6 @@ public class ServerInteraction {
                 field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime + self.getNukeAnimationDelay());
                 WanderingLocks.unlockNukes();
             }*/
-        } else if ("delitem".equals(pieces1[0])) {
-
-            Item item = field.getItem(Long.parseLong(pieces1[1]));
-            if (item != null) {
-                field.asyncRemoveItem(item);
-            }
-
         } else if ("delitemfrominv".equals(pieces1[0])) {
 
             field.getSelfPlayer().removeItemFromInventory(Long.parseLong(pieces1[1]));
@@ -310,16 +309,33 @@ public class ServerInteraction {
             etcItem.setCount(tmpMsg.getCount());
             field.getSelfPlayer().removeItemFromInventory(etcItem);
 
-        } else if (m.getType() == MessageType.PICKUP) {
+        } else if (m.getType() == MessageType.PICKUPETCITEM) {
 
             // TODO Not only players can pickup items!
-            Pickup tmpMsg = (Pickup) m;
+            PickupEtcItem tmpMsg = (PickupEtcItem) m;
             Player p = field.getPlayer(tmpMsg.getPickerId());
-            Item i = field.getItem(tmpMsg.getItemId());
+            ClientEtc i = field.getEtc(tmpMsg.getItemId());
             if (p != null && i != null) {
                 p.pickup(i);
-                field.asyncRemoveItem(i);
+                field.asyncRemoveEtc(i);
+            } else {
+                if (p == null) {
+                    System.err.println("While processing " + m.getType().name() + " message, picker id=" + tmpMsg.getPickerId() + " was not found.");
+                }
+                if (i == null) {
+                    System.err.println("While processing " + m.getType().name() + " message, item id=" + tmpMsg.getItemId() + " was not found.");
+                }
             }
+
+        } else if (m.getType() == MessageType.ADDETCITEM) {
+
+            AddEtcItem tmpMsg = (AddEtcItem) m;
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
+            etcItem.setCount(tmpMsg.getCount());
+            etcItem.setX(tmpMsg.getX());
+            etcItem.setY(tmpMsg.getY());
+            field.asyncAddEtc(etcItem);
+            field.asyncAddDrawable(etcItem);
 
         }
     }

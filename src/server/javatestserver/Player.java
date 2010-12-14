@@ -1,7 +1,7 @@
 package server.javatestserver;
 
 import common.Inventory;
-import client.items.Item;
+import common.items.Item;
 import java.awt.Point;
 import java.util.ArrayList;
 

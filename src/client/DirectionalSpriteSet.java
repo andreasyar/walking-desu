@@ -11,7 +11,6 @@ import javax.imageio.ImageIO;
 public class DirectionalSpriteSet {
     private static HashMap<String, DirectionalSpriteSet> cache = new HashMap<String, DirectionalSpriteSet>();
     private HashMap<Direction, ArrayList<BufferedImage>> sprites = new HashMap<Direction, ArrayList<BufferedImage>>();
-    private Sprite curSpr = new Sprite();
 
     public static DirectionalSpriteSet load(String name) {
         if (cache.containsKey(name)) {
@@ -194,6 +193,7 @@ public class DirectionalSpriteSet {
             throw new IllegalArgumentException("Direction cannot be null!");
         }
 
+        Sprite curSpr = new Sprite();
         ArrayList<BufferedImage> tmp = sprites.get(d);
         if (tmp != null) {
             curSpr.image = tmp.get(index);
@@ -217,9 +217,17 @@ public class DirectionalSpriteSet {
             try {
                 url = cl.getResource(paths[i]);
                 if (url != null) {
-                    sprites.get(d).add(ImageIO.read(url));
+                    if (paths[i].contains("peasant_walk") || paths[i].contains("peasant_stand")) {
+                        sprites.get(d).add(ImageIO.read(url).getSubimage(8, 8, 56, 56));
+                    } else {
+                        sprites.get(d).add(ImageIO.read(url));
+                    }
                 } else {
-                    sprites.get(d).add(ImageIO.read(new File(paths[i])));
+                    if (paths[i].contains("peasant_walk") || paths[i].contains("peasant_stand")) {
+                        sprites.get(d).add(ImageIO.read(new File(paths[i])).getSubimage(8, 8, 56, 56));
+                    } else {
+                        sprites.get(d).add(ImageIO.read(new File(paths[i])));
+                    }
                 }
             } catch (IOException e) {
                 System.err.println(paths[i]);

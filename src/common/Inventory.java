@@ -9,10 +9,11 @@ import java.util.ArrayList;
  * @author sorc
  */
 public class Inventory {
+
     /**
      * List of etc items.
      */
-    private final ArrayList<Etc> etcs = new ArrayList<Etc>();
+    protected final ArrayList<Etc> etcs = new ArrayList<Etc>();
 
     /**
      * Returns etc items of <i>type</i> type.
@@ -38,18 +39,21 @@ public class Inventory {
     /**
      * Adds etc item to inventory.
      * @param etc item item to add.
+     * @return return TRUE if new item added to items list, FALSE otherwise.
      */
-    public void addEtc(Etc item) {
+    public boolean addEtc(Etc item) {
         synchronized (etcs) {
             switch (item.getType()) {
                 case GOLD:
                     ArrayList<Etc> tmpEtcs = getEtc(Items.GOLD);
                     if (tmpEtcs == null) {
-                        etcs.add(item);
+                        return etcs.add(item);
                     } else {
                         tmpEtcs.get(0).setCount(tmpEtcs.get(0).getCount() + item.getCount());
+                        return false;
                     }
-                    break;
+                default:
+                    return false;
             }
         }
     }

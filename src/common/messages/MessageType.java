@@ -6,7 +6,7 @@ public enum MessageType {
     BOLT,
     MOVE,
     OTHER,
-    PICKUP,
+    PICKUPETCITEM,
     ADDETCITEM,
     INVENTORYADDETCITEM,
     INVENTORYREMOVEETCITEM;
