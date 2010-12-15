@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import common.WanderingServerTime;
 import java.util.ArrayList;
 import common.messages.PickupEtcItem;
+import java.awt.FontMetrics;
 
 public class WanderingJPanel extends JPanel implements KeyListener, MouseListener, ComponentListener {
 
@@ -36,23 +37,19 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private boolean showTowerRange = false;
     private GameField field;
     private ServerInteraction inter;
-
     private boolean showGeoDataBorders = false;
-
     private boolean showGeoDataTypes = false;
-
     private final ZBuffer zbuffer = new ZBuffer();
-
     /**
      * Tower build delay.
      */
     private static long buildDelay = 5000;  // 5 sec
-
     /**
      * Tower last build time.
      */
     private long lastBuildTime = 0;
     private boolean showSpriteBounds;
+    private static FontMetrics fontMetrics = null;
 
     public WanderingJPanel(GameField field, ServerInteraction inter) {
         this.field = field;
@@ -63,7 +60,11 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     public synchronized void paintComponent(Graphics g) {
         try {
             super.paintComponent(g);
-            field.setGraphics(g);
+
+            // Initialize font metrics.
+            if (fontMetrics == null) {
+                fontMetrics = g.getFontMetrics(g.getFont());
+            }
 
             // Наш игрок.
             Player selfPlayer = field.getSelfPlayer();
@@ -326,33 +327,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             wasShown = true;
 
             panelDim = getSize();
-
-            // Поскольку наш игрок всегда находится в центре экрана и в начале
-            // его положение на карте (0, 0) то точка (0, 0) карты должны быть в
-            // центре экрана.
-            //mapOfst = new Dimension(panelDim.width / 2, panelDim.height / 2);
-
-            /*geoDebugLayer = new BufferedImage(mapDim.getSize().width, mapDim.getSize().height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
-            geoDebugLayerGraph = geoDebugLayer.getGraphics();
-            ((Graphics2D) geoDebugLayerGraph).setBackground(new Color((float)0.0, (float)0.0, (float)0.0, (float)0.7));*/
-            /*((Graphics2D) geoDebugLayerGraph).setColor(new Color((float)0.1, (float)1.0, (float)0.3, (float)0.7));
-            ((Graphics2D) geoDebugLayerGraph).fillRect(0, 0, geoDebugLayer.getWidth() - 1, geoDebugLayer.getHeight() - 1);
-            ((Graphics2D) geoDebugLayerGraph).setColor(Color.BLACK);*/
-            /*geoDebugLayerDim = new Dimension(geoDebugLayer.getWidth(), geoDebugLayer.getHeight());
-            Color c;
-            for (WanderingPolygon poly : WanderingMap.getGeoData()) {
-                geoDebugLayerGraph.drawPolygon(poly);*/
-                /*c = geoDebugLayerGraph.getColor();
-                if (poly.getType() == WanderingPolygon.WallType.MONOLITH) {
-                geoDebugLayerGraph.setColor(Color.BLACK);
-                } else if (poly.getType() == WanderingPolygon.WallType.SPECIAL) {
-                geoDebugLayerGraph.setColor(Color.BLUE);
-                } else if (poly.getType() == WanderingPolygon.WallType.TRANSPARENT) {
-                geoDebugLayerGraph.setColor(new Color((float)1.0, (float)1.0, (float)1.0, (float)0.4));
-                }
-                geoDebugLayerGraph.fillPolygon(poly);
-                geoDebugLayerGraph.setColor(c);*/
-            //}
         }
     }
 
@@ -454,5 +428,12 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             selectMode = false;
         }
+    }
+
+    /**
+     * Returns font metrics. If font metrics unknown yet, it returns null.
+     */
+    public static FontMetrics getFontMetrics() {
+        return fontMetrics;
     }
 }

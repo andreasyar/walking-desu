@@ -1,6 +1,5 @@
 package client;
 
-import client.items.ClientEtc;
 import common.Inventory;
 import common.items.Item;
 import common.items.Etc;

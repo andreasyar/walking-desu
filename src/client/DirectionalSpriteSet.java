@@ -29,19 +29,23 @@ public class DirectionalSpriteSet {
 
         // TODO WTF IT THIS?
         if (name.equals("desu_walk")) {
-            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/north_01.png", "img/" + name + "/north_02.png"});
-            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/north_east_01.png", "img/" + name + "/north_east_02.png"});
-            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/north_west_01.png", "img/" + name + "/north_west_02.png"});
-            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/south_04.png", "img/" + name + "/south_05.png"});
-            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/south_east_01.png", "img/" + name + "/south_east_02.png"});
-            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/south_west_01.png", "img/" + name + "/south_west_02.png"});
+            loadSprFiles(Direction.EAST, new String[] {"img/" + name + "/se_01.png", "img/" + name + "/se_02.png"});
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/n_01.png", "img/" + name + "/n_02.png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/ne_01.png", "img/" + name + "/ne_02.png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/nw_01.png", "img/" + name + "/nw_02.png"});
+            loadSprFiles(Direction.WEST, new String[] {"img/" + name + "/sw_01.png", "img/" + name + "/sw_02.png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/s_01.png", "img/" + name + "/s_02.png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/se_01.png", "img/" + name + "/se_02.png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/sw_01.png", "img/" + name + "/sw_02.png"});
         } else if (name.equals("desu_stand")) {
-            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/north_01.png"});
-            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/north_east_03.png"});
-            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/north_west_03.png"});
-            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/south_01.png", "img/" + name + "/south_02.png", "img/" + name + "/south_03.png", "img/" + name + "/south_02.png", "img/" + name + "/south_01.png"});
-            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/south_east_03.png"});
-            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/south_west_03.png"});
+            loadSprFiles(Direction.EAST, new String[] {"img/" + name + "/se_01.png"});
+            loadSprFiles(Direction.NORTH, new String[] {"img/" + name + "/n_01.png"});
+            loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/ne_01.png"});
+            loadSprFiles(Direction.NORTH_WEST, new String[] {"img/" + name + "/nw_01.png"});
+            loadSprFiles(Direction.WEST, new String[] {"img/" + name + "/sw_01.png"});
+            loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + "/s_01.png", "img/" + name + "/s_02.png", "img/" + name + "/s_03.png", "img/" + name + "/s_02.png", "img/" + name + "/s_01.png"});
+            loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + "/se_01.png"});
+            loadSprFiles(Direction.SOUTH_WEST, new String[] {"img/" + name + "/sw_01.png"});
         } else if (name.equals("poring_walk")) {
             loadSprFiles(Direction.EAST, new String[] {"img/" + name + "/poring_east_01.png", "img/" + name + "/poring_east_02.png", "img/" + name + "/poring_east_03.png", "img/" + name + "/poring_east_04.png"});
             loadSprFiles(Direction.NORTH_EAST, new String[] {"img/" + name + "/poring_east_01.png", "img/" + name + "/poring_east_02.png", "img/" + name + "/poring_east_03.png", "img/" + name + "/poring_east_04.png"});
