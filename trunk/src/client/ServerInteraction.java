@@ -118,7 +118,6 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
-            p.setGraphics(field.getPanelGraphics());
             field.addSelfPlayer(p);
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
         } else if ("timesync".equals(pieces1[0])) {
@@ -141,7 +140,6 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
-            p.setGraphics(field.getPanelGraphics());
             p.setCurrentNuke(new PeasantNuke(p, p.getNukeAnimationDelay()));
             field.asyncAddPlayer(p);
         } else if ("delplayer".equals(pieces1[0])) {
@@ -179,7 +177,6 @@ public class ServerInteraction {
                     Direction.valueOf(pieces2[1]),
                     pieces2[2]);
             field.asyncAddMonster(m);
-            m.setGraphics(field.getPanelGraphics());
         } else if ("delmonster".equals(pieces1[0])) {
             field.asyncDelMonster(Long.parseLong(pieces1[1]));
         } else if ("deathmonster".equals(pieces1[0])) {
@@ -214,7 +211,6 @@ public class ServerInteraction {
                     Integer.parseInt(pieces1[5]),
                     Direction.SOUTH,
                     "tower");
-            t.setGraphics(field.getPanelGraphics());
             t.setCurrentNuke(new CanonNuke(t));
             field.asyncAddTower(t);
         } else if ("monsterloss".equals(pieces1[0])) {

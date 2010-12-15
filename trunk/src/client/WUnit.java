@@ -23,26 +23,18 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Transparency;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class WUnit extends Unit implements Drawable {
 
     protected MovementAnimation moveAnim;
-
     protected StandAnimation standAnim;
-
     protected DeathAnimation deathAnim;
-
     private UseSkillAnimation useAnim;
-
     private BufferedImage textCloud = null;
-
     protected WUnit selectedUnit;
-
     protected Nuke currentNuke;
-
-    private FontMetrics metrics = null;
-
-    private Graphics g = null;
 
     /**
      * Selected item. Item what we want to pick up.
@@ -57,8 +49,8 @@ public abstract class WUnit extends Unit implements Drawable {
         this.nick = nick;
         this.maxHitPoints = maxHitPoints;
 
-        moveAnim = new MovementAnimation(set);
-        standAnim = new StandAnimation(set);
+        moveAnim = new MovementAnimation("desu");
+        standAnim = new StandAnimation("desu");
         standAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
         if ("peasant".equals(set)) {
             try {
@@ -79,15 +71,16 @@ public abstract class WUnit extends Unit implements Drawable {
         mv = new Movement(x, y, speed);
     }
 
-    public void setGraphics(Graphics g) {
-        this.g = g;
-    }
-
     // <editor-fold defaultstate="collapsed" desc="Movement">
     @Override
     public void move(int begX, int begY, int endX, int endY, long begTime) {
         mv.move(begX, begY, endX, endY, begTime);
-        moveAnim.run(begX, begY, endX, endY, 10.0);
+        try {
+            moveAnim.run(begX, begY, endX, endY, 10.0);
+        } catch (Exception ex) {
+            Logger.getLogger(WUnit.class.getName()).log(Level.SEVERE, "Looks like there is no spries for this direction.", ex);
+            System.exit(1);
+        }
         standAnim.run(moveAnim.getDirection(), mv.getEndTime());
     }
     // </editor-fold>
@@ -265,41 +258,8 @@ public abstract class WUnit extends Unit implements Drawable {
      * @param y y-axis of left upper corner of drawing context on world map.
      * @param d dimensions of drawing context on world map.
      */
-    @Override
     public void draw(Graphics g, int x, int y, Dimension d) {
-        Sprite s = getSprite();
-
-        // Before any drawing check our distance from center of screen. If it is
-        // more than visible distance limit we do nothing and just return.
-        if (Point.distance(x + d.width / 2, y + d.height / 2, s.baseX, s.baseY) > GameField.visibleDistance) {
-            return;
-        }
-
-        // Get once. Use all time.
-        if (metrics == null) {
-            metrics = g.getFontMetrics(g.getFont());
-        }
-
-        int renderedNickWidth = metrics.stringWidth(getNick());
-        int sprImgW = s.image.getWidth();
-
-        if (renderedNickWidth + 2 > sprImgW) {
-            g.drawImage(s.image,
-                        s.x - x + (renderedNickWidth + 2) / 2 - sprImgW / 2,
-                        s.y - y + metrics.getHeight() + 1,
-                        null);
-            g.drawString(getNick(),
-                         s.x - x + 1,
-                         s.y - y + 1 + metrics.getMaxAscent());
-        } else {
-            g.drawImage(s.image,
-                        s.x - x,
-                        s.y - y + metrics.getHeight(),
-                        null);
-            g.drawString(getNick(),
-                         s.x - x + sprImgW / 2 - renderedNickWidth / 2,
-                         s.y - y + 1 + metrics.getMaxAscent());
-        }
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /**
@@ -312,7 +272,8 @@ public abstract class WUnit extends Unit implements Drawable {
         Graphics bimageGraphics;
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gs = ge.getDefaultScreenDevice();
-        GraphicsConfiguration gc = gs.getDefaultConfiguration(); 
+        GraphicsConfiguration gc = gs.getDefaultConfiguration();
+        FontMetrics metrics = WanderingJPanel.getFontMetrics();
 
         try {
             boolean isMove = mv.isMove();
@@ -334,41 +295,39 @@ public abstract class WUnit extends Unit implements Drawable {
             }
 
             // Get once. Use all time.
-            if (metrics == null) {
-                metrics = g.getFontMetrics(g.getFont());
+            if (metrics != null) {
+                int renderedNickWidth = metrics.stringWidth(getNick());
+                int sprImgW = s.image.getWidth();
+
+                if (renderedNickWidth + 2 > sprImgW) {
+
+                    bimage = gc.createCompatibleImage(renderedNickWidth + 2,
+                            s.image.getHeight() + metrics.getHeight() + 1,
+                            Transparency.BITMASK);
+                    bimageGraphics = bimage.createGraphics();
+
+                    bimageGraphics.drawImage(s.image,
+                                             (renderedNickWidth + 2) / 2 - sprImgW / 2,
+                                             metrics.getHeight() + 1,
+                                             null);
+                    bimageGraphics.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
+                    bimageGraphics.drawString(getNick(), 1, 1 + metrics.getMaxAscent());
+                } else {
+
+                    bimage = gc.createCompatibleImage(sprImgW,
+                            s.image.getHeight() + metrics.getHeight() + 1,
+                            Transparency.BITMASK);
+                    bimageGraphics = bimage.createGraphics();
+
+                    bimageGraphics.drawImage(s.image, 0, metrics.getHeight(), null);
+                    bimageGraphics.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
+                    bimageGraphics.drawString(getNick(),
+                            sprImgW / 2 - renderedNickWidth / 2,
+                            1 + metrics.getMaxAscent());
+                }
+
+                s.image = bimage;
             }
-
-            int renderedNickWidth = metrics.stringWidth(getNick());
-            int sprImgW = s.image.getWidth();
-
-            if (renderedNickWidth + 2 > sprImgW) {
-
-                bimage = gc.createCompatibleImage(renderedNickWidth + 2,
-                        s.image.getHeight() + metrics.getHeight() + 1,
-                        Transparency.BITMASK);
-                bimageGraphics = bimage.createGraphics();
-
-                bimageGraphics.drawImage(s.image,
-                                         (renderedNickWidth + 2) / 2 - sprImgW / 2,
-                                         metrics.getHeight() + 1,
-                                         null);
-                bimageGraphics.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
-                bimageGraphics.drawString(getNick(), 1, 1 + metrics.getMaxAscent());
-            } else {
-
-                bimage = gc.createCompatibleImage(sprImgW,
-                        s.image.getHeight() + metrics.getHeight() + 1,
-                        Transparency.BITMASK);
-                bimageGraphics = bimage.createGraphics();
-
-                bimageGraphics.drawImage(s.image, 0, metrics.getHeight(), null);
-                bimageGraphics.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
-                bimageGraphics.drawString(getNick(),
-                        sprImgW / 2 - renderedNickWidth / 2,
-                        1 + metrics.getMaxAscent());
-            }
-
-            s.image = bimage;
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(1);

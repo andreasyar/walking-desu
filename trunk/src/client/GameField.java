@@ -43,7 +43,6 @@ public class GameField {
      * List of etc items.
      */
     protected final ArrayList<ClientEtc> etcItems = new ArrayList<ClientEtc>();
-    private Graphics g = null;
 
     public GameField() {
         GeoDataController gdController = new GeoDataController(WanderingMap.getGeoData(), players);
@@ -53,10 +52,6 @@ public class GameField {
         PlayerDeathController pdController = new PlayerDeathController(this);
         executor.scheduleAtFixedRate(pdController, 0L, 100L, TimeUnit.MILLISECONDS);
         selfExecutor = new SelfExecutor(this);
-    }
-
-    public void setGraphics(Graphics g) {
-        this.g = g;
     }
 
     /**
@@ -740,10 +735,6 @@ public class GameField {
 
     public void startSelfExecution() {
         new Thread(selfExecutor).start();
-    }
-
-    public Graphics getPanelGraphics() {
-        return g;
     }
 
     /**
