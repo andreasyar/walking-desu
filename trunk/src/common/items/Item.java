@@ -1,6 +1,5 @@
 package common.items;
 
-import common.Inventory;
 import common.Message;
 
 /**
@@ -8,7 +7,6 @@ import common.Message;
  */
 public abstract class Item {
 
-    // <editor-fold defaultstate="collapsed" desc="Fields">
     /**
      * Global identifer of this item. Everything in Wand world have one.
      */
@@ -37,7 +35,6 @@ public abstract class Item {
      * Count of this item.
      */
     private int count;
-    // </editor-fold>
 
     /**
      * Creates new item.
@@ -175,20 +172,6 @@ public abstract class Item {
 
         this.count = count;
     }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Inventory">
-    /**
-     * Adds item to inventory <i>inv</i>.
-     * @param inv inventory.
-     */
-    public abstract void addToInventory(Inventory inv);
-
-    /**
-     * Removes item from inventory <i>inv</i>.
-     * @param inv inventory.
-     */
-    public abstract void removeFromInventory(Inventory inv);
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Server-client interaction messages.">
