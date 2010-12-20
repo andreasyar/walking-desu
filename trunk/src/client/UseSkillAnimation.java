@@ -5,11 +5,11 @@ import java.awt.Point;
 public class UseSkillAnimation {
 
     /**
-     * Набор направленных спрайтов.
+     * Directional sprite set.
      */
     private DirectionalSpriteSet set;
     /**
-     * Направление набора спрайтов.
+     * Direction.
      */
     private Direction direction;
     /**
@@ -30,11 +30,13 @@ public class UseSkillAnimation {
      */
     private long begTime;
 
-    public UseSkillAnimation(String set) throws Exception {
+    public UseSkillAnimation(String set) {
         if ("peasant".equals(set)) {
             STEP = 150;
         } else {
-            throw new Exception("Attack sprite set " + set + " not supported.");
+            //throw new Exception("Attack sprite set " + set + " not supported.");
+            set = "peasant";
+            STEP = 150;
         }
         this.set = DirectionalSpriteSet.load(set + "_attack");
     }

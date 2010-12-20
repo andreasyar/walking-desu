@@ -18,7 +18,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import common.HMapMessage;
 import common.HitMessage;
-import common.items.Item;
 import common.Message;
 import common.messages.MessageType;
 import common.MoveMessage;
@@ -44,7 +43,7 @@ public class JavaTestServer {
     private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
     private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
     private final LinkedBlockingQueue<Tower> towers = new LinkedBlockingQueue<Tower>();
-    private final LinkedBlockingQueue<Item> items = new LinkedBlockingQueue<Item>();
+    private final LinkedBlockingQueue<ServerEtc> etcItems = new LinkedBlockingQueue<ServerEtc>();
     private final ArrayList<MapFragment> mapfragments = new ArrayList<MapFragment>();
     private final int tdMonsterLossLimit = 100;
     private int tdMonsterLoss = 0;
@@ -72,7 +71,7 @@ public class JavaTestServer {
         c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));
         TowerController t = new TowerController();
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
-        vm = new VisibleManager(players, towers, monsters, items, this);
+        vm = new VisibleManager(players, towers, monsters, etcItems, this);
         executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
         GeoDataController gdController = new GeoDataController(players);
         gdController.setScheduledFuture(executor.scheduleAtFixedRate(gdController, 0L, 200L, TimeUnit.MILLISECONDS));
@@ -309,10 +308,10 @@ public class JavaTestServer {
                         // messages sends from self player.
                         
                         PickupEtcItem tmpMsg = ((PickupEtcItem) message);
-                        Item tmpItem = null;
-                        for (Item i : items) {
-                            if (i.getID() == tmpMsg.getItemId()) {
-                                tmpItem = i;
+                        ServerEtc tmpItem = null;
+                        for (ServerEtc item : etcItems) {
+                            if (item.getID() == tmpMsg.getItemId()) {
+                                tmpItem = item;
                                 break;
                             }
                         }
@@ -321,9 +320,10 @@ public class JavaTestServer {
                             // We can pickup this item.
                             // TODO lol may be some check if we actually can pickup?
 
-                            items.remove(tmpItem);
+                            etcItems.remove(tmpItem);
                             sendToAll(new Message[] {new PickupEtcItem(self.getID(), tmpItem.getID())});
-                            tmpItem.addToInventory(self.getInventory());
+                            vm.removeEtcItem(tmpItem);
+                            self.addEtc(tmpItem);
                             sendTo(tmpItem.getAddToInvenrotyMessage(), self);
                         } else {
                             System.err.println("Item " + tmpMsg.getItemId() + " not found!");
@@ -621,13 +621,14 @@ public class JavaTestServer {
                                 vm.killMonster((Monster) target);
                             } else if (players.contains(target)) {
                                 Player p = (Player) target;
-                                ArrayList<Etc> gold = p.getInventory().getEtc(Items.GOLD);
-                                if (gold != null) {
-                                    p.getInventory().removeEtc(gold.get(0));
-                                    sendTo(gold.get(0).getRemoveFromInventoryMessage(), p);
-                                    gold.get(0).setX(p.getCurPos().x);
-                                    gold.get(0).setY(p.getCurPos().y);
-                                    items.add(gold.get(0));
+                                ArrayList<Etc> tmpEtcs = p.getEtc(Items.GOLD);
+                                if (!tmpEtcs.isEmpty()) {
+                                    ServerEtc gold = (ServerEtc) tmpEtcs.get(0);
+                                    p.removeEtc(gold);
+                                    sendTo(gold.getRemoveFromInventoryMessage(), p);
+                                    gold.setX(p.getCurPos().x);
+                                    gold.setY(p.getCurPos().y);
+                                    etcItems.add(gold);
                                 }
                                 p.restoreHitPoints();
                                 p.teleportToSpawn();
@@ -800,11 +801,10 @@ public class JavaTestServer {
                         mCurPos = m.getCurPos();
 
                         // Drop coins.
-                        ServerEtc coins = new ServerEtc(curPlayerID++, "Gold", Items.GOLD);
-                        coins.setCount(1 + rand.nextInt(99));
+                        ServerEtc coins = new ServerEtc(curPlayerID++, Items.GOLD.getCustomName(), 1 + rand.nextInt(99), Items.GOLD);
                         coins.setX(mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
-                        items.add(coins);
+                        etcItems.add(coins);
 
                         units.remove(m);
                         monsters.remove(m);

@@ -37,7 +37,7 @@ public class WanderingGUI implements Runnable {
         panel.setFocusable(true);
         frame.add(panel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800,600);
+        frame.setSize(640,480);
         dialog.setSize(new Dimension(400, 200));
         frame.setVisible(true);
         dialog.startTimer();

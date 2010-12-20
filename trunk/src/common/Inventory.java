@@ -16,18 +16,34 @@ public class Inventory {
     protected final ArrayList<Etc> etcs = new ArrayList<Etc>();
 
     /**
-     * Returns etc items of <i>type</i> type.
+     * Returns etc item by id.
+     * @param id id of etc item.
+     * @return etc item or <b>null</b> if etc item not found.
+     */
+    public Etc getEtc(long id) {
+        synchronized (etcs) {
+            for (Etc item : etcs) {
+                if (item.getID() == id) {
+                    return item;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns list of etc items by type.
      * @param type type of etc items.
+     * @return list of etc items. List is empty if there is no items of this
+     * type on inventory.
      */
     public ArrayList<Etc> getEtc(Items type) {
-        ArrayList<Etc> tmpEtcs = null;
+        ArrayList<Etc> tmpEtcs = new ArrayList<Etc>();
 
         synchronized (etcs) {
             for (Etc items : etcs) {
                 if (items.getType() == type) {
-                    if (tmpEtcs == null) {
-                        tmpEtcs = new ArrayList<Etc>();
-                    }
                     tmpEtcs.add(items);
                 }
             }
@@ -38,15 +54,16 @@ public class Inventory {
 
     /**
      * Adds etc item to inventory.
-     * @param etc item item to add.
-     * @return return TRUE if new item added to items list, FALSE otherwise.
+     * @param item etc item to add.
+     * @return return <b>true</b> if new item added to inventory, <b>false</b>
+     * otherwise.
      */
     public boolean addEtc(Etc item) {
         synchronized (etcs) {
             switch (item.getType()) {
                 case GOLD:
                     ArrayList<Etc> tmpEtcs = getEtc(Items.GOLD);
-                    if (tmpEtcs == null) {
+                    if (tmpEtcs.isEmpty()) {
                         return etcs.add(item);
                     } else {
                         tmpEtcs.get(0).setCount(tmpEtcs.get(0).getCount() + item.getCount());
@@ -62,25 +79,23 @@ public class Inventory {
      * Removes etc item from inventory.
      * @param item etc item to remove.
      */
-    public void removeEtc(Etc item) {
+    public void removeEtc(Etc item) throws InventoryException {
         synchronized (etcs) {
             switch (item.getType()) {
                 case GOLD:
-                    etcs.remove(item);
+                    ArrayList<Etc> gold = getEtc(Items.GOLD);
+                    if (!gold.isEmpty()) {
+                        if (gold.get(0).getCount() == item.getCount()) {
+                            etcs.remove(gold.get(0));
+                        } else if (gold.get(0).getCount() > item.getCount()) {
+                            gold.get(0).setCount(gold.get(0).getCount() - item.getCount());
+                        } else {
+                            throw new InventoryException("Cannot remove more gold whan we have.");
+                        }
+                    } else {
+                        throw new InventoryException("We have no gold but try to remove them.");
+                    }
                     break;
-            }
-        }
-    }
-
-    /**
-     * Removes item by id.
-     * @param id item id.
-     */
-    public void removeById(long id) {
-        for (Etc etc : etcs) {
-            if (etc.getID() == id) {
-                etc.removeFromInventory(this);
-                return;
             }
         }
     }

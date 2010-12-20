@@ -7,5 +7,15 @@ package common.items;
 public enum Items {
 
     // Etc.
-    GOLD
+    GOLD("Gold");
+
+    private String customName;
+
+    Items(String customName) {
+        this.customName = customName;
+    }
+
+    public String getCustomName() {
+        return customName;
+    }
 }

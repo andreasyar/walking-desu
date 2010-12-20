@@ -19,7 +19,6 @@ import java.util.ListIterator;
 import javax.swing.JPanel;
 
 import common.WanderingServerTime;
-import java.util.ArrayList;
 import common.messages.PickupEtcItem;
 import java.awt.FontMetrics;
 
@@ -39,7 +38,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private ServerInteraction inter;
     private boolean showGeoDataBorders = false;
     private boolean showGeoDataTypes = false;
-    private final ZBuffer zbuffer = new ZBuffer();
+//    private final ZBuffer zbuffer = new ZBuffer();
     /**
      * Tower build delay.
      */
@@ -157,9 +156,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 }
                 g.drawString("" + _count, 10, 20);// </editor-fold>
 
-                //field.drawAll(g, screenWorldX, screenWorldY, panelDim);
-                field.updateZBuffer(zbuffer, screenWorldX, screenWorldY, panelDim);
-                zbuffer.draw(g, screenWorldX, screenWorldY, panelDim);
+                field.getUnitPainter().drawUnits(g, screenWorldX, screenWorldY, panelDim);
 
                 field.drawTargetInfo(g, panelDim);
 
@@ -318,7 +315,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     @Override
     public void componentResized(ComponentEvent e) {
         panelDim = e.getComponent().getSize();
-        zbuffer.resize(panelDim.height);
     }
 
     @Override
@@ -419,7 +415,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
             }
         } else if (e.getKeyCode() == KeyEvent.VK_Y) {
             showSpriteBounds = showSpriteBounds ? false : true;
-            zbuffer.drawSpriteBounds(showSpriteBounds);
+            field.getUnitPainter().drawSpriteBounds(showSpriteBounds);
         }
     }
 

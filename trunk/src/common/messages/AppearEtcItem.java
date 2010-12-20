@@ -5,25 +5,25 @@ import common.items.Items;
 import java.io.Serializable;
 
 /**
- * Message what nofity client what etc item appears on the ground.
- * @author CatsPaw
+ * Message waht notify user what etc item appears on the ground.
+ * @author sorc
  */
-public class AddEtcItem implements Message, Serializable {
+public class AppearEtcItem implements Message, Serializable {
 
     /**
      * Message type.
      */
-    private final MessageType type = MessageType.ADDETCITEM;
+    private final MessageType type = MessageType.APPEARETCITEM;
     /**
      * Id of etc item.
      */
     private long id;
     /**
-     * X-axis of etc item on world map.
+     * X-axis of etc item on map.
      */
     private int x;
     /**
-     * Y-axis of etc item on world map.
+     * Y-axis of etc item on map.
      */
     private int y;
     /**
@@ -38,12 +38,12 @@ public class AddEtcItem implements Message, Serializable {
     /**
      * Creates new message.
      * @param id id of etc item.
-     * @param x x-axis of etc item on world map.
-     * @param y y-axis of etc item on world map.
+     * @param x x-axis of etc item on map.
+     * @param y y-axis of etc item on map.
      * @param count count of etc item.
      * @param itemType type of etc item.
      */
-    public AddEtcItem(long id, int x, int y, int count, Items itemType) {
+    public AppearEtcItem(long id, int x, int y, int count, Items itemType) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -77,16 +77,16 @@ public class AddEtcItem implements Message, Serializable {
     }
 
     /**
-     * Returns x-axis of etc item on world map.
-     * @return x-axis of etc item on world map.
+     * Returns x-axis of etc item on map.
+     * @return x-axis of etc item on map.
      */
     public int getX() {
         return x;
     }
 
     /**
-     * Returns y-axis of etc item on world map.
-     * @return y-axis of etc item on world map.
+     * Returns y-axis of etc item on map.
+     * @return y-axis of etc item on map.
      */
     public int getY() {
         return y;

@@ -1,6 +1,8 @@
 package common;
 
+import common.skills.Skill;
 import java.awt.Point;
+import java.util.ArrayList;
 
 /**
  * Unit is a main abstraction for all alive creatures in the Wandering world.
@@ -19,6 +21,16 @@ public abstract class Unit {
      * Teleporter hot girl, Robot etc.
      */
     protected String nick;
+
+    /**
+     * Sprite set name of this unit. Every sprite set can be reffered by
+     * name. If we want to draw this unit on the screen we must load apropriate
+     * sprite set. For woolf we load woold sprites, for sexy angel sexy angel
+     * sprites, etc. Why sprite defined in class on common package? Because both
+     * server and client must know about it. Server can change sprite set if,
+     * for example, unit morph to pig or wear/unwear some armor.
+     */
+    protected String spriteSetName;
 
     /**
      * Object what controls unit movements. Recalculate current coords. etc.
@@ -41,13 +53,18 @@ public abstract class Unit {
     protected String text;
 
     /**
+     * Unit skills.
+     */
+    private ArrayList<Skill> skills = new ArrayList<Skill>();
+
+    /**
      * Return id of this unit.
      */
     public long getID() {
         return id;
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Nick works">
+    // <editor-fold defaultstate="collapsed" desc="Nick.">
     /**
      * Return nick name of this unit.
      */
@@ -64,7 +81,16 @@ public abstract class Unit {
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Movement works">
+    // <editor-fold defaultstate="collapsed" desc="Sprite set name.">
+    /**
+     * Returns sprite set name.
+     */
+    public String getSpriteSetName() {
+        return spriteSetName;
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Movement.">
     public boolean isMove() {
         return mv.isMove();
     }
@@ -111,7 +137,7 @@ public abstract class Unit {
     public abstract void move(int begX, int begY, int endX, int endY, long begTime);
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="HP works">
+    // <editor-fold defaultstate="collapsed" desc="Hit points.">
     /**
      * Check if curret unit is dead.
      */
@@ -133,7 +159,7 @@ public abstract class Unit {
     public abstract void kill();
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Text works">
+    // <editor-fold defaultstate="collapsed" desc="Text.">
     /**
      * Return text of this unit. See comment for text field of Unit class for
      * more info about text.
@@ -148,5 +174,21 @@ public abstract class Unit {
      * @param text New text.
      */
     public abstract void setText(String text);
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Skills.">
+    /**
+     * Return <b>true</b> if unit use skill now, <b>false</b> otherwise.
+     */
+    public boolean isUseSkill() {
+        return false;
+    }
+
+    /**
+     * Return skill what unit use now, <b>null</b> otherwise.
+     */
+    public Skill skillInUse() {
+        return null;
+    }
     // </editor-fold>
 }

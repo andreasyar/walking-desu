@@ -3,24 +3,24 @@ package common.items;
 import common.Message;
 
 /**
- * Abstract item. Like sword, laser canon, money.
+ * Abstract item.
  */
 public abstract class Item {
 
     /**
-     * Global identifer of this item. Everything in Wand world have one.
+     * Global identifer of item. Everything in Wand world have one.
      */
     private final long id;
     /**
-     * Name of this item. Like Gold, Shell, Long sword, Laser rifle.
+     * Name of item.
      */
     private final String name;
     /**
-     * X-coord in world of this item. Used for items what lay to the ground.
+     * X-axis of item on map.
      */
     private int x;
     /**
-     * Y-coord in world of this item. Used for items what lay to the ground.
+     * Y-axis of item on map.
      */
     private int y;
     /**
@@ -32,7 +32,7 @@ public abstract class Item {
      */
     private int h;
     /**
-     * Count of this item.
+     * Count of item.
      */
     private int count;
 
@@ -40,15 +40,37 @@ public abstract class Item {
      * Creates new item.
      * @param id id of new item.
      * @param name name of new item.
+     * @param count count of new item.
      */
-    protected Item(long id, String name) {
+    protected Item(long id, String name, int count) {
         this.id = id;
         this.name = name;
+        this.count = count;
     }
 
     /**
-     * Return id of this item.
-     * @return id of this item.
+     * Creates new item.
+     * @param id id of new item.
+     * @param name name of new item.
+     * @param x x-axis of this item on map.
+     * @param y y-axis of this item on map.
+     * @param w width of item.
+     * @param h height of item.
+     * @param count count of item.
+     */
+    protected Item(long id, String name, int x, int y, int w, int h, int count) {
+        this.id = id;
+        this.name = name;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.count = count;
+    }
+
+    /**
+     * Return id of item.
+     * @return id of item.
      */
     public long getID() {
         return id;
@@ -139,8 +161,8 @@ public abstract class Item {
 
     /**
      * Return TRUE if dot [<i>x</i>, <i>y</i>] inside item bounds, FALSE otherwise.
-     * @param x x-axys of dot.
-     * @param y y-axys of dot.
+     * @param x x-axis of dot.
+     * @param y y-axis of dot.
      */
     public boolean onItem(int x, int y) {
         if (x >= this.x && x <= this.x + this.w
@@ -191,7 +213,7 @@ public abstract class Item {
      * Returns message notify user what item dropped to the ground.
      * @return message what notify user what item dropped to the ground.
      */
-    public abstract Message getDropMessage();
+    public abstract Message getAppearMessage();
     // </editor-fold>
 
     @Override

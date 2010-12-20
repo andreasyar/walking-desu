@@ -1,24 +1,52 @@
 package server.javatestserver;
 
 import common.Inventory;
+import common.InventoryException;
+import common.items.Etc;
 import common.items.Item;
+import common.items.Items;
 import java.awt.Point;
 import java.util.ArrayList;
 
 public class Player extends JTSUnit {
 
+    /**
+     * List of visible units.
+     */
     private final ArrayList<JTSUnit> visibleUnits = new ArrayList<JTSUnit>();
     /**
      * List of visible items.
      */
     private final ArrayList<Item> visibleItems = new ArrayList<Item>();
+    /**
+     * Visible range.
+     */
     private static final double visibleRange = 500.0;
+    /**
+     * Inventory.
+     */
     private final Inventory inventory = new Inventory();
 
     public Player(long id, String nick, int maxHitPoints, int x, int y, double speed) {
         super(id, nick, maxHitPoints, x, y, speed);
         hitPoints = maxHitPoints;
         damage = 50;
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="Position.">
+    public void teleportTo(int x, int y) {
+        move(x, y, x, y, System.currentTimeMillis() - JavaTestServer.serverStartTime);
+    }
+
+    public void teleportToSpawn() {
+        move(0, 0, 0, 0, System.currentTimeMillis() - JavaTestServer.serverStartTime);
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Hit points.">
+    @Override
+    public boolean dead() {
+        return hitPoints <= 0;
     }
 
     @Override
@@ -30,29 +58,47 @@ public class Player extends JTSUnit {
     }
 
     @Override
-    public boolean dead() {
-        return hitPoints <= 0;
+    public void kill() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public void restoreHitPoints() {
         hitPoints = maxHitPoints;
     }
+    // </editor-fold>
 
-    public void teleportToSpawn() {
-        move(0, 0, 0, 0, System.currentTimeMillis() - JavaTestServer.serverStartTime);
-    }
-
-    public void teleportTo(int x, int y) {
-        move(x, y, x, y, System.currentTimeMillis() - JavaTestServer.serverStartTime);
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="Visible units works">
+    // <editor-fold defaultstate="collapsed" desc="Visible units.">
     public void addVisibleUnit(JTSUnit unit) {
         synchronized (visibleUnits) {
             visibleUnits.add(unit);
         }
     }
 
+    public void delVisibleUnit(JTSUnit unit) {
+        synchronized (visibleUnits) {
+            while (visibleUnits.remove(unit)) {
+            }
+        }
+    }
+
+    public ArrayList<JTSUnit> getVisibleUnitsList() {
+        return visibleUnits;
+    }
+
+    public boolean inRange(JTSUnit unit) {
+        if (getCurPos().distance(unit.getCurPos()) <= visibleRange) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean see(JTSUnit unit) {
+        return visibleUnits.contains(unit);
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Visible items.">
     /**
      * Adds item <i>i</i> to list of visible items if it not contain this item
      * yet.
@@ -71,32 +117,13 @@ public class Player extends JTSUnit {
         }
     }
 
-    public void delVisibleUnit(JTSUnit unit) {
-        synchronized (visibleUnits) {
-            while (visibleUnits.remove(unit)) {
-            }
-        }
-    }
-
     /**
      * Deletes item <i>i</i> from list of visible items.
      * @param i item to delete from list of visible items.
      */
-    public void delVisibleItem(Item i) {
+    public boolean delVisibleItem(Item i) {
         synchronized (visibleItems) {
-            while (visibleItems.remove(i)) {}
-        }
-    }
-
-    public ArrayList<JTSUnit> getVisibleUnitsList() {
-        return visibleUnits;
-    }
-
-    public boolean inRange(JTSUnit unit) {
-        if (getCurPos().distance(unit.getCurPos()) <= visibleRange) {
-            return true;
-        } else {
-            return false;
+            return visibleItems.remove(i);
         }
     }
 
@@ -114,10 +141,6 @@ public class Player extends JTSUnit {
         }
     }
 
-    public boolean see(JTSUnit unit) {
-        return visibleUnits.contains(unit);
-    }
-
     /**
      * Check what item <i>items</i> is in list of visible items.
      * @param item item to check is it in list of visible items.
@@ -129,40 +152,65 @@ public class Player extends JTSUnit {
     }
     // </editor-fold>
 
-    @Override
-    public void kill() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    // <editor-fold defaultstate="collapsed" desc="Etc items.">
+    /**
+     * Returns etc item by id.
+     * @param id id of etc item.
+     * @return etc item or <b>null</b> if etc item not found.
+     */
+    public Etc getEtc(long id) {
+        return inventory.getEtc(id);
     }
 
     /**
-     * Adds item to inventory.
-     * @param item item to add.
+     * Returns list of etc items by type.
+     * @param type type of etc items.
+     * @return list of etc items. List is empty if there is no items of this
+     * type on inventory.
      */
-    public void addItemToInventory(Item item) {
-        item.addToInventory(getInventory());
+    public ArrayList<Etc> getEtc(Items type) {
+        return inventory.getEtc(type);
     }
 
     /**
-     * Removes item from inventory by item <i>id</i>.
-     * @param id item id.
+     * Adds etc item to inventory.
+     * @param item etc item to add.
+     * @return return <b>true</b> if new item added to inventory, <b>false</b>
+     * otherwise.
      */
-    public void removeItemFromInventory(long id) {
-        getInventory().removeById(id);
+    public boolean addEtc(Etc item) {
+        return inventory.addEtc(item);
     }
 
     /**
-     * Removes item from inventory.
-     * @param item item.
+     * Removes etc item from inventory.
+     * @param item etc item to remove.
      */
-    void removeItemFromInventory(Item item) {
-        item.removeFromInventory(getInventory());
+    public void removeEtc(Etc item) throws InventoryException {
+        inventory.removeEtc(item);
     }
 
     /**
-     * Returns players inventory.
-     * @param players inventory.
+     * Use etc item from inventory.
+     * @param item etc item to use.
      */
-    public Inventory getInventory() {
-        return inventory;
+    public void useEtc(Etc item) {
+        // TODO What happen when we use etc item?
     }
+
+    /**
+     * Returns gold count.
+     * @return gold count. If there is no gold in inventory, return 0.
+     */
+    public int getGoldCount() {
+        int count = 0;
+
+        ArrayList<Etc> etc = inventory.getEtc(Items.GOLD);
+        if (etc != null) {
+            count += etc.get(0).getCount();
+        }
+
+        return count;
+    }
+    // </editor-fold>
 }

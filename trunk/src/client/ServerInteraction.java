@@ -1,6 +1,7 @@
 package client;
 
 import client.items.ClientEtc;
+import common.InventoryException;
 import common.items.Item;
 import common.BoltMessage;
 import java.awt.Point;
@@ -15,6 +16,8 @@ import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingWorker;
 import common.Message;
 import common.HitMessage;
@@ -24,7 +27,8 @@ import common.messages.MessageType;
 import common.MoveMessage;
 
 import common.WanderingServerTime;
-import common.messages.AddEtcItem;
+import common.messages.AppearEtcItem;
+import common.messages.DisappearEtcItem;
 import common.messages.InventoryAddEtcItem;
 import common.messages.InventoryRemoveEtcItem;
 import common.messages.PickupEtcItem;
@@ -190,8 +194,8 @@ public class ServerInteraction {
                 }
             }
         } else if ("deathplayer".equals(pieces1[0])) {
-            WUnit selected = field.getSelfPlayer().getSelectedUnit();
 
+            WUnit selected = field.getSelfPlayer().getSelectedUnit();
             Player p = field.getPlayer(Long.parseLong(pieces1[1]));
             if (p != null) {
                 p.kill();
@@ -199,6 +203,7 @@ public class ServerInteraction {
                     field.getSelfPlayer().unselectUnit();
                 }
             }
+
         } else if ("tower".equals(pieces1[0])) {
             pieces1 = command.split(" ", 7);
             pieces1[6] = pieces1[6].substring(1, pieces1[6].length() - 1);
@@ -239,12 +244,7 @@ public class ServerInteraction {
                 field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime + self.getNukeAnimationDelay());
                 WanderingLocks.unlockNukes();
             }*/
-        } else if ("delitemfrominv".equals(pieces1[0])) {
-
-            field.getSelfPlayer().removeItemFromInventory(Long.parseLong(pieces1[1]));
-
         }
-
     }
 
     private void commandHandler(Message m) {
@@ -294,16 +294,19 @@ public class ServerInteraction {
         } else if (m.getType() == MessageType.INVENTORYADDETCITEM) {
 
             InventoryAddEtcItem tmpMsg = (InventoryAddEtcItem) m;
-            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
-            etcItem.setCount(tmpMsg.getCount());
-            field.getSelfPlayer().addItemToInventory(etcItem);
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), tmpMsg.getItemType().getCustomName(), tmpMsg.getCount(), tmpMsg.getItemType());
+            field.getSelfPlayer().addEtc(etcItem);
 
         } else if (m.getType() == MessageType.INVENTORYREMOVEETCITEM) {
 
             InventoryRemoveEtcItem tmpMsg = (InventoryRemoveEtcItem) m;
-            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
-            etcItem.setCount(tmpMsg.getCount());
-            field.getSelfPlayer().removeItemFromInventory(etcItem);
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), tmpMsg.getItemType().getCustomName(), tmpMsg.getCount(), tmpMsg.getItemType());
+            try {
+                field.getSelfPlayer().removeEtc(etcItem);
+            } catch (InventoryException ex) {
+                Logger.getLogger(ServerInteraction.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(1);
+            }
 
         } else if (m.getType() == MessageType.PICKUPETCITEM) {
 
@@ -323,15 +326,19 @@ public class ServerInteraction {
                 }
             }
 
-        } else if (m.getType() == MessageType.ADDETCITEM) {
+        } else if (m.getType() == MessageType.APPEARETCITEM) {
 
-            AddEtcItem tmpMsg = (AddEtcItem) m;
-            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
-            etcItem.setCount(tmpMsg.getCount());
+            AppearEtcItem tmpMsg = (AppearEtcItem) m;
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), tmpMsg.getItemType().getCustomName(), tmpMsg.getCount(), tmpMsg.getItemType());
             etcItem.setX(tmpMsg.getX());
             etcItem.setY(tmpMsg.getY());
             field.asyncAddEtc(etcItem);
-            field.asyncAddDrawable(etcItem);
+            //field.asyncAddDrawable(etcItem);
+
+        } else if (m.getType() == MessageType.DISAPPEARETCITEM) {
+
+            DisappearEtcItem tmpMsg = (DisappearEtcItem) m;
+            field.asyncRemoveEtc(tmpMsg.getId());
 
         }
     }
