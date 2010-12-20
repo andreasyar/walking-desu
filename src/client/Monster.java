@@ -7,7 +7,7 @@ public class Monster extends WUnit {
     public Monster(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
         super(id, nick, maxHitPoints, speed, x, y, d, set);
         hitPoints = maxHitPoints;
-        deathAnim = new MonsterDeathAnimation(set);
+        deathAnim = new DeathAnimation(set);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HP works">

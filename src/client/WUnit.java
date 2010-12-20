@@ -50,25 +50,17 @@ public abstract class WUnit extends Unit implements Drawable {
         this.nick = nick;
         this.maxHitPoints = maxHitPoints;
 
-        moveAnim = new MovementAnimation("desu");
-        standAnim = new StandAnimation("desu");
-        standAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
-        if ("peasant".equals(set)) {
-            try {
-                useAnim = new UseSkillAnimation(set);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                System.exit(1);
-            }
-        } else if ("peon".equals(set)) {
-            try {
-                useAnim = new UseSkillAnimation("peasant");
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                System.exit(1);
-            }
+        try {
+            useAnim = new UseSkillAnimation(set);
+            moveAnim = new MovementAnimation(set);
+            standAnim = new StandAnimation(set);
+            standAnim.run(d, WanderingServerTime.getInstance().getTimeSinceStart());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
         }
 
+        spriteSetName = set;
         mv = new Movement(x, y, speed);
     }
 

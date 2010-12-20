@@ -5,20 +5,26 @@ import common.MoveMessage;
 import common.messages.PickupEtcItem;
 import java.awt.Point;
 import java.util.concurrent.LinkedBlockingQueue;
+import server.javatestserver.items.ServerEtc;
 
 public class VisibleManager implements Runnable {
 
     private final LinkedBlockingQueue<Player> players;
     private final LinkedBlockingQueue<Tower> towers;
     private final LinkedBlockingQueue<Monster> monsters;
-    private final LinkedBlockingQueue<Item> items;
+    private final LinkedBlockingQueue<ServerEtc> etcItems;
     private final JavaTestServer server;
 
-    public VisibleManager(LinkedBlockingQueue<Player> players, LinkedBlockingQueue<Tower> towers, LinkedBlockingQueue<Monster> monsters, LinkedBlockingQueue<Item> items, JavaTestServer server) {
+    public VisibleManager(LinkedBlockingQueue<Player> players,
+            LinkedBlockingQueue<Tower> towers,
+            LinkedBlockingQueue<Monster> monsters,
+            LinkedBlockingQueue<ServerEtc> etcItems,
+            JavaTestServer server) {
+
         this.players = players;
         this.towers = towers;
         this.monsters = monsters;
-        this.items = items;
+        this.etcItems = etcItems;
         this.server = server;
     }
 
@@ -156,25 +162,23 @@ public class VisibleManager implements Runnable {
                 }
             }//monsters
 
-            for (Item i : items) {
-                if (p1.inRange(i) && !p1.see(i)) {
+            for (ServerEtc etc : etcItems) {
+                if (p1.inRange(etc) && !p1.see(etc)) {
 
                     // Игрок увидел предмет.
-                    p1.addVisibleItem(i);
-                    server.sendTo(i.getDropMessage(), p1);
-                } else if (!p1.inRange(i) && p1.see(i)) {
+                    p1.addVisibleItem(etc);
+                    server.sendTo(etc.getAppearMessage(), p1);
+                } else if (!p1.inRange(etc) && p1.see(etc)) {
 
                     // Игрок больше не видит этот итем.
-                    p1.delVisibleItem(i);
-                    server.sendTo(new PickupEtcItem(p1.getID(), i.getID()), p1);
+                    p1.delVisibleItem(etc);
+                    server.sendTo(etc.getDisappearMessage(), p1);
+                    //server.sendTo(new PickupEtcItem(p1.getID(), etc.getID()), p1);
                 }
-            }//items
+            }//etc items
         }
     }
 
-    /**
-     * Require players lock.
-     */
     public void removePlayer(Player player) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(player)) {
@@ -183,9 +187,6 @@ public class VisibleManager implements Runnable {
         }
     }
 
-    /**
-     * Require players lock.
-     */
     public void removeTower(Tower tower) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(tower)) {
@@ -194,9 +195,6 @@ public class VisibleManager implements Runnable {
         }
     }
 
-    /**
-     * Require players lock.
-     */
     public void removeMonster(Monster monster) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(monster)) {
@@ -206,8 +204,16 @@ public class VisibleManager implements Runnable {
     }
 
     /**
-     * Require players lock.
+     * Removes server etc item from players visible lists.
      */
+    public void removeEtcItem(ServerEtc item) {
+        for (Player p : players) {
+            if (p.delVisibleItem(item)) {
+                server.sendTo(item.getDisappearMessage(), p);
+            }
+        }
+    }
+
     public void killMonster(Monster monster) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(monster)) {
@@ -216,9 +222,6 @@ public class VisibleManager implements Runnable {
         }
     }
 
-    /**
-     * Require players lock.
-     */
     public void killUnit(JTSUnit unit) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(unit)) {
@@ -227,9 +230,6 @@ public class VisibleManager implements Runnable {
         }
     }
 
-    /**
-     * Require players lock.
-     */
     public void killPlayer(Player player) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().contains(player)) {

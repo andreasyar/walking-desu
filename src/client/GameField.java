@@ -1,6 +1,7 @@
 package client;
 
 import client.items.ClientEtc;
+import common.Unit;
 import common.items.Item;
 import common.messages.PickupEtcItem;
 import java.awt.Dimension;
@@ -27,11 +28,12 @@ public class GameField {
     private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
     private final LinkedBlockingQueue<HitAnimation> hitAnimations = new LinkedBlockingQueue<HitAnimation>();
     private final LinkedBlockingQueue<ClientMapFragment> mfagments = new LinkedBlockingQueue<ClientMapFragment>();
-    /**
-     * Drawable units. It can be unit, item, nuke - anything what implemets
-     * drawable interface.
-     */
-    private final LinkedBlockingQueue<Drawable> drawqueue = new LinkedBlockingQueue<Drawable>();
+//    /**
+//     * Drawable units. It can be unit, item, nuke - anything what implemets
+//     * drawable interface.
+//     */
+//    private final LinkedBlockingQueue<Drawable> drawqueue = new LinkedBlockingQueue<Drawable>();
+    private UnitPainter upainter = new UnitPainter();
     private SelfExecutor selfExecutor;
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
@@ -54,34 +56,34 @@ public class GameField {
         selfExecutor = new SelfExecutor(this);
     }
 
-    /**
-     * Fills the sprites z-buffer in proper order by sprite y-axys accedering.
-     * @param zbuffer z-buffer of sprites.
-     * @param x x-axys of left top drawing panel corner in world.
-     * @param y y-axys of left top drawing panel corner in world.
-     * @param dim dimensions of drawing panel.
-     */
-    public void updateZBuffer(ZBuffer zbuffer, int x, int y, Dimension dim) {
-        Sprite s;
-
-        synchronized (zbuffer) {
-            for (Drawable d : drawqueue) {
-                if (d != null) {
-                    s = d.getSprite();
-                    if (s != null
-                            && s.y - y >= 0 && s.y - y + s.image.getHeight() < zbuffer.getSize()
-                            && s.x - x >= 0 && s.x - x + s.image.getWidth() <= dim.getWidth()) {
-
-                        zbuffer.addSprite(s, s.y - y + s.image.getHeight());
-                    }
-                }
-                else {
-                    System.err.println("Drawable unit is null. It cannot be! Skip it.");
-                    continue;
-                }
-            }
-        }
-    }
+//    /**
+//     * Fills the sprites z-buffer in proper order by sprite y-axys accedering.
+//     * @param zbuffer z-buffer of sprites.
+//     * @param x x-axys of left top drawing panel corner in world.
+//     * @param y y-axys of left top drawing panel corner in world.
+//     * @param dim dimensions of drawing panel.
+//     */
+//    public void updateZBuffer(ZBuffer zbuffer, int x, int y, Dimension dim) {
+//        Sprite s;
+//
+//        synchronized (zbuffer) {
+//            for (Drawable d : drawqueue) {
+//                if (d != null) {
+//                    s = d.getSprite();
+//                    if (s != null
+//                            && s.y - y >= 0 && s.y - y + s.image.getHeight() < zbuffer.getSize()
+//                            && s.x - x >= 0 && s.x - x + s.image.getWidth() <= dim.getWidth()) {
+//
+//                        zbuffer.addSprite(s, s.y - y + s.image.getHeight());
+//                    }
+//                }
+//                else {
+//                    System.err.println("Drawable unit is null. It cannot be! Skip it.");
+//                    continue;
+//                }
+//            }
+//        }
+//    }
 
     // <editor-fold defaultstate="collapsed" desc="Self player">
     public void addSelfPlayer(Player selfPlayer) {
@@ -276,7 +278,7 @@ public class GameField {
         for (Iterator<Nuke> l = nukes.iterator(); l.hasNext();) {
             n = l.next();
             if (!n.isMove()) {
-                removeDrawable(n);
+                //removeDrawable(n);
                 l.remove();
             }
         }
@@ -285,7 +287,7 @@ public class GameField {
         if (n != null) {
             n.use(begTime);
             nukes.add(n);
-            addDrawable(n);
+            //addDrawable(n);
         } else {
             System.err.println("We try to add null!");
         }
@@ -416,7 +418,7 @@ public class GameField {
     public void addHitAnimation(HitAnimation hitAnimation) {
         removeEndedHitAnimations();
         hitAnimations.add(hitAnimation);
-        addDrawable(hitAnimation);
+        //addDrawable(hitAnimation);
     }
 
     public void asyncAddHitAnimation(HitAnimation hitAnimation) {
@@ -605,58 +607,33 @@ public class GameField {
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Drawqueue.">
-    /**
-     * Return draw queue.
-     * @return draw queue.
-     */
-    public LinkedBlockingQueue<Drawable> getDrawQueue() {
-        return drawqueue;
+    // <editor-fold defaultstate="collapsed" desc="Unit painter.">
+    UnitPainter getUnitPainter() {
+        return upainter;
     }
 
-    /**
-     * Synchronously add drawable unit to draw queue.
-     * @param d new drawable unit to add to queue.
-     */
-    public void addDrawable(Drawable d) {
-        if (!drawqueue.contains(d)) {
-            drawqueue.add(d);
-        }
+    void addDrawable(Unit u) {
+        upainter.addUnit(u);
     }
 
-    /**
-     * Asynchronously add drawable unit to draw queue.
-     * @param d new drawable unit to add to queue.
-     * @throws IllegalArgumentException argument <i>d</i> cannot be null!
-     */
-    public void asyncAddDrawable(Drawable d) throws IllegalArgumentException {
-        if (d == null) {
-            throw new IllegalArgumentException("Cannot add null in draw queue!");
+    void asyncAddDrawable(Unit u) throws IllegalArgumentException {
+        if (u == null) {
+            throw new IllegalArgumentException("Cannot add null to unit painter!");
         }
 
-        selfExecutor.add("addDrawable", new Class[]{ Drawable.class }, new Object[]{ d });
+        selfExecutor.add("addDrawable", new Class[]{ Unit.class }, new Object[]{ u });
     }
 
-    /**
-     * Synchronously remove drawable unit from draw queue.
-     * @param d drawable unit to remove from draw queue.
-     */
-    public void removeDrawable(Drawable d) {
-        drawqueue.remove(d);
-        //System.out.println("Drawable " + d.toString() + " removed.");
+    void removeDrawable(Unit u) {
+        upainter.removeUnit(u);
     }
 
-    /**
-     * Asynchronously remove drawable unit from draw queue.
-     * @param d drawable unit to remove from draw queue.
-     * @throws IllegalArgumentException argument d cannot be null!
-     */
-    public void asyncRemoveDrawable(Drawable d) throws IllegalArgumentException {
-        if (d == null) {
-            throw new IllegalArgumentException("Cannot add drawable unit in item queue!");
+    void asyncRemoveDrawable(Unit u) throws IllegalArgumentException {
+        if (u == null) {
+            throw new IllegalArgumentException("Cannot remove null from unit painter");
         }
 
-        selfExecutor.add("removeDrawable", new Class[]{ Drawable.class }, new Object[]{ d });
+        selfExecutor.add("removeDrawable", new Class[]{ Unit.class }, new Object[]{ u });
     }
     // </editor-fold>
 
@@ -670,7 +647,7 @@ public class GameField {
             switch (item.getType()) {
                 case GOLD:
                     etcItems.add(item);
-                    addDrawable(item);
+                    //addDrawable(item);
                     //System.out.println("Item id=" + item.getID() + " dropped to the ground.");
                     return true;
                 default:
@@ -698,7 +675,7 @@ public class GameField {
      */
     public void removeEtc(ClientEtc item) {
         synchronized(etcItems) {
-            removeDrawable(item);
+            //removeDrawable(item);
             etcItems.remove(item);
         }
     }
@@ -714,6 +691,28 @@ public class GameField {
         }
 
         selfExecutor.add("removeEtc", new Class[]{ ClientEtc.class }, new Object[]{ item });
+    }
+
+    /**
+     * Synchronous remove etc item from game field by item id.
+     * @param id etc item id.
+     */
+    public void removeEtc(long id) {
+        synchronized(etcItems) {
+            ClientEtc etc = getEtc(id);
+            if (etc != null) {
+                //removeDrawable(etc);
+                etcItems.remove(etc);
+            }
+        }
+    }
+
+    /**
+     * Asynchronous remove etc item from game field by item id.
+     * @param id etc item id.
+     */
+    public void asyncRemoveEtc(long id){
+        selfExecutor.add("removeEtc", new Class[]{ long.class }, new Object[]{ id });
     }
 
     /**

@@ -24,10 +24,11 @@ public class ClientEtc extends Etc implements Drawable {
      * Creates new etc item.
      * @param id id of new etc item.
      * @param name name of new etc item.
+     * @param count count of new item.
      * @param type type of new etc item.
      */
-    public ClientEtc (long id, String name, Items type) {
-        super(id, name, type);
+    public ClientEtc (long id, String name, int count, Items type) {
+        super(id, name, count, type);
         switch (type) {
             case GOLD:
                 layAnimation = new LayGroundAnimation("coin_stacks_gold");
@@ -36,6 +37,8 @@ public class ClientEtc extends Etc implements Drawable {
                 layAnimation = new LayGroundAnimation(name);
                 break;
         }
+        setW(layAnimation.getSprite(getX(), getY()).image.getWidth());
+        setH(layAnimation.getSprite(getX(), getY()).image.getHeight());
     }
 
     /**
@@ -58,7 +61,7 @@ public class ClientEtc extends Etc implements Drawable {
      * Returns message notify user what etc item dropped to the ground.
      * @return message what notify user what etc item dropped to the ground.
      */
-    public Message getDropMessage() {
+    public Message getAppearMessage() {
         throw new UnsupportedOperationException("Client cannot send to server this message.");
     }
 
