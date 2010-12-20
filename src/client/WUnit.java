@@ -35,6 +35,7 @@ public abstract class WUnit extends Unit implements Drawable {
     private BufferedImage textCloud = null;
     protected WUnit selectedUnit;
     protected Nuke currentNuke;
+    protected PickupAnimation pickupAnim;
 
     /**
      * Selected item. Item what we want to pick up.

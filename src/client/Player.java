@@ -8,8 +8,6 @@ import java.util.ArrayList;
 
 public class Player extends WUnit {
 
-    private PickupAnimation pickupAnim;
-
     private final Inventory inventory = new Inventory();
 
     public Player(long id, String nick, int maxHitPoints, double speed, int x, int y, Direction d, String set) {
@@ -19,28 +17,29 @@ public class Player extends WUnit {
         //pickupAnim = new PickupAnimation(set);
     }
 
-    @Override
-    public void doHit(int dmg) {
-        hitPoints -= dmg;
-        if (hitPoints < 0) {
-            hitPoints = 0;
-        }
-    }
-
-    public void restoreHitPoints() {
-        hitPoints = maxHitPoints;
+    public void teleportTo(int x, int y) {
+        move(x, y, x, y, System.currentTimeMillis() - ServerInteraction.serverStartTime);
     }
 
     public void teleportToSpawn() {
         move(0, 0, 0, 0, System.currentTimeMillis() - ServerInteraction.serverStartTime);
     }
 
-    public void teleportTo(int x, int y) {
-        move(x, y, x, y, System.currentTimeMillis() - ServerInteraction.serverStartTime);
+    @Override
+    public boolean dead() {
+        return hitPoints <= 0;
     }
 
     public void doHeal(int val) {
         hitPoints += val;
+    }
+
+    @Override
+    public void doHit(int dmg) {
+        hitPoints -= dmg;
+        if (hitPoints < 0) {
+            hitPoints = 0;
+        }
     }
 
     @Override
@@ -55,39 +54,18 @@ public class Player extends WUnit {
         mv.stop();
     }
 
+    public void restoreHitPoints() {
+        hitPoints = maxHitPoints;
+    }
+
     public void resurect() {
         hitPoints = maxHitPoints;
     }
 
-    @Override
-    public boolean dead() {
-        return hitPoints <= 0;
-    }
-
     /**
-     * Adds item to inventory.
-     * @param item item to add.
+     * Returns gold count.
+     * @return gold count. If there is no gold in inventory, return 0.
      */
-    public void addItemToInventory(Item item) {
-        item.addToInventory(getInventory());
-    }
-
-    /**
-     * Removes item from inventory by item <i>id</i>.
-     * @param id item id.
-     */
-    public void removeItemFromInventory(long id) {
-        getInventory().removeById(id);
-    }
-
-    /**
-     * Removes item from inventory.
-     * @param item item.
-     */
-    void removeItemFromInventory(Item item) {
-        item.removeFromInventory(getInventory());
-    }
-
     public int getGoldCount() {
         int count = 0;
 
@@ -97,10 +75,6 @@ public class Player extends WUnit {
         }
 
         return count;
-    }
-
-    public Inventory getInventory() {
-        return inventory;
     }
 
     /**
