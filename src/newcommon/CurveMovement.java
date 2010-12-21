@@ -3,89 +3,52 @@ package newcommon;
 import java.awt.Point;
 import java.util.ArrayList;
 
-/**
- * Движение по кривой, заданной точками.
- * @author sorc
- */
-public class CurveMovement extends Movement {
+class CurveMovement implements Movement {
 
-    /**
-     * Точки ломаной движения.
-     */
+    private boolean isMove;
+    private final Point cur = new Point();
+    private long begTime;
+    private long endTime;
+    private double speed;
     private final ArrayList<TrackPoint> track = new ArrayList<TrackPoint>();
 
-    // <editor-fold defaultstate="expanded" desc="Position">
-    /**
-     * Возвращает X-координату начальной точки траектории движения.
-     * @return X-координата начальной точки траектории движения.
-     */
     @Override
     public int getBegX() {
         return track.get(0).getPoint().x;
     }
 
-    /**
-     * Возвращает Y-координату начальной точки траектории движения.
-     * @return Y-координата начальной точки траектории движения.
-     */
     @Override
     public int getBegY() {
         return track.get(0).getPoint().y;
     }
 
-    /**
-     * Возвращает X-координату конечной точки траектории движения.
-     * @return X-координата конечной точки траектории движения.
-     */
     @Override
     public int getEndX() {
         return track.get(track.size() - 1).getPoint().x;
     }
 
-    /**
-     * Возвращает Y-координату конечной точки траектории движения.
-     * @return Y-координата конечной точки траектории движения.
-     */
     @Override
     public int getEndY() {
         return track.get(track.size() - 1).getPoint().y;
     }
 
-    /**
-     * Возвращает X-координату текущей точки траектории движения.
-     * @return X-координата текущей точки траектории движения.
-     */
     @Override
     public int getCurX() {
         updateCurPos();
         return cur.x;
     }
 
-    /**
-     * Возвращает Y-координату текущей точки траектории движения.
-     * @return Y-координата текущей точки траектории движения.
-     */
     @Override
     public int getCurY() {
         updateCurPos();
         return cur.y;
     }
-    // </editor-fold>
 
-    // <editor-fold defaultstate="expanded" desc="Time">
-    /**
-     * Возвращает время начала движения.
-     * @return Время начала движения.
-     */
     @Override
     public long getBegTime() {
         return begTime;
     }
 
-    /**
-     * Возвращает время окончания движения.
-     * @return Время окончания движения.
-     */
     @Override
     public long getEndTime() {
         if (isMove) {
@@ -100,46 +63,23 @@ public class CurveMovement extends Movement {
 
         return endTime;
     }
-    // </editor-fold>
 
-    // <editor-fold defaultstate="expanded" desc="Speed">
-    /**
-     * Возвращает скорость движения.
-     * @return скорость движения.
-     */
     @Override
     public double getSpeed() {
         return speed;
     }
 
-    /**
-     * Устанавливает скорость движения.
-     * @param speed Новая скорость движения.
-     */
     @Override
     public void setSpeed(double speed) {
         this.speed = speed;
     }
-    // </editor-fold>
 
-    /**
-     * Возвращает флаг движения.
-     */
     @Override
     public boolean isMove() {
         updateCurPos();
         return isMove;
     }
 
-    /**
-     * Начинает движение по прямой.
-     * @param begX X-координата начальной точки движения.
-     * @param begY Y-координата начальной точки движения.
-     * @param endX X-координата конечной точки движения.
-     * @param endY Y-координата конечной точки движения.
-     * @param begTime Время начала движения.
-     * @param speed Скорость движения. Должна быть больше нуля.
-     */
     public void start(int begX,
                       int begY,
                       int endX,
@@ -161,12 +101,6 @@ public class CurveMovement extends Movement {
         getEndTime();   // Just for calculate new end time.
     }
 
-    /**
-     * Начинает движение по трактории.
-     * @param track Траектория. Должна содержать как минимум две точки.
-     * @param begTime Время начала движения.
-     * @param speed Скорость движения. Должна быть больше нуля.
-     */
     public void start(ArrayList<Point> track,
                       long begTime,
                       double speed) throws IllegalArgumentException {
@@ -195,9 +129,6 @@ public class CurveMovement extends Movement {
         getEndTime();   // Just for calculate new end time.
     }
 
-    /**
-     * Останавливает движение.
-     */
     @Override
     public void stop() {
         updateCurPos();
@@ -205,9 +136,6 @@ public class CurveMovement extends Movement {
         isMove = false;
     }
 
-    /**
-     * Обновляет текущую точку траектории движения.
-     */
     private void updateCurPos() {
         if (isMove) {
 
@@ -260,9 +188,6 @@ public class CurveMovement extends Movement {
         }
     }
 
-    /**
-     * Точка ломаной движения.
-     */
     private class TrackPoint {
 
         /**

@@ -1,7 +1,7 @@
 package client;
 
 import client.items.ClientEtc;
-import common.InventoryException;
+import newcommon.exceptions.InventoryException;
 import common.items.Item;
 import common.BoltMessage;
 import java.awt.Point;

@@ -1,6 +1,6 @@
 package client;
 
-import common.Inventory;
+import newcommon.Inventory;
 
 /**
  * Clients inventory.

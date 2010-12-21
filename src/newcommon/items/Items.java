@@ -1,4 +1,4 @@
-package common.items;
+package newcommon.items;
 
 /**
  * Items types.

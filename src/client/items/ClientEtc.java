@@ -5,7 +5,7 @@ import client.LayGroundAnimation;
 import client.Sprite;
 import common.Message;
 import common.items.Etc;
-import common.items.Items;
+import newcommon.items.Items;
 import java.awt.Dimension;
 import java.awt.Graphics;
 

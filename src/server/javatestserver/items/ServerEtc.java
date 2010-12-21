@@ -1,8 +1,8 @@
 package server.javatestserver.items;
 
 import common.Message;
-import common.items.Etc;
-import common.items.Items;
+import newcommon.items.Etc;
+import newcommon.items.Items;
 import common.messages.InventoryAddEtcItem;
 import common.messages.InventoryRemoveEtcItem;
 import common.messages.AppearEtcItem;
