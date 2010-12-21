@@ -1,7 +1,7 @@
 package common.messages;
 
 import common.Message;
-import common.items.Items;
+import newcommon.items.Items;
 import java.io.Serializable;
 
 /**

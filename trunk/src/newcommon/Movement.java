@@ -1,36 +1,28 @@
 package newcommon;
 
-import java.awt.Point;
+public interface Movement {
 
-/**
- * Общая часть любого движения.
- * @author sorc
- */
-public abstract class Movement implements Movable {
+    public abstract int getBegX();
 
-    /**
-     * Флаг движения, который показывает, происходит ли движение в данный момент
-     * или нет.
-     */
-    protected boolean isMove;
+    public abstract int getBegY();
 
-    /**
-     * Текущая точка траектории движения.
-     */
-    protected final Point cur = new Point();
+    public abstract int getEndX();
 
-    /**
-     * Время начала движения.
-     */
-    protected long begTime;
+    public abstract int getEndY();
 
-    /**
-     * Время окончания движения.
-     */
-    protected long endTime;
+    public abstract int getCurX();
 
-    /**
-     * Скорость движения.
-     */
-    protected double speed;
+    public abstract int getCurY();
+
+    public abstract long getBegTime();
+
+    public abstract long getEndTime();
+
+    public abstract double getSpeed();
+
+    public abstract void setSpeed(double speed);
+
+    public abstract boolean isMove();
+
+    public abstract void stop();
 }

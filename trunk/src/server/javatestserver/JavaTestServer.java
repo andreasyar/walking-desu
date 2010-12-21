@@ -24,8 +24,10 @@ import common.MoveMessage;
 import common.Movement;
 import common.OtherMessage;
 import common.WanderingServerTime;
-import common.items.Etc;
-import common.items.Items;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import newcommon.items.Etc;
+import newcommon.items.Items;
 import common.messages.PickupEtcItem;
 import server.javatestserver.items.ServerEtc;
 
@@ -33,6 +35,21 @@ import server.javatestserver.items.ServerEtc;
  * Главный класс тестового ява сервера блуждающей же.
  */
 public class JavaTestServer {
+
+    private static JavaTestServer jts = null;
+
+    static JavaTestServer getInstance() {
+        if (jts == null) {
+            try {
+                jts = new JavaTestServer(port);
+            } catch (IOException ex) {
+                Logger.getLogger(JavaTestServer.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(1);
+            }
+        }
+
+        return jts;
+    }
 
     private ServerSocket ss;
     private Thread serverThread;
@@ -43,6 +60,9 @@ public class JavaTestServer {
     private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
     private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
     private final LinkedBlockingQueue<Tower> towers = new LinkedBlockingQueue<Tower>();
+    /**
+     * Etc items layed on the groud.
+     */
     private final LinkedBlockingQueue<ServerEtc> etcItems = new LinkedBlockingQueue<ServerEtc>();
     private final ArrayList<MapFragment> mapfragments = new ArrayList<MapFragment>();
     private final int tdMonsterLossLimit = 100;

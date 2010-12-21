@@ -1,11 +1,11 @@
 package client;
 
-import common.Inventory;
-import common.InventoryException;
+import newcommon.Inventory;
+import newcommon.exceptions.InventoryException;
 import common.WanderingServerTime;
-import common.items.Item;
-import common.items.Etc;
-import common.items.Items;
+import newcommon.items.Item;
+import newcommon.items.Etc;
+import newcommon.items.Items;
 import java.util.ArrayList;
 
 public class Player extends WUnit {

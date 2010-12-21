@@ -1,29 +1,18 @@
-package common;
+package newcommon;
 
-import common.items.Etc;
-import common.items.Items;
+import newcommon.exceptions.InventoryException;
+import newcommon.items.Etc;
+import newcommon.items.Items;
 import java.util.ArrayList;
 
-/**
- * Inventory.
- * @author sorc
- */
 public class Inventory {
 
-    /**
-     * List of etc items.
-     */
     protected final ArrayList<Etc> etcs = new ArrayList<Etc>();
 
-    /**
-     * Returns etc item by id.
-     * @param id id of etc item.
-     * @return etc item or <b>null</b> if etc item not found.
-     */
     public Etc getEtc(long id) {
         synchronized (etcs) {
             for (Etc item : etcs) {
-                if (item.getID() == id) {
+                if (item.getId() == id) {
                     return item;
                 }
             }
@@ -32,12 +21,6 @@ public class Inventory {
         return null;
     }
 
-    /**
-     * Returns list of etc items by type.
-     * @param type type of etc items.
-     * @return list of etc items. List is empty if there is no items of this
-     * type on inventory.
-     */
     public ArrayList<Etc> getEtc(Items type) {
         ArrayList<Etc> tmpEtcs = new ArrayList<Etc>();
 
@@ -52,12 +35,6 @@ public class Inventory {
         return tmpEtcs;
     }
 
-    /**
-     * Adds etc item to inventory.
-     * @param item etc item to add.
-     * @return return <b>true</b> if new item added to inventory, <b>false</b>
-     * otherwise.
-     */
     public boolean addEtc(Etc item) {
         synchronized (etcs) {
             switch (item.getType()) {
@@ -75,10 +52,6 @@ public class Inventory {
         }
     }
 
-    /**
-     * Removes etc item from inventory.
-     * @param item etc item to remove.
-     */
     public void removeEtc(Etc item) throws InventoryException {
         synchronized (etcs) {
             switch (item.getType()) {
