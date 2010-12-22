@@ -2,7 +2,6 @@ package client;
 
 import client.items.ClientEtc;
 import common.Unit;
-import common.items.Item;
 import common.messages.PickupEtcItem;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -892,7 +891,7 @@ public class GameField {
                             System.out.println("We was interrupted.");
                         }// </editor-fold>
                         if ((distance = Point.distance(item.getX(), item.getY(), cur.x, cur.y)) > 10) {
-                            inter.addCommand(new PickupEtcItem(selfPlayer.getID(), item.getID()));
+                            inter.sendMessage(new PickupEtcItem(selfPlayer.getID(), item.getID()));
                             selfPlayer.unselectItem(item);
 
                             // <editor-fold defaultstate="collapsed" desc="debug">
@@ -908,7 +907,7 @@ public class GameField {
                 }
 
                 if (!stopped) {
-                    inter.addCommand(new PickupEtcItem(selfPlayer.getID(), item.getID()));
+                    inter.sendMessage(new PickupEtcItem(selfPlayer.getID(), item.getID()));
                     selfPlayer.unselectItem(item);
 
                     // <editor-fold defaultstate="collapsed" desc="debug">

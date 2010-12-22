@@ -3,7 +3,7 @@ package newcommon;
 import java.awt.Point;
 import java.util.ArrayList;
 
-class CurveMovement implements Movement {
+public class CurveMovement implements Movement {
 
     private boolean isMove;
     private final Point cur = new Point();
