@@ -1,5 +1,7 @@
 package server.javatestserver;
 
+import common.skills.Skill;
+import common.skills.SkillType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -7,20 +9,24 @@ import java.util.concurrent.LinkedBlockingQueue;
 import newcommon.Unit;
 import newcommon.Player;
 import newcommon.Monster;
+import newcommon.exceptions.GameFieldException;
 import newcommon.items.Item;
 import newcommon.items.Etc;
+import newcommon.exceptions.SkillException;
 
 public class GameField implements Runnable {
 
     private final static int debugLevel = 0;
     private static GameField self = null;
     private boolean selfExecutionStoped = false;
+    private long id = 1;
     private final LinkedBlockingQueue<Invokable> selfExecutionQueue = new LinkedBlockingQueue<Invokable>();
     private final ArrayList<Unit> units = new ArrayList<Unit>();
     private final ArrayList<Player> players = new ArrayList<Player>();
     private final ArrayList<Monster> monsters = new ArrayList<Monster>();
     private final ArrayList<Item> items = new ArrayList<Item>();
     private final ArrayList<Etc> etcItems = new ArrayList<Etc>();
+    private final ArrayList<Skill> skills = new ArrayList<Skill>();
 
     public static GameField getInstance() {
         if (self == null) {
@@ -31,7 +37,9 @@ public class GameField implements Runnable {
         return self;
     }
 
-    private GameField() {}
+    private GameField() {
+        skills.add(new Skill(id++, "DefaultTowerNuke", 1000L, SkillType.ACTIVE));
+    }
 
     private void addToSelfExecutionQueue(String method, Class[] paramTypes, Object[] args) {
         try {
@@ -172,4 +180,48 @@ public class GameField implements Runnable {
     public void syncRemoveEtc(Etc etc) {}
 
     public void asyncRemoveEtc(Etc etc) throws IllegalArgumentException {}
+
+    public long getSkillReuse(String skillName) throws SkillException {
+        for (Skill skill : skills) {
+            if (skill.getName().equals(skillName)) {
+                return skill.getReuse();
+            }
+        }
+
+        throw new SkillException("Skill with name " + skillName + " not exists.");
+    }
+
+    public long getSkillId(String skillName) throws SkillException {
+        for (Skill skill : skills) {
+            if (skill.getName().equals(skillName)) {
+                return skill.getId();
+            }
+        }
+
+        throw new SkillException("Skill with name " + skillName + " not exists.");
+    }
+
+    public Player getPlayer(long id) {
+        synchronized(players) {
+            for (Player player : players) {
+                if (player.getId() == id) {
+                    return player;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public Monster getMonster(long id) {
+        synchronized(monsters) {
+            for (Monster monster : monsters) {
+                if (monster.getId() == id) {
+                    return monster;
+                }
+            }
+
+            return null;
+        }
+    }
 }

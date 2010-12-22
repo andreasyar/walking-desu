@@ -3,6 +3,8 @@ package newcommon;
 import common.skills.Skill;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashMap;
+import newcommon.exceptions.SkillException;
 
 public abstract class Unit extends Entity {
 
@@ -15,6 +17,8 @@ public abstract class Unit extends Entity {
     private final CurveMovement mv = new CurveMovement();
     private String text;
     private final ArrayList<Skill> skills = new ArrayList<Skill>();
+    private long tagerId;
+    private final HashMap<Skill, Long> useSkillTimes = new HashMap<Skill, Long>();
 
     public Unit(long id, String name, int maxHealth, int health, String spriteSetName, String text, long deathDelay) {
         super(id, name);
@@ -114,7 +118,33 @@ public abstract class Unit extends Entity {
     }
 
     public void useSkill(Skill s) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        useSkillTimes.put(s, ServerTime.getInstance().getTimeSinceStart());
+    }
+
+    public void useSkill(long skillId) throws SkillException {
+        synchronized(skills) {
+            for (Skill skill : skills) {
+                if (skill.getId() == skillId) {
+                    useSkillTimes.put(skill, ServerTime.getInstance().getTimeSinceStart());
+                    return;
+                }
+            }
+
+            throw new SkillException(this + " has no skill with id=" + skillId);
+        }
+    }
+
+    public void useSkill(String skillName) throws SkillException {
+        synchronized(skills) {
+            for (Skill skill : skills) {
+                if (skill.getName().equals(skillName)) {
+                    useSkillTimes.put(skill, ServerTime.getInstance().getTimeSinceStart());
+                    return;
+                }
+            }
+
+            throw new SkillException(this + " has no skill with name=" + skillName);
+        }
     }
 
     public boolean isUseSkill() {
@@ -147,5 +177,45 @@ public abstract class Unit extends Entity {
 
     public void setDeathDelay(long deathDelay) {
         this.deathDelay = deathDelay;
+    }
+
+    public long getTagerId() {
+        return tagerId;
+    }
+
+    public void setTagerId(long tagerId) {
+        this.tagerId = tagerId;
+    }
+
+    public long getLastSkillUseTime(long skillId) {
+        synchronized(skills) {
+            for (Skill skill : skills) {
+                if (skill.getId() == skillId) {
+                    if (useSkillTimes.containsKey(skill)) {
+                        return useSkillTimes.get(skill);
+                    } else {
+                        return 0L;
+                    }
+                }
+            }
+
+            return 0L;
+        }
+    }
+
+    public long getLastSkillUseTime(String skillName) {
+        synchronized(skills) {
+            for (Skill skill : skills) {
+                if (skill.getName().equals(skillName)) {
+                    if (useSkillTimes.containsKey(skill)) {
+                        return useSkillTimes.get(skill);
+                    } else {
+                        return 0L;
+                    }
+                }
+            }
+
+            return 0L;
+        }
     }
 }

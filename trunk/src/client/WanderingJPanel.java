@@ -1,6 +1,5 @@
 package client;
 
-import common.items.Item;
 import common.Message;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -234,7 +233,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
                     if ( (w = field.selectItem(x + screenWorldX, y + screenWorldY)) != null) {
                         if (field.distanceToItem(w) <= GameField.pickupDistance) {
-                            inter.addCommand(new PickupEtcItem(selfPlayer.getID(), w.getID()));
+                            inter.sendMessage(new PickupEtcItem(selfPlayer.getID(), w.getID()));
                             return;
                         } else {
                             pickup = true;
@@ -372,7 +371,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 if (w != null) {
                     if (field.distanceToItem(w) <= GameField.pickupDistance) {
                         Message m = new PickupEtcItem(field.getSelfPlayer().getID(), w.getID());
-                        inter.addCommand(m);
+                        inter.sendMessage(m);
                     } else {
                         Point p = new Point(w.getX(), w.getY());
                         Point cur = field.getSelfPlayer().getCurPos();

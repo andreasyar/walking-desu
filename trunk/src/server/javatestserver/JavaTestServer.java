@@ -29,6 +29,12 @@ import java.util.logging.Logger;
 import newcommon.items.Etc;
 import newcommon.items.Items;
 import common.messages.PickupEtcItem;
+import server.javatestserver.GeoDataController;
+import server.javatestserver.JTSUnit;
+import server.javatestserver.MapFragment;
+import server.javatestserver.Monster;
+import server.javatestserver.Player;
+import server.javatestserver.VisibleManager;
 import server.javatestserver.items.ServerEtc;
 
 /**
@@ -844,88 +850,5 @@ public class JavaTestServer {
                 canceled = true;
             }
         }
-    }
-
-    private class TowerController implements Runnable {
-
-        private ScheduledFuture future = null;
-        private boolean canceled = false;
-
-        public TowerController() {
-        }
-
-        @Override
-        public void run() {
-            if (!canceled) {
-                try {
-                    for (Tower t : towers) {
-                        if (!attackRandomMonster(t)) {
-                            t.selectMonster(monsters);
-                            attackRandomMonster(t);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-            }
-        }
-
-        private boolean attackRandomMonster(Tower t) {
-            if (t.targetInRange()) {
-                if (!t.reuse()) {
-                    //t.getTarget().doHit(t.getDamage());
-                    long begTime = System.currentTimeMillis() - JavaTestServer.serverStartTime;
-                    t.setLastAttackTime(begTime);
-                    NukeAction a = new NukeAction(new NukeBolt((JTSUnit) t, (JTSUnit) t.getTarget(), begTime));
-                    ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
-                    a.setScheduledFuture(f);
-                    sendToAll(new Message[] { new BoltMessage(t.getID(), t.getTarget().getID(), begTime) });
-                    return true;
-                }
-                return false;
-            }
-            return false;
-        }
-
-        public void setScheduledFuture(ScheduledFuture future) {
-            this.future = future;
-        }
-
-        public void cancel() {
-            if (future != null) {
-                future.cancel(true);
-                canceled = true;
-            }
-        }
-    }
-}
-
-class NukeBolt {
-
-    private JTSUnit attacker;
-    private JTSUnit target;
-    private Movement mv;
-
-    public NukeBolt(JTSUnit attacker, JTSUnit target, long begTime) {
-        this.attacker = attacker;
-        this.target = target;
-
-        Point tmp = attacker.getCurPos();
-        Point cur = target.getCurPos();
-        mv = new Movement(tmp.x, tmp.y, 1.0);
-        mv.move(tmp.x, tmp.y, cur.x, cur.y, begTime);
-    }
-
-    public boolean isFlight() {
-        return mv.isMove();
-    }
-
-    public JTSUnit getAttacker() {
-        return attacker;
-    }
-
-    public JTSUnit getTarget() {
-        return target;
     }
 }

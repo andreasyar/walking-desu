@@ -1,6 +1,6 @@
-package common.messages;
+package server.javaserver;
 
-public enum MessageType {
+public enum MessageTypes {
     HMAP,
     HIT,
     BOLT,
@@ -12,5 +12,6 @@ public enum MessageType {
     DISAPPEARETCITEM,
     APPEARETCITEM,
     HELLO,
-    NAME;
+    NAME,
+    WELCOME;
 }
