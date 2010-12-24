@@ -1,31 +1,34 @@
-package client;
+package wand6.client;
 
+import client.RedrawTask;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import javax.swing.SwingUtilities;
-import server.javaserver.HelloMessage;
-import server.javaserver.NameMessage;
+import wand6.client.messages.HelloMessage;
+import wand6.client.messages.NameMessage;
 
-public class WalkingDesu {
+public class Wand {
     public static void main(String[] args) {
-        new WalkingDesu(args);
+        new Wand(args);
     }
 
-    private WalkingDesu(String[] args) {
-        GameField field = new GameField();
-        field.startSelfExecution();
-        ClientMapFragment.setWidth(1024);
-        ClientMapFragment.setHeight(1024);
-        ClientMapFragment.setCellW(32);
-        ClientMapFragment.setCellH(32);
+    private Wand(String[] args) {
+        String ip;
+        int port;
 
-        field.addMapFragment(new ClientMapFragment(0, 0, new int[][]{}));
+        if (args.length == 2) {
+            ip = args[0];
+            port = Integer.parseInt(args[1]);
+        } else {
+            ip = "localhost";
+            port = 45000;
+        }
 
         Executor executor = Executors.newCachedThreadPool();
-        ServerInteraction inter = new ServerInteraction(args[0], Integer.parseInt(args[1]));
+        ServerInteraction inter = new ServerInteraction(ip, port);
         inter.run();
-        WanderingGUI gui = new WanderingGUI(field, inter);
+        GUI gui = new GUI(null, inter);
         try {
             SwingUtilities.invokeAndWait(gui);
         } catch (InterruptedException ex) {

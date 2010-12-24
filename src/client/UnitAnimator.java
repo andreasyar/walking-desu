@@ -1,5 +1,6 @@
 package client;
 
+import wand6.client.WandJPanel;
 import common.Unit;
 import common.WanderingServerTime;
 import java.awt.Color;
@@ -65,7 +66,7 @@ class UnitAnimator {
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             GraphicsDevice gs = ge.getDefaultScreenDevice();
             GraphicsConfiguration gc = gs.getDefaultConfiguration();
-            FontMetrics metrics = WanderingJPanel.getFontMetrics();
+            FontMetrics metrics = WandJPanel.getFontMetrics();
 
             boolean isMove = u.isMove();
             boolean isAttack = u.isUseSkill();

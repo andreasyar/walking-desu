@@ -1,5 +1,7 @@
-package server.javaserver;
+package wand6.server;
 
+import wand6.server.exceptions.JavaServerException;
+import wand6.common.messages.Message;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

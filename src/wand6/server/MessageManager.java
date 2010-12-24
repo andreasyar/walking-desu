@@ -1,4 +1,6 @@
-package server.javaserver;
+package wand6.server;
+
+import wand6.server.messages.WelcomeMessage;
 
 class MessageManager {
 

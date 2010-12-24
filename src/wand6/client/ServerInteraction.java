@@ -1,4 +1,4 @@
-package client;
+package wand6.client;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,8 +9,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import javax.swing.SwingWorker;
-import server.javaserver.Message;
-import server.javaserver.MessageTypes;
+import wand6.common.messages.Message;
+import wand6.common.messages.MessageType;
 
 public class ServerInteraction {
 
@@ -122,7 +122,7 @@ public class ServerInteraction {
                         commandHandler(message);
 
                     } else {
-                        if (message.getType() == MessageTypes.WELCOME) {
+                        if (message.getType() == MessageType.WELCOME) {
                             welcomeReceived = true;
                             commandHandler(message);
                         }

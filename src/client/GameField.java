@@ -1,5 +1,6 @@
 package client;
 
+import wand6.client.ServerInteraction;
 import client.items.ClientEtc;
 import common.Unit;
 import common.messages.PickupEtcItem;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import newcommon.items.Item;
 
 public class GameField {
 
