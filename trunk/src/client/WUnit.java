@@ -1,5 +1,7 @@
 package client;
 
+import wand6.client.ServerInteraction;
+import wand6.client.WandJPanel;
 import common.items.Item;
 import common.Unit;
 import common.Movement;
@@ -266,7 +268,7 @@ public abstract class WUnit extends Unit implements Drawable {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gs = ge.getDefaultScreenDevice();
         GraphicsConfiguration gc = gs.getDefaultConfiguration();
-        FontMetrics metrics = WanderingJPanel.getFontMetrics();
+        FontMetrics metrics = WandJPanel.getFontMetrics();
 
         try {
             boolean isMove = mv.isMove();

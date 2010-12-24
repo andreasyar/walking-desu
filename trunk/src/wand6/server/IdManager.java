@@ -1,4 +1,4 @@
-package server.javaserver;
+package wand6.server;
 
 class IdManager {
 

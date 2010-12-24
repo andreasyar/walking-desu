@@ -1,6 +1,6 @@
-package server.javaserver;
+package wand6.common.messages;
 
-public enum MessageTypes {
+public enum MessageType {
     HMAP,
     HIT,
     BOLT,
@@ -13,5 +13,6 @@ public enum MessageTypes {
     APPEARETCITEM,
     HELLO,
     NAME,
-    WELCOME;
+    WELCOME,
+    TEXTCLOUD;
 }

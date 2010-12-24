@@ -1,5 +1,6 @@
 package client;
 
+import wand6.client.ServerInteraction;
 import java.util.ArrayList;
 import java.util.ListIterator;
 

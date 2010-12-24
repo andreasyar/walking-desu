@@ -1,5 +1,11 @@
-package server.javaserver;
+package wand6.server;
 
+import java.io.EOFException;
+import wand6.server.PlayerManager;
+import wand6.server.MessageManager;
+import wand6.common.messages.Message;
+import wand6.client.messages.NameMessage;
+import wand6.common.messages.MessageType;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -103,7 +109,7 @@ class ClientInteraction {
                             commandHandler(message);
 
                         } else {
-                            if (message.getType() == MessageTypes.NAME) {
+                            if (message.getType() == MessageType.NAME) {
                                 if (debugLevel > 0) {
                                     System.out.println("Name received.");
                                 }
@@ -113,7 +119,7 @@ class ClientInteraction {
                             }
                         }
                     } else {
-                        if (message.getType() == MessageTypes.HELLO) {
+                        if (message.getType() == MessageType.HELLO) {
                             if (debugLevel > 0) {
                                 System.out.println("Hello received.");
                             }
@@ -124,11 +130,14 @@ class ClientInteraction {
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
                 System.exit(1);
+            } catch (EOFException e) {
+                System.out.println("Client id=" + selfPlayerId + " disconnected.");
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                System.exit(1);
             } catch (IOException e) {
-                if (connectionAlive()) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+                e.printStackTrace();
+                System.exit(1);
             }
         }
 
@@ -140,14 +149,18 @@ class ClientInteraction {
     }
 
     private boolean connectionAlive() {
-        return socket != null && socket.isConnected() && !socket.isClosed() && (socket.isInputShutdown() || socket.isOutputShutdown());
+        return socket != null && socket.isConnected() && !socket.isClosed() && !socket.isInputShutdown() && !socket.isOutputShutdown();
     }
 
     long getId() {
         return selfPlayerId;
     }
 
-    private void setId(long id) {
+    private void setId(long id) throws IllegalArgumentException {
+        if (id < 1) {
+            throw new IllegalArgumentException("id must be 1 or greater.");
+        }
+
         selfPlayerId = id;
     }
 

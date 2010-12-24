@@ -1,5 +1,6 @@
 package client;
 
+import wand6.client.ServerInteraction;
 import newcommon.Inventory;
 import newcommon.exceptions.InventoryException;
 import common.WanderingServerTime;

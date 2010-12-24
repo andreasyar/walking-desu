@@ -1,5 +1,8 @@
-package client;
+package wand6.client;
 
+import client.GameField;
+import client.LoginDialog;
+import client.Player;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,16 +11,17 @@ import java.awt.event.KeyEvent;
 import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JTextField;
+import wand6.client.messages.TextCloudMessage;
 
-public class WanderingGUI implements Runnable {
-    public final WanderingJPanel panel;
+public class GUI implements Runnable {
+    public final WandJPanel panel;
     public final JFrame frame;
     public final JTextField msgField;
     public final JButton sendBtn;
     public final LoginDialog dialog;
 
-    public WanderingGUI(GameField field, ServerInteraction inter) {
-        panel = new WanderingJPanel(field, inter);
+    public GUI(GameField field, ServerInteraction inter) {
+        panel = new WandJPanel(field, inter);
         panel.addMouseListener(panel);
         panel.addComponentListener(panel);
         panel.addKeyListener(panel);
@@ -66,7 +70,7 @@ public class WanderingGUI implements Runnable {
 
                 if (self != null && msgText != null && (self.getText() == null || !self.getText().equals(msgText))) {
                     self.setText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-                    inter.addCommand("(message \"" +  self.getText() + "\")");
+                    inter.sendMessage(new TextCloudMessage(self.getText()));
                 }
             }
         }
@@ -87,7 +91,7 @@ public class WanderingGUI implements Runnable {
 
             if (self != null && msgText != null && (self.getText() == null || !self.getText().equals(msgText))) {
                 self.setText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-                inter.addCommand("(message \"" +  self.getText() + "\")");
+                inter.sendMessage(new TextCloudMessage(self.getText()));
             }
         }
     }

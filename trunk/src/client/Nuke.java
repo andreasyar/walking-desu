@@ -1,5 +1,6 @@
 package client;
 
+import wand6.client.ServerInteraction;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
