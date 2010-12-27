@@ -14,5 +14,6 @@ public enum MessageType {
     HELLO,
     NAME,
     WELCOME,
-    TEXTCLOUD;
+    TEXTCLOUD,
+    TIMESYNC;
 }

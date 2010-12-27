@@ -2,7 +2,6 @@ package wand6.client;
 
 import client.GameField;
 import client.LoginDialog;
-import client.Player;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,16 +10,15 @@ import java.awt.event.KeyEvent;
 import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JTextField;
-import wand6.client.messages.TextCloudMessage;
 
-public class GUI implements Runnable {
+class GUI implements Runnable {
     public final WandJPanel panel;
     public final JFrame frame;
     public final JTextField msgField;
     public final JButton sendBtn;
     public final LoginDialog dialog;
 
-    public GUI(GameField field, ServerInteraction inter) {
+    GUI(GameField field, ServerInteraction inter) {
         panel = new WandJPanel(field, inter);
         panel.addMouseListener(panel);
         panel.addComponentListener(panel);
@@ -30,8 +28,8 @@ public class GUI implements Runnable {
         msgField = new JTextField(50);
         sendBtn = new JButton("Send");
 
-        msgField.addKeyListener(new msgFieldKeyListener(field, inter));
-        sendBtn.addActionListener(new sendBtnActionListener(field, inter));
+        msgField.addKeyListener(new msgFieldKeyListener(inter));
+        sendBtn.addActionListener(new sendBtnActionListener(inter));
     }
 
     @Override
@@ -48,17 +46,15 @@ public class GUI implements Runnable {
         dialog.setVisible(true);
     }
 
-    public void showPanel() {
+    void showPanel() {
         panel.setVisible(false);
         panel.setVisible(true);
     }
 
     private class msgFieldKeyListener extends KeyAdapter {
-        private GameField field;
         private ServerInteraction inter;
 
-        public msgFieldKeyListener(GameField field, ServerInteraction inter) {
-            this.field = field;
+        public msgFieldKeyListener(ServerInteraction inter) {
             this.inter = inter;
         }
 
@@ -66,33 +62,26 @@ public class GUI implements Runnable {
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                 String msgText = msgField.getText();
-                Player self = field.getSelfPlayer();
-
-                if (self != null && msgText != null && (self.getText() == null || !self.getText().equals(msgText))) {
-                    self.setText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-                    inter.sendMessage(new TextCloudMessage(self.getText()));
-                }
+                PlayerManager pm = PlayerManager.getInstance();
+                pm.setSelfPlayerText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
+                inter.sendMessage(MessageManager.getInstance().getTextCloudMessage(pm.getSelfPlayerId()));
             }
         }
     }
 
     private class sendBtnActionListener implements ActionListener {
-        private GameField field;
+
         private ServerInteraction inter;
 
-        public sendBtnActionListener(GameField field, ServerInteraction inter) {
-            this.field = field;
+        sendBtnActionListener(ServerInteraction inter) {
             this.inter = inter;
         }
 
         public void actionPerformed(ActionEvent e) {
             String msgText = msgField.getText();
-            Player self = field.getSelfPlayer();
-
-            if (self != null && msgText != null && (self.getText() == null || !self.getText().equals(msgText))) {
-                self.setText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-                inter.sendMessage(new TextCloudMessage(self.getText()));
-            }
+            PlayerManager pm = PlayerManager.getInstance();
+            pm.setSelfPlayerText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
+            inter.sendMessage(MessageManager.getInstance().getTextCloudMessage(pm.getSelfPlayerId()));
         }
     }
 }

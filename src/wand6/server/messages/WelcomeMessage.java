@@ -26,8 +26,28 @@ public class WelcomeMessage implements Message, Serializable {
         return type;
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getSpriteSetName() {
+        return spriteSetName;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
     @Override
     public String toString() {
-        return "WelcomeMessage{" + "id=" + id + "name=" + name + "spriteSetName=" + spriteSetName + "x=" + x + "y=" + y + '}';
+        return "WelcomeMessage{" + "id=" + id + " name=" + name + " spriteSetName=" + spriteSetName + " x=" + x + " y=" + y + '}';
     }
 }

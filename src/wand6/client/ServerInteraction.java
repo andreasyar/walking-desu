@@ -1,5 +1,6 @@
 package wand6.client;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,18 +10,19 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import javax.swing.SwingWorker;
+import wand6.common.ServerTime;
 import wand6.common.messages.Message;
 import wand6.common.messages.MessageType;
+import wand6.server.messages.TimeSyncMessage;
+import wand6.server.messages.WelcomeMessage;
 
-public class ServerInteraction {
+class ServerInteraction {
 
-    private static int debugLevel = 1;
     private Socket socket;
     private MessageSender sender;
     private MessageReceiver receiver;
-    private boolean welcomeReceived = false;
 
-    public ServerInteraction(String ip, int port) {
+    ServerInteraction(String ip, int port) {
         try {
             socket = new Socket(ip, port);
             sender = new MessageSender(new ObjectOutputStream(socket.getOutputStream()));
@@ -40,109 +42,117 @@ public class ServerInteraction {
         executor.execute(receiver);
     }
 
-    public void sendMessage(Message message) {
+    void sendMessage(Message message) {
         sender.sendMessage(message);
     }
+}
 
-    private class MessageSender extends SwingWorker<Void, Void> {
+class MessageSender extends SwingWorker<Void, Void> {
 
-        private final LinkedBlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
-        private ObjectOutputStream outStream;
+    private static int debugLevel = 1;
 
-        public MessageSender(ObjectOutputStream outStream) {
-            this.outStream = outStream;
-        }
+    private final LinkedBlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
+    private ObjectOutputStream outStream;
 
-        @Override
-        protected Void doInBackground() {
-            try {
-                Message message;
-
-                if (debugLevel > 0) {
-                    System.out.println("Message sender thread started.");
-                }
-
-                while (true) {
-                    while (!messages.isEmpty()) {
-                        message = messages.poll();
-                        outStream.writeObject(message);
-                        outStream.reset();
-                        if (debugLevel > 0) {
-                            System.out.println(message + " --> [server]");
-                        }
-                    }
-                    if (messages.isEmpty()) {
-                        try {
-                            synchronized (messages) {
-                                messages.wait();
-                            }
-                        } catch (InterruptedException ignore) {
-                            // ignore
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-
-            return null;
-        }
-
-        void sendMessage(Message message) {
-            messages.add(message);
-            synchronized(messages) {
-                messages.notify();
-            }
-        }
+    MessageSender(ObjectOutputStream outStream) {
+        this.outStream = outStream;
     }
 
-    private class MessageReceiver extends SwingWorker<Void, Void> {
+    @Override
+    protected Void doInBackground() {
+        try {
+            Message message;
 
-        private ObjectInputStream inStream;
+            if (debugLevel > 0) {
+                System.out.println("Message sender thread started.");
+            }
 
-        private MessageReceiver(ObjectInputStream inStream) {
-            this.inStream = inStream;
-        }
-
-        @Override
-        protected Void doInBackground() {
-            try {
-                Message message;
-
-                if (debugLevel > 0) {
-                    System.out.println("Message receiver thread started.");
-                }
-
-                while (true) {
-                    message = (Message) inStream.readObject();
-
-                    if (welcomeReceived) {
-
-                        commandHandler(message);
-
-                    } else {
-                        if (message.getType() == MessageType.WELCOME) {
-                            welcomeReceived = true;
-                            commandHandler(message);
-                        }
+            while (true) {
+                while (!messages.isEmpty()) {
+                    message = messages.poll();
+                    outStream.writeObject(message);
+                    outStream.reset();
+                    if (debugLevel > 0) {
+                        System.out.println(message + " --> [server]");
                     }
                 }
-            } catch (IOException e) {
-                if (connectionAlive()) {
-                    e.printStackTrace();
-                    System.exit(1);
-                } else {
-                    System.err.println("Connection lost.");
+                if (messages.isEmpty()) {
+                    try {
+                        synchronized (messages) {
+                            messages.wait();
+                        }
+                    } catch (InterruptedException ignore) {
+                        // ignore
+                    }
                 }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                System.exit(1);
             }
-            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
         }
 
-        private void commandHandler(String command) {
+        return null;
+    }
+
+    void sendMessage(Message message) {
+        messages.add(message);
+        synchronized(messages) {
+            messages.notify();
+        }
+    }
+}
+
+class MessageReceiver extends SwingWorker<Void, Void> {
+
+    private static int debugLevel = 1;
+
+    private final ObjectInputStream inStream;
+
+    private boolean welcomeReceived = false;
+
+    MessageReceiver(ObjectInputStream inStream) {
+        this.inStream = inStream;
+    }
+
+    @Override
+    protected Void doInBackground() {
+        try {
+            Message message;
+
+            if (debugLevel > 0) {
+                System.out.println("Message receiver thread started.");
+            }
+
+            while (true) {
+                message = (Message) inStream.readObject();
+
+                if (welcomeReceived) {
+
+                    commandHandler(message);
+
+                } else {
+                    if (message.getType() == MessageType.WELCOME) {
+                        commandHandler(message);
+                        welcomeReceived = true;
+                    }
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } catch (EOFException e) {
+            if (debugLevel > 0) {
+                System.out.println("Connection lost.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        return null;
+    }
+
+    void commandHandler(String command) {
 //            String[] pieces1;
 //
 //            if (command.startsWith("(")) {
@@ -292,12 +302,26 @@ public class ServerInteraction {
 //                    WanderingLocks.unlockNukes();
 //                }*/
 //            }
+    }
+
+    void commandHandler(Message message) {
+        if (debugLevel > 0) {
+            System.out.println("[me] <-- " + message);
         }
 
-        private void commandHandler(Message message) {
-            if (debugLevel > 0) {
-                System.out.println("[me] <-- " + message);
-            }
+        if (message.getType() == MessageType.WELCOME) {
+
+            WelcomeMessage m = (WelcomeMessage) message;
+            PlayerManager.getInstance().createSelfPlayer(m.getId(),
+                                                         m.getName(),
+                                                         m.getSpriteSetName());
+
+        } else if (message.getType() == MessageType.TIMESYNC) {
+
+            TimeSyncMessage m = (TimeSyncMessage) message;
+            ServerTime.getInstance().adjust(m.getTime());
+            
+        }
 //            if (m.getType() == MessageType.OTHER) {
 //
 //                commandHandler(((OtherMessage) m).getMessage());
@@ -391,10 +415,5 @@ public class ServerInteraction {
 //                field.asyncRemoveEtc(tmpMsg.getId());
 //
 //            }
-        }
-    }
-
-    private boolean connectionAlive() {
-        return socket != null && socket.isConnected() && !socket.isClosed() && (socket.isInputShutdown() || socket.isOutputShutdown());
     }
 }
