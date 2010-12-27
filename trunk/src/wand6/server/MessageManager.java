@@ -1,5 +1,6 @@
 package wand6.server;
 
+import wand6.server.exceptions.PlayerManagerException;
 import wand6.server.messages.WelcomeMessage;
 
 class MessageManager {
@@ -19,10 +20,17 @@ class MessageManager {
     WelcomeMessage getWelcomeMessage(long playerId) {
         PlayerManager pm = PlayerManager.getInstance();
 
-        return new WelcomeMessage(playerId,
-                                  pm.getPlayerName(playerId),
-                                  pm.getPlayerSpriteSetName(playerId),
-                                  pm.getPlayerCurX(playerId),
-                                  pm.getPlayerCurY(playerId));
+        try {
+            return new WelcomeMessage(playerId,
+                                      pm.getPlayerName(playerId),
+                                      pm.getPlayerSpriteSetName(playerId),
+                                      pm.getPlayerCurX(playerId),
+                                      pm.getPlayerCurY(playerId));
+        } catch (PlayerManagerException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        return null;
     }
 }

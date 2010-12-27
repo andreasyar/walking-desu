@@ -44,17 +44,7 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
     public synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        //
-
-        // Panel border.
-        g.drawLine(0, 0,
-                   panelDim.width - 1, 0);
-        g.drawLine(panelDim.width - 1, 0,
-                   panelDim.width - 1, panelDim.height - 1);
-        g.drawLine(panelDim.width - 1, panelDim.height - 1,
-                   0, panelDim.height - 1);
-        g.drawLine(0, panelDim.height - 1,
-                   0, 0);
+        MapManager.getInstance().drawMap(g, panelDim);
     }
 
     @Override
