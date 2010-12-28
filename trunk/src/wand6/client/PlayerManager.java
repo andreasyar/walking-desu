@@ -1,5 +1,8 @@
 package wand6.client;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.util.ArrayList;
 import wand6.common.Player;
 
@@ -42,5 +45,25 @@ class PlayerManager {
 
     void setSelfPlayerText(String string) throws NullPointerException {
         selfPlayer.setText(string);
+    }
+
+    int getSelfPlayerX() throws NullPointerException {
+        return selfPlayer.getCurX();
+    }
+
+    int getSelfPlayerY() throws NullPointerException {
+        return selfPlayer.getCurY();
+    }
+
+    void drawPlayers(Graphics g, Dimension panelDim) {
+        if (selfPlayer != null) {
+            Color savedColor = g.getColor();
+            g.setColor(Color.RED);
+            g.drawLine(panelDim.width / 2,
+                       panelDim.height / 2,
+                       panelDim.width / 2,
+                       panelDim.height / 2);
+            g.setColor(savedColor);
+        }
     }
 }

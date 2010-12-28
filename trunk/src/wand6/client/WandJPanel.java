@@ -45,6 +45,7 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         super.paintComponent(g);
 
         MapManager.getInstance().drawMap(g, panelDim);
+        PlayerManager.getInstance().drawPlayers(g, panelDim);
     }
 
     @Override
