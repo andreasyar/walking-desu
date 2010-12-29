@@ -27,6 +27,7 @@ public class Wand {
 
         Executor executor = Executors.newCachedThreadPool();
         ServerInteraction inter = new ServerInteraction(ip, port);
+        MessageManager.init(inter);
         inter.run();
         GUI gui = new GUI(null, inter);
         try {

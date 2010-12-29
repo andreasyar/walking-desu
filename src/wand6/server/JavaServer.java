@@ -13,24 +13,36 @@ public class JavaServer {
 
     private static int debugLevel = 1;
 
+    private static JavaServer self = null;
+
     private ServerSocket socket;
     private final ArrayList<ClientInteraction> clients = new ArrayList<ClientInteraction>();
 
     public static void main(String[] args) {
         try {
-            JavaServer server = new JavaServer(45000);
-            server.run();
+            self = new JavaServer(45000);
+            self.run();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
     }
 
-    JavaServer(int port) throws IOException {
+    public static boolean sendMessage(Message message, long clientId) throws JavaServerException {
+        return self._sendMessage(message, clientId);
+    }
+
+    public static void sendMessage(Message message) {
+        self._sendMessage(message);
+    }
+
+    private JavaServer(){}
+
+    private JavaServer(int port) throws IOException {
         socket = new ServerSocket(port);
     }
 
-    void run() throws IOException {
+    private void run() throws IOException {
         Socket clientSocket;
         ClientInteraction clientInteraction;
         ServerTime.getInstance();   // Initialize server start time.
@@ -49,7 +61,7 @@ public class JavaServer {
         }
     }
 
-    boolean sendMessage(Message message, long clientId) throws JavaServerException {
+    private boolean _sendMessage(Message message, long clientId) throws JavaServerException {
         synchronized(clients) {
             ClientInteraction client;
 
@@ -70,7 +82,7 @@ public class JavaServer {
         }
     }
 
-    void sendMessage(Message message) {
+    private void _sendMessage(Message message) {
         synchronized(clients) {
             ClientInteraction client;
 

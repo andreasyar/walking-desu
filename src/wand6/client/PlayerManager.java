@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.ArrayList;
+import wand6.client.exceptions.PlayerManagerException;
 import wand6.common.Player;
 
 class PlayerManager {
@@ -64,6 +65,23 @@ class PlayerManager {
                        panelDim.width / 2,
                        panelDim.height / 2);
             g.setColor(savedColor);
+        }
+    }
+
+    String getSelfPlayerText() throws NullPointerException {
+        return selfPlayer.getText();
+    }
+
+    void movePlayer(long playerId, int x, int y, long begTime) throws PlayerManagerException {
+        synchronized(players) {
+            for (Player player : players) {
+                if (player.getId() == playerId) {
+                    player.move(x, y, begTime);
+                    return;
+                }
+            }
+
+            throw new PlayerManagerException("Player id=" + playerId + " not found.");
         }
     }
 }

@@ -118,8 +118,6 @@ public class ClientMapFragment extends MapFragment {
      * height of neighbour cells.
      */
     private String getTileKey(int i, int j) {
-        String name = "";
-
         if (isMountian(i, j)) {
             return "m_0";
         } else if (isWater(i, j)) {

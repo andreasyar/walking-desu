@@ -50,4 +50,20 @@ public class Player {
     public String getText() {
         return text;
     }
+
+    public void move(int x, int y, long begTime) {
+        movement.start(x, y, begTime);
+    }
+
+    public int getEndX() {
+        return movement.getEndX();
+    }
+
+    public int getEndY() {
+        return movement.getEndY();
+    }
+
+    public long getMovementBegTime() {
+        return movement.getBegTime();
+    }
 }

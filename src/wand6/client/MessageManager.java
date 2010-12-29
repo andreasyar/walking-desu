@@ -1,22 +1,36 @@
 package wand6.client;
 
+import wand6.client.exceptions.MessageManagerException;
 import wand6.client.messages.TextCloudMessage;
+import wand6.client.messages.MapFragmentRequestMessage;
+import wand6.client.messages.MoveRequestMessage;
 
 class MessageManager {
 
-    private static MessageManager self = null;
+    private static ServerInteraction inter = null;
 
-    static MessageManager getInstance() {
-        if (self == null) {
-            self = new MessageManager();
+    private static void checkInteraction() throws MessageManagerException {
+        if (inter == null) {
+            throw new MessageManagerException("Server interaction not set!");
         }
-
-        return self;
     }
 
-    private MessageManager() {}
+    static void init(ServerInteraction inter) {
+        MessageManager.inter = inter;
+    }
 
-    TextCloudMessage getTextCloudMessage(long playerId) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    static void sendTextCloudMessage() throws NullPointerException, MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new TextCloudMessage(PlayerManager.getInstance().getSelfPlayerText()));
+    }
+
+    static void sendMapFragmentRequest(int idX, int idY) throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new MapFragmentRequestMessage(idX, idY));
+    }
+
+    static void sendMoveRequest(int x, int y) throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new MoveRequestMessage(x, y));
     }
 }

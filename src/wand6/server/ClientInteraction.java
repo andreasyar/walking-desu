@@ -9,6 +9,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
+import wand6.client.messages.MapFragmentRequestMessage;
+import wand6.client.messages.MoveRequestMessage;
+import wand6.client.messages.TextCloudMessage;
+import wand6.server.exceptions.PlayerManagerException;
 
 class ClientInteraction {
 
@@ -144,8 +148,8 @@ class MessageReceiver implements Runnable {
                                 System.out.println("Name received.");
                             }
                             client.setSelfPlayerId(PlayerManager.getInstance().createPlayer(((NameMessage) message).getName()));
-                            client.sendMessage(MessageManager.getInstance().getWelcomeMessage(client.getSelfPlayerId()));
                             client.setReady(true);
+                            MessageManager.getInstance(client.getSelfPlayerId()).sendWelcome();
                         }
                     }
                 } else {
@@ -181,8 +185,36 @@ class MessageReceiver implements Runnable {
 
         if (message.getType() == MessageType.TEXTCLOUD) {
 
-            
+            TextCloudMessage m = (TextCloudMessage) message;
+            try {
+                PlayerManager.getInstance().setPlayerText(client.getSelfPlayerId(), m.getText());
+            } catch (PlayerManagerException ex) {
+                if (debugLevel > 0) {
+                    ex.printStackTrace();
+                    System.exit(1);
+                } else {
+                    System.err.println(ex.getMessage());
+                }
+            }
 
+        } else if (message.getType() == MessageType.MAPFRAGMENTREQEST) {
+
+            MapFragmentRequestMessage m = (MapFragmentRequestMessage) message;
+            MessageManager.getInstance(client.getSelfPlayerId()).sendMapFragment(MapManager.getInstance().getMapFragment(m.getIdX(), m.getIdY()));
+
+        } else if (message.getType() == MessageType.MOVEREQUEST) {
+
+            MoveRequestMessage m = (MoveRequestMessage) message;
+            try {
+                PlayerManager.getInstance().movePlayer(client.getSelfPlayerId(), m.getX(), m.getY());
+            } catch (PlayerManagerException ex) {
+                if (debugLevel > 0) {
+                    ex.printStackTrace();
+                    System.exit(1);
+                } else {
+                    System.err.println(ex.getMessage());
+                }
+            }
         }
     }
 }

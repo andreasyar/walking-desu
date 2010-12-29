@@ -11,12 +11,16 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 
 import java.awt.FontMetrics;
+import wand6.client.exceptions.MessageManagerException;
 
 public class WandJPanel extends JPanel implements KeyListener, MouseListener, ComponentListener {
 
+    private static int debugLevel = 1;
     private boolean wasShown = false;
     private BufferedImage mapImg = WanderingMap.getMapImg();
     private Dimension mapDim = new Dimension(mapImg.getWidth(), mapImg.getHeight());
@@ -51,6 +55,40 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
     @Override
     public void mouseClicked(MouseEvent e) {
         this.requestFocus();
+        int selfPlayerX, selfPlayerY;
+
+        try {
+            selfPlayerX = PlayerManager.getInstance().getSelfPlayerX();
+        } catch (NullPointerException ex) {
+            if (debugLevel > 0) {
+                System.err.println("Self player X-axis cannot be calculated.");
+            }
+            return;
+        }
+        try {
+            selfPlayerY = PlayerManager.getInstance().getSelfPlayerY();
+        } catch (NullPointerException ex) {
+            if (debugLevel > 0) {
+                System.err.println("Self player Y-axis cannot be calculated.");
+            }
+            return;
+        }
+
+        // Upper left corner of drawing panel on world map.
+        int panelX = selfPlayerX - panelDim.width / 2;
+        int panelY = selfPlayerY - panelDim.height / 2;
+
+        int clickX = panelX + e.getX();
+        int clickY = panelY + e.getY();
+
+        if (clickX >= 0 && clickY >= 0) {
+            try {
+                MessageManager.sendMoveRequest(clickX, clickY);
+            } catch (MessageManagerException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+        }
     }
 
     @Override
