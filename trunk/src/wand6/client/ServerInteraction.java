@@ -9,10 +9,15 @@ import java.net.UnknownHostException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingWorker;
+import wand6.client.exceptions.PlayerManagerException;
 import wand6.common.ServerTime;
 import wand6.common.messages.Message;
 import wand6.common.messages.MessageType;
+import wand6.server.messages.MapFragmentMessage;
+import wand6.server.messages.MoveMessage;
 import wand6.server.messages.TimeSyncMessage;
 import wand6.server.messages.WelcomeMessage;
 
@@ -320,7 +325,22 @@ class MessageReceiver extends SwingWorker<Void, Void> {
 
             TimeSyncMessage m = (TimeSyncMessage) message;
             ServerTime.getInstance().adjust(m.getTime());
-            
+
+        } else if (message.getType() == MessageType.MAPFRAGMENT) {
+
+            MapFragmentMessage m = (MapFragmentMessage) message;
+            MapManager.getInstance().addMapFragment(m.getIdX(), m.getIdY(), m.getHmap());
+
+        } else if (message.getType() == MessageType.MOVE) {
+
+            MoveMessage m = (MoveMessage) message;
+            try {
+                PlayerManager.getInstance().movePlayer(m.getId(), m.getEndX(), m.getEndY(), m.getBegTime());
+            } catch (PlayerManagerException ex) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+
         }
 //            if (m.getType() == MessageType.OTHER) {
 //

@@ -10,8 +10,10 @@ import java.awt.event.KeyEvent;
 import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JTextField;
+import wand6.client.exceptions.MessageManagerException;
 
 class GUI implements Runnable {
+
     public final WandJPanel panel;
     public final JFrame frame;
     public final JTextField msgField;
@@ -28,8 +30,8 @@ class GUI implements Runnable {
         msgField = new JTextField(50);
         sendBtn = new JButton("Send");
 
-        msgField.addKeyListener(new msgFieldKeyListener(inter));
-        sendBtn.addActionListener(new sendBtnActionListener(inter));
+        msgField.addKeyListener(new msgFieldKeyListener());
+        sendBtn.addActionListener(new sendBtnActionListener());
     }
 
     @Override
@@ -52,11 +54,6 @@ class GUI implements Runnable {
     }
 
     private class msgFieldKeyListener extends KeyAdapter {
-        private ServerInteraction inter;
-
-        public msgFieldKeyListener(ServerInteraction inter) {
-            this.inter = inter;
-        }
 
         @Override
         public void keyPressed(KeyEvent e) {
@@ -64,24 +61,30 @@ class GUI implements Runnable {
                 String msgText = msgField.getText();
                 PlayerManager pm = PlayerManager.getInstance();
                 pm.setSelfPlayerText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-                inter.sendMessage(MessageManager.getInstance().getTextCloudMessage(pm.getSelfPlayerId()));
+                try {
+                    MessageManager.sendTextCloudMessage();
+                } catch (NullPointerException ex) {
+                    System.err.println(ex.getMessage());
+                } catch (MessageManagerException ex) {
+                    System.err.println(ex.getMessage());
+                }
             }
         }
     }
 
     private class sendBtnActionListener implements ActionListener {
 
-        private ServerInteraction inter;
-
-        sendBtnActionListener(ServerInteraction inter) {
-            this.inter = inter;
-        }
-
         public void actionPerformed(ActionEvent e) {
             String msgText = msgField.getText();
             PlayerManager pm = PlayerManager.getInstance();
             pm.setSelfPlayerText(msgText.length() > 100 ? msgText.substring(0, 99) : msgText);
-            inter.sendMessage(MessageManager.getInstance().getTextCloudMessage(pm.getSelfPlayerId()));
+            try {
+                MessageManager.sendTextCloudMessage();
+            } catch (NullPointerException ex) {
+                System.err.println(ex.getMessage());
+            } catch (MessageManagerException ex) {
+                System.err.println(ex.getMessage());
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package wand6.server;
 
 import java.util.ArrayList;
 import wand6.common.Player;
+import wand6.common.ServerTime;
 import wand6.server.exceptions.PlayerManagerException;
 
 class PlayerManager {
@@ -71,6 +72,71 @@ class PlayerManager {
             for (Player player : players) {
                 if (player.getId() == playerId) {
                     return player.getCurY();
+                }
+            }
+
+            throw new PlayerManagerException("Player id=" + playerId + " not found.");
+        }
+    }
+
+    void setPlayerText(long playerId, String text) throws PlayerManagerException {
+        synchronized(players) {
+            for (Player player : players) {
+                if (player.getId() == playerId) {
+                    player.setText(text);
+                    return;
+                }
+            }
+
+            throw new PlayerManagerException("Player id=" + playerId + " not found.");
+        }
+    }
+
+    void movePlayer(long playerId, int x, int y) throws PlayerManagerException {
+        synchronized(players) {
+            for (Player player : players) {
+                if (player.getId() == playerId) {
+                    
+                    // TODO Add checks and path finding.
+                    player.move(x, y, ServerTime.getInstance().getTimeSinceStart());
+                    VisibleManager.movementStartNotify(player.getId());
+                    return;
+                }
+            }
+
+            throw new PlayerManagerException("Player id=" + playerId + " not found.");
+        }
+    }
+
+    int getPlayerEndX(long playerId) throws PlayerManagerException {
+        synchronized(players) {
+            for (Player player : players) {
+                if (player.getId() == playerId) {
+                    return player.getEndX();
+                }
+            }
+
+            throw new PlayerManagerException("Player id=" + playerId + " not found.");
+        }
+    }
+
+    int getPlayerEndY(long playerId) throws PlayerManagerException {
+        synchronized(players) {
+            for (Player player : players) {
+                if (player.getId() == playerId) {
+                    return player.getEndY();
+                }
+            }
+
+            throw new PlayerManagerException("Player id=" + playerId + " not found.");
+        }
+    }
+
+    long getPlayerMovementBegTime(long playerId) throws PlayerManagerException {
+        synchronized(players) {
+            for (Player player : players) {
+                if (player.getId() == playerId) {
+                    return player.getMovementBegTime();
                 }
             }
 

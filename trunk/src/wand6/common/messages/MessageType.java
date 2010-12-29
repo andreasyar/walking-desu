@@ -15,5 +15,8 @@ public enum MessageType {
     NAME,
     WELCOME,
     TEXTCLOUD,
-    TIMESYNC;
+    TIMESYNC,
+    MAPFRAGMENTREQEST,
+    MAPFRAGMENT,
+    MOVEREQUEST;
 }
