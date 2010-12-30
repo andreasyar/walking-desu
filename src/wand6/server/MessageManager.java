@@ -1,5 +1,6 @@
 package wand6.server;
 
+import wand6.client.exceptions.MessageManagerException;
 import wand6.server.exceptions.JavaServerException;
 import wand6.server.exceptions.PlayerManagerException;
 import wand6.server.messages.MapFragmentMessage;
@@ -8,64 +9,82 @@ import wand6.server.messages.WelcomeMessage;
 
 class MessageManager {
 
-    private static MessageManager self = null;
-    private long clientId;
+    private static int debugLevel = 1;
 
-    static MessageManager getInstance(long clientId) {
-        if (self == null) {
-            self = new MessageManager();
-        }
+    private JavaServer server;
+    private PlayerManager playerManager;
+    private boolean initialized = false;
 
-        self.clientId = clientId;
-        return self;
+    void init(JavaServer server, PlayerManager playerManager) {
+        this.server = server;
+        this.playerManager = playerManager;
+        initialized = true;
     }
 
-    private MessageManager() {}
-
-    void sendWelcome() {
-        PlayerManager pm = PlayerManager.getInstance();
+    void sendWelcome(long clientId) throws MessageManagerException {
+        if (!initialized) {
+            throw new MessageManagerException(this + " not initialized yet and cannot be used.");
+        }
 
         try {
-            JavaServer.sendMessage(new WelcomeMessage(clientId,
-                    pm.getPlayerName(clientId),
-                    pm.getPlayerSpriteSetName(clientId),
-                    pm.getPlayerCurX(clientId),
-                    pm.getPlayerCurY(clientId)), clientId);
+            server.sendMessage(new WelcomeMessage(clientId,
+                                                  playerManager.getPlayerName(clientId),
+                                                  playerManager.getPlayerSpriteSetName(clientId),
+                                                  playerManager.getPlayerCurX(clientId),
+                                                  playerManager.getPlayerCurY(clientId)),
+                               clientId);
         } catch (PlayerManagerException e) {
             e.printStackTrace();
-            System.exit(1);
+            if (debugLevel > 0) {
+                System.exit(1);
+            }
         } catch (JavaServerException e) {
             e.printStackTrace();
-            System.exit(1);
+            if (debugLevel > 0) {
+                System.exit(1);
+            }
         }
     }
 
-    void sendMapFragment(SMapFragment fragment) {
+    void sendMapFragment(long clientId, SMapFragment fragment) throws MessageManagerException {
+        if (!initialized) {
+            throw new MessageManagerException(this + " not initialized yet and cannot be used.");
+        }
+
         try {
-            JavaServer.sendMessage(new MapFragmentMessage(fragment.getIdX(),
-                                                          fragment.getIdY(),
-                                                          fragment.getHmap()),
-                                   clientId);
+            server.sendMessage(new MapFragmentMessage(fragment.getIdX(),
+                                                      fragment.getIdY(),
+                                                      fragment.getHmap()),
+                               clientId);
         } catch (JavaServerException e) {
             e.printStackTrace();
-            System.exit(1);
+            if (debugLevel > 0) {
+                System.exit(1);
+            }
         }
     }
 
-    void sendMoveMessage(long playerId) {
-        PlayerManager pm = PlayerManager.getInstance();
+    void sendMoveMessage(long clientId, long playerId) throws MessageManagerException {
+        if (!initialized) {
+            throw new MessageManagerException(this + " not initialized yet and cannot be used.");
+        }
+
         try {
-            JavaServer.sendMessage(new MoveMessage(playerId,
-                                                   pm.getPlayerEndX(playerId),
-                                                   pm.getPlayerEndY(playerId),
-                                                   pm.getPlayerMovementBegTime(playerId)),
-                                   clientId);
+            server.sendMessage(new MoveMessage(playerId,
+                                               playerManager.getPlayerEndX(playerId),
+                                               playerManager.getPlayerEndY(playerId),
+                                               playerManager.getPlayerMovementBegTime(playerId)),
+                               clientId);
         } catch (JavaServerException ex) {
             ex.printStackTrace();
-            System.exit(1);
+            if (debugLevel > 0) {
+                System.exit(1);
+            }
         }catch (PlayerManagerException ex) {
             ex.printStackTrace();
-            System.exit(1);
+            if (debugLevel > 0) {
+                System.exit(1);
+            }
         }
     }
 }

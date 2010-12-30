@@ -1,6 +1,8 @@
 package wand6.server;
 
 import java.io.EOFException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import wand6.common.messages.Message;
 import wand6.client.messages.NameMessage;
 import wand6.common.messages.MessageType;
@@ -9,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
+import wand6.client.exceptions.MessageManagerException;
 import wand6.client.messages.MapFragmentRequestMessage;
 import wand6.client.messages.MoveRequestMessage;
 import wand6.client.messages.TextCloudMessage;
@@ -19,20 +22,30 @@ class ClientInteraction {
     private static int debugLevel = 1;
 
     private long selfPlayerId = 0;
+    private PlayerManager playerManager;
+    private MessageManager messageManager;
+    private MapManager mapManager;
 
     private Socket socket;
     private MessageSender sender;
     private MessageReceiver receiver;
     private boolean ready = false;
 
-    ClientInteraction(Socket socket) {
+    ClientInteraction(Socket socket, PlayerManager playerManager, MessageManager messageManager, MapManager mapManager) {
         this.socket = socket;
+        this.playerManager = playerManager;
+        this.messageManager = messageManager;
+        this.mapManager = mapManager;
     }
 
     public void run() {
         try {
             sender = new MessageSender(this, new ObjectOutputStream(socket.getOutputStream()));
-            receiver = new MessageReceiver(this, new ObjectInputStream(socket.getInputStream()));
+            receiver = new MessageReceiver(this,
+                                           new ObjectInputStream(socket.getInputStream()),
+                                                                 playerManager,
+                                                                 messageManager,
+                                                                 mapManager);
             new Thread(sender).start();
             new Thread(receiver).start();
         } catch (IOException e) {
@@ -123,11 +136,23 @@ class MessageReceiver implements Runnable {
     private ClientInteraction client;
     private ObjectInputStream inStream;
 
+    private PlayerManager playerManager;
+    private MessageManager messageManager;
+    private MapManager mapManager;
+
     private boolean helloReceived = false;
 
-    MessageReceiver(ClientInteraction client, ObjectInputStream inStream) {
+    MessageReceiver(ClientInteraction client,
+                    ObjectInputStream inStream,
+                    PlayerManager playerManager,
+                    MessageManager messageManager,
+                    MapManager mapManager) {
+
         this.client = client;
         this.inStream = inStream;
+        this.playerManager = playerManager;
+        this.messageManager = messageManager;
+        this.mapManager = mapManager;
     }
 
     public void run() {
@@ -147,9 +172,9 @@ class MessageReceiver implements Runnable {
                             if (debugLevel > 0) {
                                 System.out.println("Name received.");
                             }
-                            client.setSelfPlayerId(PlayerManager.getInstance().createPlayer(((NameMessage) message).getName()));
+                            client.setSelfPlayerId(playerManager.createPlayer(((NameMessage) message).getName()));
                             client.setReady(true);
-                            MessageManager.getInstance(client.getSelfPlayerId()).sendWelcome();
+                            messageManager.sendWelcome(client.getSelfPlayerId());
                         }
                     }
                 } else {
@@ -175,6 +200,12 @@ class MessageReceiver implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
+        } catch (MessageManagerException e) {
+            e.printStackTrace();
+            if (debugLevel > 0) {
+                System.exit(1);
+            }
+            return;
         }
     }
 
@@ -187,7 +218,7 @@ class MessageReceiver implements Runnable {
 
             TextCloudMessage m = (TextCloudMessage) message;
             try {
-                PlayerManager.getInstance().setPlayerText(client.getSelfPlayerId(), m.getText());
+                playerManager.setPlayerText(client.getSelfPlayerId(), m.getText());
             } catch (PlayerManagerException ex) {
                 if (debugLevel > 0) {
                     ex.printStackTrace();
@@ -200,13 +231,21 @@ class MessageReceiver implements Runnable {
         } else if (message.getType() == MessageType.MAPFRAGMENTREQEST) {
 
             MapFragmentRequestMessage m = (MapFragmentRequestMessage) message;
-            MessageManager.getInstance(client.getSelfPlayerId()).sendMapFragment(MapManager.getInstance().getMapFragment(m.getIdX(), m.getIdY()));
+            try {
+                messageManager.sendMapFragment(client.getSelfPlayerId(), mapManager.getMapFragment(m.getIdX(), m.getIdY()));
+            } catch (MessageManagerException ex) {
+                ex.printStackTrace();
+                if (debugLevel > 0) {
+                    System.exit(1);
+                }
+                return;
+            }
 
         } else if (message.getType() == MessageType.MOVEREQUEST) {
 
             MoveRequestMessage m = (MoveRequestMessage) message;
             try {
-                PlayerManager.getInstance().movePlayer(client.getSelfPlayerId(), m.getX(), m.getY());
+                playerManager.movePlayer(client.getSelfPlayerId(), m.getX(), m.getY());
             } catch (PlayerManagerException ex) {
                 if (debugLevel > 0) {
                     ex.printStackTrace();

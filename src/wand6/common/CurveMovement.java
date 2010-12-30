@@ -30,7 +30,7 @@ public class CurveMovement {
 
     int getEndY() {
         // Dummy
-        return curX;
+        return curY;
     }
 
     long getBegTime() {

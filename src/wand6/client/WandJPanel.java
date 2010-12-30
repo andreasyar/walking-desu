@@ -11,8 +11,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JPanel;
 
 import java.awt.FontMetrics;
@@ -87,6 +85,10 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
             } catch (MessageManagerException ex) {
                 ex.printStackTrace();
                 System.exit(1);
+            }
+        } else {
+            if (debugLevel > 0) {
+                System.out.println("Click out of map.");
             }
         }
     }

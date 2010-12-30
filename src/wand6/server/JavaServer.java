@@ -13,27 +13,17 @@ public class JavaServer {
 
     private static int debugLevel = 1;
 
-    private static JavaServer self = null;
-
     private ServerSocket socket;
     private final ArrayList<ClientInteraction> clients = new ArrayList<ClientInteraction>();
 
     public static void main(String[] args) {
         try {
-            self = new JavaServer(45000);
-            self.run();
+            JavaServer server = new JavaServer(45000);
+            server.run();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
-    }
-
-    public static boolean sendMessage(Message message, long clientId) throws JavaServerException {
-        return self._sendMessage(message, clientId);
-    }
-
-    public static void sendMessage(Message message) {
-        self._sendMessage(message);
     }
 
     private JavaServer(){}
@@ -45,14 +35,25 @@ public class JavaServer {
     private void run() throws IOException {
         Socket clientSocket;
         ClientInteraction clientInteraction;
-        ServerTime.getInstance();   // Initialize server start time.
-        new TimeSyncTask(this).schedule(10000L);
+
+        // Initialize server start time.
+        ServerTime.getInstance();
+        TimeSyncTask tst = new TimeSyncTask(this);
+        tst.schedule(10000L);
+        MessageManager mm = new MessageManager();
+        VisibleManager vm = new VisibleManager();
+        PlayerManager pm = new PlayerManager();
+        MapManager mapm = new MapManager();
+
+        mm.init(this, pm);
+        vm.init(mm);
+        pm.init(vm);
 
         while (true) {
             clientSocket = socket.accept();
 
             if (clientSocket != null) {
-                clientInteraction = new ClientInteraction(clientSocket);
+                clientInteraction = new ClientInteraction(clientSocket, pm, mm, mapm);
                 synchronized(clients) {
                     clients.add(clientInteraction);
                 }
@@ -61,7 +62,7 @@ public class JavaServer {
         }
     }
 
-    private boolean _sendMessage(Message message, long clientId) throws JavaServerException {
+    public boolean sendMessage(Message message, long clientId) throws JavaServerException {
         synchronized(clients) {
             ClientInteraction client;
 
@@ -82,7 +83,7 @@ public class JavaServer {
         }
     }
 
-    private void _sendMessage(Message message) {
+    public void sendMessage(Message message) {
         synchronized(clients) {
             ClientInteraction client;
 
@@ -93,7 +94,7 @@ public class JavaServer {
                 } else {
                     i.remove();
                     if (debugLevel > 0) {
-                        System.err.println("Client was not ready and removed.");
+                        System.err.println("Client id=" + client.getSelfPlayerId() + " was not ready and removed.");
                     }
                 }
             }
