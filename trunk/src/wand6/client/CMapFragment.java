@@ -1,12 +1,14 @@
 package wand6.client;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 import wand6.common.MapFragment;
@@ -16,6 +18,7 @@ class CMapFragment extends MapFragment {
     private static int debugLevel = 2;
 
     private static final HashMap<String, BufferedImage> tiles = new HashMap<String, BufferedImage>();
+    private static final ArrayList<BufferedImage> summerTiles = new ArrayList<BufferedImage>();
 
     private static final int seaLevel = 50;
     private static final int mountLevel = 200;
@@ -41,7 +44,17 @@ class CMapFragment extends MapFragment {
         this.loaded = loaded;
     }
 
-    public void draw(Graphics g, int x, int y) {
+    public void draw(Graphics g, int x, int y, Dimension panelDim) {
+        // Test
+        if (summerTiles.size() <= 0) {
+            BufferedImage summerImage = loadImage("img/tiles/summer.png");
+            for (int i = 0; i < summerImage.getWidth() / 32; i++) {
+                for (int j = 0; j < summerImage.getHeight() / 32; j++) {
+                    summerTiles.add(summerImage.getSubimage(i * 32, j * 32, 32, 32));
+                }
+            }
+        }
+
         // load tiles once
         if (tiles.size() <= 0) {
             loadTile("w_0", "img/tiles/w_0.png");
@@ -89,6 +102,36 @@ class CMapFragment extends MapFragment {
         }
 
         g.drawImage(img, x, y, null);
+        /*if (x >= 0 && y >= 0) {
+            g.drawImage(img, x, y, null);
+            if (debugLevel > 0) {
+                System.out.println("Fragment idX=" + getIdX() + " idY=" + getIdY() + " normally drawn at x=" + x + " y= " + y + ".");
+            }
+        } else if (x < 0 && y >= 0) {
+            g.drawImage(img.getSubimage(Math.abs(x), 0, img.getWidth() - Math.abs(x), img.getHeight()),
+                        0,
+                        y,
+                        null);
+            if (debugLevel > 0) {
+                System.out.println("Fragment idX=" + getIdX() + " idY=" + getIdY() + " was cutted from left.");
+            }
+        } else if (x >= 0 && y < 0) {
+            g.drawImage(img.getSubimage(0, Math.abs(y), img.getWidth(), img.getHeight() - Math.abs(y)),
+                        x,
+                        0,
+                        null);
+            if (debugLevel > 0) {
+                System.out.println("Fragment idX=" + getIdX() + " idY=" + getIdY() + " was cutted from top.");
+            }
+        } else if (x < 0 && y < 0) {
+            g.drawImage(img.getSubimage(Math.abs(x), Math.abs(y), img.getWidth() - Math.abs(x), img.getHeight() - Math.abs(y)),
+                        0,
+                        0,
+                        null);
+            if (debugLevel > 0) {
+                System.out.println("Fragment idX=" + getIdX() + " idY=" + getIdY() + " was cutted from left and top.");
+            }
+        }*/
 
         if (debugLevel > 1) {
             Color savedColor = g.getColor();
@@ -119,6 +162,10 @@ class CMapFragment extends MapFragment {
 
             g.setColor(savedColor);
         }
+
+        for (int i = 0; i < summerTiles.size(); i++) {
+            g.drawImage(summerTiles.get(i), x + i * 32, y, null);
+        }
     }
 
     private void loadTile(String name, String path) {
@@ -136,6 +183,25 @@ class CMapFragment extends MapFragment {
             System.err.println(path);
             e.printStackTrace();
             System.exit(1);
+        }
+    }
+
+    private BufferedImage loadImage(String path) {
+        ClassLoader cl = this.getClass().getClassLoader();
+        URL url = null;
+
+        try {
+            url = cl.getResource(path);
+            if (url != null) {
+                return ImageIO.read(url);
+            } else {
+                return ImageIO.read(new File(path));
+            }
+        } catch (IOException e) {
+            System.err.println(path);
+            e.printStackTrace();
+            System.exit(1);
+            return null;
         }
     }
 

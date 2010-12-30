@@ -8,19 +8,7 @@ class MapManager {
 
     private final static int debugLevel = 1;
 
-    private static MapManager self = null;
-
     private final HashMap<Integer, HashMap<Integer, SMapFragment>> fragments = new HashMap<Integer, HashMap<Integer, SMapFragment>>();
-
-    static MapManager getInstance() {
-        if (self == null) {
-            self = new MapManager();
-        }
-
-        return self;
-    }
-
-    private MapManager() {}
 
     SMapFragment getMapFragment(int idX, int idY) {
         if (fragments.containsKey(idY)) {
@@ -63,13 +51,14 @@ class MapManager {
             }
         }
 
-        int h = 300;
+        int h = 200;
 
         int mask = nextValidN;
         int offset = h;
         int hmatr[][];
 
         hmatr = new int[nextValidN+1][nextValidN+1];
+        System.err.println(hmatr.length + " " + hmatr[0].length);
         for(int i=0; i<nextValidN+1; ++i){
             for(int j = 0; j<nextValidN+1; ++j){
                 hmatr[i][j] = -1;
@@ -79,6 +68,8 @@ class MapManager {
         hmatr[0][nextValidN] = offset;
         hmatr[nextValidN][0] = offset;
         hmatr[nextValidN][nextValidN] = offset;
+
+        prefillFragmentBorders(idX, idY, hmatr, nextValidN);
 
         Random rand = new Random();
         while (mask > 0) {
@@ -165,5 +156,49 @@ class MapManager {
         }
 
         return -1;
+    }
+
+    private void prefillFragmentBorders(int idX, int idY, int[][] hmap, int n) {
+        int[][] prefillHmap;
+        int alignedN;
+
+        if (idX > 0
+                && fragments.get(idY).containsKey(idX - 1)) {
+
+            prefillHmap = fragments.get(idY).get(idX - 1).getHmap();
+            alignedN = prefillHmap[0].length;
+            for (int y = 0; y < n; y++) {
+                hmap[y][0] = prefillHmap[y < alignedN ? y : alignedN - 1][alignedN - 1];
+            }
+        }
+        if (idY > 0
+                && fragments.containsKey(idY - 1)
+                && fragments.get(idY - 1).containsKey(idX)) {
+
+            prefillHmap = fragments.get(idY - 1).get(idX).getHmap();
+            alignedN = prefillHmap[0].length;
+            for (int x = 0; x < n; x++) {
+                hmap[0][x] = prefillHmap[alignedN - 1][x < alignedN ? x : alignedN - 1];
+            }
+        }
+        if (idX < MapFragment.maxIdX
+                && fragments.get(idY).containsKey(idX + 1)) {
+
+            prefillHmap = fragments.get(idY).get(idX + 1).getHmap();
+            alignedN = prefillHmap[0].length;
+            for (int y = 0; y < n; y++) {
+                hmap[y][n - 1] = prefillHmap[y < alignedN ? y : alignedN - 1][0];
+            }
+        }
+        if (idY < MapFragment.maxIdY
+                && fragments.containsKey(idY + 1)
+                && fragments.get(idY + 1).containsKey(idX)) {
+
+            prefillHmap = fragments.get(idY + 1).get(idX).getHmap();
+            alignedN = prefillHmap[0].length;
+            for (int x = 0; x < n; x++) {
+                hmap[n - 1][x] = prefillHmap[0][x < alignedN ? x : alignedN - 1];
+            }
+        }
     }
 }

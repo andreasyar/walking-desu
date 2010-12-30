@@ -2,7 +2,7 @@ package wand6.common;
 
 public abstract class MapFragment {
 
-    public final static int width = 1023;//231;
+    public final static int width = 3069;
     public final static int height = width;
 
     public final static int maxIdX = (Integer.MAX_VALUE - 1) / width;

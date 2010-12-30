@@ -50,41 +50,39 @@ class MapManager {
         int panelX = selfPlayerX - panelDim.width / 2;
         int panelY = selfPlayerY - panelDim.height / 2;
 
-        // Map fragment what contains upper left corner of drawing panel.
-        int fragmIdX, fragmIdY;
+        int leftFragmIdX, leftFragmIdY, rightFragmIdX, rightFragmIdY;
 
         if (panelX < 0) {
-            fragmIdX = 0;
+            leftFragmIdX = 0;
         } else {
-            if (panelX % CMapFragment.width > 0) {
-                fragmIdX = panelX / CMapFragment.width + 1;
-            } else {
-                fragmIdX = panelX / CMapFragment.width;
-            }
+            leftFragmIdX = panelX / CMapFragment.width;
         }
         if (panelY < 0) {
-            fragmIdY = 0;
+            leftFragmIdY = 0;
         } else {
-            if (panelY % CMapFragment.height > 0) {
-                fragmIdY = panelY / CMapFragment.height + 1;
-            } else {
-                fragmIdY = panelY / CMapFragment.height;
-            }
+            leftFragmIdY = panelY / CMapFragment.height;
+        }
+        if (panelDim.width > MapFragment.maxIdX * MapFragment.width - (panelX < 0 ? 0 : panelX)) {
+            rightFragmIdX = MapFragment.maxIdX;
+        } else {
+            rightFragmIdX = (panelX + panelDim.width) / MapFragment.width + 1;
+        }
+        if (panelDim.height > MapFragment.maxIdY * MapFragment.height - (panelY < 0 ? 0 : panelY)) {
+            rightFragmIdY = MapFragment.maxIdY;
+        } else {
+            rightFragmIdY = (panelY + panelDim.height) / MapFragment.height + 1;
         }
 
-        // Count of map fragments waht can be shown on the screen.
-        int fragmN = panelDim.width / CMapFragment.width + (panelDim.width % CMapFragment.width > 0 ? 1 : 0);
-        int fragmM = panelDim.height / CMapFragment.height + (panelDim.height % CMapFragment.height > 0 ? 1 : 0);
-
-        for (int x = fragmIdX; x < fragmIdX + fragmN; x++) {
-            for (int y = fragmIdY; y < fragmIdY + fragmM; y++) {
+        for (int x = leftFragmIdX; x <= rightFragmIdX; x++) {
+            for (int y = leftFragmIdY; y <= rightFragmIdY; y++) {
                 if (fragmentVisible(x, y, panelX, panelY, panelDim)) {
                     drawFragment(g,
                                  x,
                                  y,
                                  x * CMapFragment.width - panelX,
                                  y * CMapFragment.height - panelY,
-                                 "");
+                                 "",
+                                 panelDim);
                 }
             }
         }
@@ -93,39 +91,39 @@ class MapManager {
     private boolean fragmentVisible(int idX, int idY, int panelX, int panelY, Dimension panelDim) {
         if (idX * MapFragment.width >= panelX + panelDim.width) {
             if (debugLevel > 0) {
-                System.out.println("Фрагмент справа за границей панели");
+                //System.out.println("Фрагмент справа за границей панели");
             }
             return false;   // справа за границей панели
         }
 
         if (idY * MapFragment.height >= panelY + panelDim.height) {
             if (debugLevel > 0) {
-                System.out.println("Фрагмент idX=" + idX + " idY=" + idY + " снизу за границей панели: " + (idY * MapFragment.height) + " >= " + (panelY + panelDim.height) + ".");
+                //System.out.println("Фрагмент idX=" + idX + " idY=" + idY + " снизу за границей панели: " + (idY * MapFragment.height) + " >= " + (panelY + panelDim.height) + ".");
             }
             return false;   // снизу за границей панели
         }
 
         if (idX * MapFragment.width + MapFragment.width <= panelX) {
             if (debugLevel > 0) {
-                System.out.println("Фрагмент слева за границей панели");
+                //System.out.println("Фрагмент слева за границей панели");
             }
             return false;   // слева за границей панели
         }
 
         if (idY * MapFragment.height + MapFragment.height <= panelY) {
             if (debugLevel > 0) {
-                System.out.println("Фрагмент сверху за границей панели");
+                //System.out.println("Фрагмент сверху за границей панели");
             }
             return false;   // сверху за границей панели
         }
 
         if (debugLevel > 0) {
-            System.out.println("Фрагмент idX=" + idX + " idY=" + idY + " виден.");
+            //System.out.println("Фрагмент idX=" + idX + " idY=" + idY + " виден.");
         }
         return true;
     }
 
-    private void drawFragment(Graphics g, int idX, int idY, int x, int y, String suffix) {
+    private void drawFragment(Graphics g, int idX, int idY, int x, int y, String suffix, Dimension panelDim) {
         Color savedColor = g.getColor();
         String lable;
         FontMetrics metrics = g.getFontMetrics();
@@ -136,7 +134,7 @@ class MapManager {
             if (row.containsKey(idX)) {
                 CMapFragment fragment = (CMapFragment) row.get(idX);
                 if (fragment.isLoaded()) {
-                    fragment.draw(g, x, y);
+                    fragment.draw(g, x, y, panelDim);
                     /*lable = idX + "," + idY + " " + suffix;
                     renderedLableWidth = metrics.stringWidth(lable);
                     g.drawString(lable,

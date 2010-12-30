@@ -4,24 +4,24 @@ import java.util.ArrayList;
 import wand6.common.Player;
 import wand6.common.ServerTime;
 import wand6.server.exceptions.PlayerManagerException;
+import wand6.server.exceptions.VisibleManagerException;
 
 class PlayerManager {
 
-    private static PlayerManager self = null;
+    private static int debugLevel = 1;
+
+    private VisibleManager visibleManager;
 
     private final ArrayList<Player> players = new ArrayList<Player>();
 
     private final String defaultSpriteSetName = "pesant";
 
-    static PlayerManager getInstance() {
-        if (self == null) {
-            self = new PlayerManager();
-        }
+    private boolean initialized = false;
 
-        return self;
+    void init(VisibleManager visibleManager) {
+        this.visibleManager = visibleManager;
+        initialized = true;
     }
-
-    private PlayerManager() {}
 
     long createPlayer(String name) {
         Player player = new Player(IdManager.nextId(), name, defaultSpriteSetName);
@@ -93,15 +93,27 @@ class PlayerManager {
     }
 
     void movePlayer(long playerId, int x, int y) throws PlayerManagerException {
+        if (!initialized) {
+            throw new PlayerManagerException(this + " not initialized yet and cannot be used.");
+        }
+
         synchronized(players) {
-            for (Player player : players) {
-                if (player.getId() == playerId) {
-                    
-                    // TODO Add checks and path finding.
-                    player.move(x, y, ServerTime.getInstance().getTimeSinceStart());
-                    VisibleManager.movementStartNotify(player.getId());
-                    return;
+            try {
+                for (Player player : players) {
+                    if (player.getId() == playerId) {
+
+                        // TODO Add checks and path finding.
+                        player.move(x, y, ServerTime.getInstance().getTimeSinceStart());
+                        visibleManager.movementStartNotify(player.getId());
+                        return;
+                    }
                 }
+            } catch (VisibleManagerException ex) {
+                ex.printStackTrace();
+                if (debugLevel > 0) {
+                    System.exit(1);
+                }
+                return;
             }
 
             throw new PlayerManagerException("Player id=" + playerId + " not found.");
