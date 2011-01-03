@@ -1,27 +1,17 @@
-package client;
+package wand6.client;
 
-import wand6.client.WandJPanel;
 import javax.swing.SwingWorker;
 
-/**
- * Redraw task cause panel redraw with optional fps rate.
- */
 public class RedrawTask extends SwingWorker<Void, Void> {
 
     private final long fps;
     private WandJPanel panel;
 
-    /**
-     * Redraw panel with default rate.
-     */
     public RedrawTask(WandJPanel panel) {
         this.panel = panel;
-        fps = 50;
+        fps = 25L;
     }
 
-    /**
-     * Redraw panel with specifed rate.
-     */
     public RedrawTask(WandJPanel panel, long fps) throws IllegalArgumentException {
         if (fps <= 0) {
             throw new IllegalArgumentException("fps must be greater than zero.");

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
 import wand6.client.exceptions.MessageManagerException;
 import wand6.client.messages.MapFragmentRequestMessage;
@@ -115,6 +116,10 @@ class MessageSender implements Runnable {
                     }
                 }
             }
+        } catch (SocketException ex) {
+            System.out.println(ex.getMessage());
+            client.setReady(false);
+            return;
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -194,9 +199,14 @@ class MessageReceiver implements Runnable {
                 System.out.println("Client id=" + client.getSelfPlayerId() + " disconnected.");
             }
             client.setReady(false);
+            return;
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             System.exit(1);
+        } catch (SocketException ex) {
+            System.out.println(ex.getMessage());
+            client.setReady(false);
+            return;
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);

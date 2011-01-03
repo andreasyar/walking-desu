@@ -11,7 +11,7 @@ import wand6.common.ServerTime;
 
 public class JavaServer {
 
-    private static int debugLevel = 1;
+    private static int debugLevel = 2;
 
     private ServerSocket socket;
     private final ArrayList<ClientInteraction> clients = new ArrayList<ClientInteraction>();
@@ -25,8 +25,6 @@ public class JavaServer {
             System.exit(1);
         }
     }
-
-    private JavaServer(){}
 
     private JavaServer(int port) throws IOException {
         socket = new ServerSocket(port);
@@ -68,6 +66,9 @@ public class JavaServer {
 
             for (ListIterator<ClientInteraction> i = clients.listIterator(); i.hasNext();) {
                 client = i.next();
+                if (debugLevel > 1) {
+                    System.out.println("Client id: " + client.getSelfPlayerId());
+                }
                 if (client.getSelfPlayerId() == clientId) {
                     if (client.isReady()) {
                         client.sendMessage(message);
@@ -92,9 +93,11 @@ public class JavaServer {
                 if (client.isReady()) {
                     client.sendMessage(message);
                 } else {
-                    i.remove();
-                    if (debugLevel > 0) {
-                        System.err.println("Client id=" + client.getSelfPlayerId() + " was not ready and removed.");
+                    if (client.getSelfPlayerId() > 0) {
+                        i.remove();
+                        if (debugLevel > 0) {
+                            System.err.println("Client id=" + client.getSelfPlayerId() + " was not ready and removed.");
+                        }
                     }
                 }
             }
