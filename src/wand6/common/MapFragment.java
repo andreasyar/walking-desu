@@ -2,14 +2,14 @@ package wand6.common;
 
 public abstract class MapFragment {
 
-    public final static int width = 3069;
+    public final static int cellWidth = 32;
+    public final static int cellHeight = cellWidth;
+
+    public final static int width = cellWidth * 32;
     public final static int height = width;
 
-    public final static int maxIdX = (Integer.MAX_VALUE - 1) / width;
-    public final static int maxIdY = (Integer.MAX_VALUE - 1) / height;
-
-    public final static int cellWidth = 33;
-    public final static int cellHeight = cellWidth;
+    public final static int maxIdX = Integer.MAX_VALUE / width;
+    public final static int maxIdY = Integer.MAX_VALUE / height;
 
     private int[][] hmap;
 

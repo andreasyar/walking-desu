@@ -1,6 +1,5 @@
 package wand6.client;
 
-import client.RedrawTask;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;

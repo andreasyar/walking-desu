@@ -37,6 +37,10 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
     private boolean showSpriteBounds;
     private static FontMetrics fontMetrics = null;
 
+    private int repaintCount = 0;
+    private long lastUpdateFPSTime = 0L;
+    private int fps;
+
     public WandJPanel(GameField field, ServerInteraction inter) {
         this.field = field;
         this.inter = inter;
@@ -45,6 +49,17 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
     @Override
     public synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        repaintCount++;
+        if (lastUpdateFPSTime == 0L) {
+            lastUpdateFPSTime = System.currentTimeMillis() - 1;
+        }
+        g.drawString(fps + " fps", 10, 60);
+        if (System.currentTimeMillis() - lastUpdateFPSTime > 1000L) {
+            fps = repaintCount;
+            repaintCount = 0;
+            lastUpdateFPSTime = System.currentTimeMillis();
+        }
 
         MapManager.getInstance().drawMap(g, panelDim);
         PlayerManager.getInstance().drawPlayers(g, panelDim);
@@ -144,9 +159,5 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             selectMode = false;
         }
-    }
-
-    public static FontMetrics getFontMetrics() {
-        return fontMetrics;
     }
 }
