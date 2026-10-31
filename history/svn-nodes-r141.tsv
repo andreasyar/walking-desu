@@ -1,0 +1,200 @@
+local_relpath	repos_path	kind	presence	revision	changed_revision	changed_date_utc	changed_author	checksum
+	trunk	dir	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	
+bin	trunk/bin	dir	normal	141	109	2010-12-07T22:35:13.364842Z	sorcchan	
+img	trunk/img	dir	normal	141	109	2010-12-07T22:35:13.364842Z	sorcchan	
+log	trunk/log	dir	normal	141	109	2010-12-07T22:35:13.364842Z	sorcchan	
+mkclientjar.sh	trunk/mkclientjar.sh	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$a670dc14ddaab436c0870956374512949b4fa267
+mkwjtsjar.sh	trunk/mkwjtsjar.sh	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$fd5ec93c284fcfec0fb23fd5967660552783f222
+nbproject	trunk/nbproject	dir	normal	141	124	2010-12-28T16:41:34.024799Z	sorcchan	
+nbproject/build.xml	trunk/nbproject/build.xml	file	normal	141	108	2010-12-07T22:27:34.668414Z	sorcchan	$sha1$db637ea04e7b02cf865a57ac77a12db2dff2885c
+nbproject/manifest.mf	trunk/nbproject/manifest.mf	file	normal	141	108	2010-12-07T22:27:34.668414Z	sorcchan	$sha1$07e1cd7a8a5f80d8670f91c0742fa4584f899174
+nbproject/nbproject	trunk/nbproject/nbproject	dir	normal	141	124	2010-12-28T16:41:34.024799Z	sorcchan	
+nbproject/nbproject/build-impl.xml	trunk/nbproject/nbproject/build-impl.xml	file	normal	141	108	2010-12-07T22:27:34.668414Z	sorcchan	$sha1$01866931e71a6a7351de05992ddcfa4feb11a89c
+nbproject/nbproject/genfiles.properties	trunk/nbproject/nbproject/genfiles.properties	file	normal	141	108	2010-12-07T22:27:34.668414Z	sorcchan	$sha1$73f3f5b006b0b43361017bcc3bf1446cf22fb15a
+nbproject/nbproject/private	trunk/nbproject/nbproject/private	dir	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	
+nbproject/nbproject/private/config.properties	trunk/nbproject/nbproject/private/config.properties	file	normal	141	108	2010-12-07T22:27:34.668414Z	sorcchan	$sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709
+nbproject/nbproject/private/private.properties	trunk/nbproject/nbproject/private/private.properties	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$1dfe22f5b19001923f32eab692889dbb572de905
+nbproject/nbproject/project.properties	trunk/nbproject/nbproject/project.properties	file	normal	141	124	2010-12-28T16:41:34.024799Z	sorcchan	$sha1$d079deca15def15e11924b705fdaf8578cee4ade
+nbproject/nbproject/project.xml	trunk/nbproject/nbproject/project.xml	file	normal	141	108	2010-12-07T22:27:34.668414Z	sorcchan	$sha1$9d97234364046f9274733db43deabf3d25884063
+src	trunk/src	dir	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	
+src/client	trunk/src/client	dir	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	
+src/client/CanonHitAnimation.java	trunk/src/client/CanonHitAnimation.java	file	normal	141	105	2010-12-06T16:46:30.574647Z	sorcchan	$sha1$10ee7316d3dfdb2535f7542dc74d5e00ce624c43
+src/client/CanonNuke.java	trunk/src/client/CanonNuke.java	file	normal	141	105	2010-12-06T16:46:30.574647Z	sorcchan	$sha1$9bdf295c251b086873f26a6325c9ffa459cb8514
+src/client/CanonNukeAnimation.java	trunk/src/client/CanonNukeAnimation.java	file	normal	141	102	2010-12-02T17:07:00.210649Z	sorcchan	$sha1$a96600ac4291d92a94d380b7dbfe307674262236
+src/client/ClientMapFragment.java	trunk/src/client/ClientMapFragment.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$64d05f2b86447a202b25cb44fb4d9d7d489ca083
+src/client/DeathAnimation.java	trunk/src/client/DeathAnimation.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$295c7ec14eae239a0bd4c673ff2b0322adf1c6bd
+src/client/Direction.java	trunk/src/client/Direction.java	file	normal	141	102	2010-12-02T17:07:00.210649Z	sorcchan	$sha1$68b895aeb05259a16ed59eb75c2269fd72ae8920
+src/client/DirectionalSpriteSet.java	trunk/src/client/DirectionalSpriteSet.java	file	normal	141	116	2010-12-15T16:46:00.537863Z	sorcchan	$sha1$1ed81f39018f1394421eddc35dd015bce8d3a59f
+src/client/Drawable.java	trunk/src/client/Drawable.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$86af995419f46251f2cc81474c5b649802e5bbaf
+src/client/GameField.java	trunk/src/client/GameField.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$9ff1fbef9035cc212290573f7036b57269c11ee1
+src/client/GeoDataController.java	trunk/src/client/GeoDataController.java	file	normal	141	99	2010-11-30T17:00:13.108221Z	sorcchan	$sha1$373c67c78b6671cbbb00bcc88fab84a3ea03e5f3
+src/client/HitAnimation.java	trunk/src/client/HitAnimation.java	file	normal	141	113	2010-12-12T07:42:40.922806Z	sorcchan	$sha1$384c3596ae6c5ce73a675cd6c402faaae3720e8e
+src/client/LayGroundAnimation.java	trunk/src/client/LayGroundAnimation.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$fdd8e40cc40f7a1c9ee06f3bb057af1ddcb7344a
+src/client/LoginDialog.java	trunk/src/client/LoginDialog.java	file	normal	141	56	2010-07-27T04:29:50.571165Z	sorcchan	$sha1$788002d7e023f97127eb1772e8d4e1563254ed8c
+src/client/Monster.java	trunk/src/client/Monster.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$7246f4704095632959ff5d01003778749416bd01
+src/client/MonsterDeathAnimation.java	trunk/src/client/MonsterDeathAnimation.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$41243e458ed4f6afdee5b0f4319a85ae2085764c
+src/client/MonsterDeathController.java	trunk/src/client/MonsterDeathController.java	file	normal	141	99	2010-11-30T17:00:13.108221Z	sorcchan	$sha1$8851dbc6f1ea76a99c0bb2fc2b5ad6a9ee5c3a64
+src/client/MovementAnimation.java	trunk/src/client/MovementAnimation.java	file	normal	141	116	2010-12-15T16:46:00.537863Z	sorcchan	$sha1$627f1c872013aed4193fb29d4cc9448352b10d13
+src/client/NPC.java	trunk/src/client/NPC.java	file	normal	141	98	2010-11-30T10:48:01.902776Z	sorcchan	$sha1$5b7c7ecdddb3c2ef374e385661a723cd7bc85e99
+src/client/Nuke.java	trunk/src/client/Nuke.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$fe06e72ec2b4cfc621688399400f3a88e5268c73
+src/client/NukeAnimation.java	trunk/src/client/NukeAnimation.java	file	normal	141	102	2010-12-02T17:07:00.210649Z	sorcchan	$sha1$2632af82564a7949dfe17efda91ef673ebd95593
+src/client/PeasantNuke.java	trunk/src/client/PeasantNuke.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$a7d5013119b5a0f7d774a57990ad3fedc4407d37
+src/client/PeasantNukeAnimation.java	trunk/src/client/PeasantNukeAnimation.java	file	normal	141	102	2010-12-02T17:07:00.210649Z	sorcchan	$sha1$462b89a8099bebd738ea4cf31018d4967ad1a757
+src/client/PickupAnimation.java	trunk/src/client/PickupAnimation.java	file	normal	141	107	2010-12-07T16:50:11.966517Z	sorcchan	$sha1$14e4e4824c18085313de6296fa5ec5e8cb237726
+src/client/Player.java	trunk/src/client/Player.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$207394ed3edfe200a89a199b39669652916d0b1b
+src/client/PlayerDeathAnimation.java	trunk/src/client/PlayerDeathAnimation.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$7531d5afb86ec2aa3e6af4c48288d1cf3609867b
+src/client/PlayerDeathController.java	trunk/src/client/PlayerDeathController.java	file	normal	141	99	2010-11-30T17:00:13.108221Z	sorcchan	$sha1$829a642db1cc22634ea1b6c6ca1ebf7ad4743432
+src/client/PowerOfWateringPot.java	trunk/src/client/PowerOfWateringPot.java	file	normal	141	105	2010-12-06T16:46:30.574647Z	sorcchan	$sha1$8b0e3eb2694103d03387286ae658f57521e84aa6
+src/client/Sprite.java	trunk/src/client/Sprite.java	file	normal	141	105	2010-12-06T16:46:30.574647Z	sorcchan	$sha1$8bb72b85203b4a791ce86fffa6b61ea07f0f68b7
+src/client/Sprites.java	trunk/src/client/Sprites.java	file	normal	141	50	2010-07-21T14:30:03.947016Z	sorcchan	$sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709
+src/client/StandAnimation.java	trunk/src/client/StandAnimation.java	file	normal	141	105	2010-12-06T16:46:30.574647Z	sorcchan	$sha1$49e2548476324b1137fb8c109d3a468a67679d23
+src/client/Tower.java	trunk/src/client/Tower.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$e8c5cbcb43467865c28a034854b60236fe78bad4
+src/client/UnitAnimator.java	trunk/src/client/UnitAnimator.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$ef595a1fdb6d4885735250ce83370f7ac8452f16
+src/client/UnitPainter.java	trunk/src/client/UnitPainter.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$ba0b23d9c3d25d867cad37924989889086da6683
+src/client/UseSkillAnimation.java	trunk/src/client/UseSkillAnimation.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$55325b9f67fdd72c26803036f21742e34f61e31c
+src/client/WGoldCoinItem.java	trunk/src/client/WGoldCoinItem.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$6ba1c5045c694c1306e6afbebf758087dde02f16
+src/client/WInventory.java	trunk/src/client/WInventory.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$d8f948dc395fb3b6ea9701aebb1c66905e8b2824
+src/client/WUnit.java	trunk/src/client/WUnit.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$d8c9ea3ec995bd58e5156d6c6e2ace4700f44a45
+src/client/WanderingMap.java	trunk/src/client/WanderingMap.java	file	normal	141	100	2010-12-01T16:54:49.062901Z	sorcchan	$sha1$deba0de89d9d0f75189b3044ead7ff395fe4219b
+src/client/WanderingPolygon.java	trunk/src/client/WanderingPolygon.java	file	normal	141	61	2010-07-29T15:12:18.889369Z	sorcchan	$sha1$5948f2c0e2d0cdf5e9794f75d917f5a9a8b50cb0
+src/client/ZBuffer.java	trunk/src/client/ZBuffer.java	file	normal	141	115	2010-12-14T16:49:50.461011Z	sorcchan	$sha1$fd6961a243d2e1c3c59ec1cd05b7b5547ce9ee8e
+src/client/items	trunk/src/client/items	dir	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	
+src/client/items/ClientEtc.java	trunk/src/client/items/ClientEtc.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$32806639bcb0d45a825cbe2124622bcc8088ae9c
+src/common	trunk/src/common	dir	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	
+src/common/BoltMessage.java	trunk/src/common/BoltMessage.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$8280e9a857ce3c83ce84affb1fb3e9692ce10401
+src/common/HMapMessage.java	trunk/src/common/HMapMessage.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$cea53ceeefbf64ef318b5876663209c1a68a5f60
+src/common/HitMessage.java	trunk/src/common/HitMessage.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$498487aa2f2329c7c47b896ab1f62c0643d13f41
+src/common/Message.java	trunk/src/common/Message.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$87ddbb34f185b646ee24c1bc64f6a129a078fe7b
+src/common/MoveMessage.java	trunk/src/common/MoveMessage.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$b3bbec5d84ea71ebd895f343d17f2dfa7abdddef
+src/common/Movement.java	trunk/src/common/Movement.java	file	normal	141	97	2010-11-29T16:53:41.926253Z	sorcchan	$sha1$32b6d1885f9df5d1af6bb4ebdc2dc6b43c4a91f7
+src/common/OtherMessage.java	trunk/src/common/OtherMessage.java	file	normal	141	114	2010-12-13T16:42:59.075606Z	sorcchan	$sha1$c11e390f228d5ad6f9a51f4932cdd9c18aeff46b
+src/common/Player.java	trunk/src/common/Player.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$7f510862552d8059a0a65a778303909b52eda912
+src/common/Unit.java	trunk/src/common/Unit.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$5386a8e9603375138531ff2a45667273deac9bfc
+src/common/WanderingServerTime.java	trunk/src/common/WanderingServerTime.java	file	normal	141	100	2010-12-01T16:54:49.062901Z	sorcchan	$sha1$7db90686ca716bc3f13451cacbcf7bfb9a80167c
+src/common/items	trunk/src/common/items	dir	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	
+src/common/items/Etc.java	trunk/src/common/items/Etc.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$8cdc65d794111a5114af0f9723c3be69bea6a462
+src/common/items/Item.java	trunk/src/common/items/Item.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$fa1c0f4eaa21a97413c8011fe7becc73e9cbe3e6
+src/common/messages	trunk/src/common/messages	dir	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	
+src/common/messages/AppearEtcItem.java	trunk/src/common/messages/AppearEtcItem.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$f89dffea5113e9201ea409160566692fc1abe325
+src/common/messages/DisappearEtcItem.java	trunk/src/common/messages/DisappearEtcItem.java	file	normal	141	118	2010-12-20T16:44:37.480187Z	sorcchan	$sha1$3de518c7015773e6976fc8347fc4d6d2acdb5fa5
+src/common/messages/InventoryAddEtcItem.java	trunk/src/common/messages/InventoryAddEtcItem.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$e09a2556684d7d33eb8a004bab4fdb18d09b41fa
+src/common/messages/InventoryRemoveEtcItem.java	trunk/src/common/messages/InventoryRemoveEtcItem.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$a6be649eb3828f8fbbdbe9b1d2d999a17db6e1a9
+src/common/messages/MessageType.java	trunk/src/common/messages/MessageType.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$5f3f0865e71ad3568194d51299988a5124d0d1a0
+src/common/messages/PickupEtcItem.java	trunk/src/common/messages/PickupEtcItem.java	file	normal	141	115	2010-12-14T16:49:50.461011Z	sorcchan	$sha1$60f165417386c86e3054e0e73b6f700933b422df
+src/common/skills	trunk/src/common/skills	dir	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	
+src/common/skills/Skill.java	trunk/src/common/skills/Skill.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$4fc59cc0e15a06df6d601fe8c4ad7cd7e7e71e38
+src/common/skills/SkillType.java	trunk/src/common/skills/SkillType.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$e4f38fee2fa70232289e25d1bf3e7d5938be1793
+src/mkclientjar.ps1	trunk/src/mkclientjar.ps1	file	normal	141	74	2010-08-09T05:09:22.572594Z	sorcchan	$sha1$72f811e8e07d0482e5b8126f2ecce6c7f668a97e
+src/newcommon	trunk/src/newcommon	dir	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	
+src/newcommon/CurveMovement.java	trunk/src/newcommon/CurveMovement.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$eb3b0908ad1082821e97d26d21162791b75f90ba
+src/newcommon/Entity.java	trunk/src/newcommon/Entity.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$42a9f711c564473a8d6fe58ea660a0ddeace1ed7
+src/newcommon/Furniture.java	trunk/src/newcommon/Furniture.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$b6434f4804e6c9d693ecda6e64ed02607846464d
+src/newcommon/Inventory.java	trunk/src/newcommon/Inventory.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$9510d2d73767c622ab9e9fac0f59e3016f17d237
+src/newcommon/Monster.java	trunk/src/newcommon/Monster.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$205de40936d53c646385a4e184b8e577488bb771
+src/newcommon/Movement.java	trunk/src/newcommon/Movement.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$1a01cb275a7ccfb87294328050f5d3c18cec01cb
+src/newcommon/Player.java	trunk/src/newcommon/Player.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$9c62c421ce1884a42b43f369ebea024436a0fadd
+src/newcommon/ServerTime.java	trunk/src/newcommon/ServerTime.java	file	normal	141	103	2010-12-03T16:42:03.546673Z	sorcchan	$sha1$81a8b34651b4486f19da2c4553bab1a913af9b3d
+src/newcommon/Unit.java	trunk/src/newcommon/Unit.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$555b85d2398684b78b6938652cfc5ea9739a5974
+src/newcommon/exceptions	trunk/src/newcommon/exceptions	dir	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	
+src/newcommon/exceptions/GameFieldException.java	trunk/src/newcommon/exceptions/GameFieldException.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$c18fef65a5640e7626f9253f80aeb3df78e8501a
+src/newcommon/exceptions/InventoryException.java	trunk/src/newcommon/exceptions/InventoryException.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$cfcb323440d692e2b4a03c2cfbf0799bb5d987a7
+src/newcommon/exceptions/SkillException.java	trunk/src/newcommon/exceptions/SkillException.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$95d3b6ad73f242c7516948d828667b32e3743c06
+src/newcommon/exceptions/UnitException.java	trunk/src/newcommon/exceptions/UnitException.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$334774d916eaf7bb60a3fe74a801ed77d8323b7e
+src/newcommon/items	trunk/src/newcommon/items	dir	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	
+src/newcommon/items/Etc.java	trunk/src/newcommon/items/Etc.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$12cfb9645b8947ae10af375c987dcb57e57ee49d
+src/newcommon/items/Item.java	trunk/src/newcommon/items/Item.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$2dd38c2c861abf8349ebc279d38fedb2ff60ae8d
+src/newcommon/items/Items.java	trunk/src/newcommon/items/Items.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$f3429e5950ec247f0abfb7515ce2f36d16bed091
+src/notes.txt	trunk/src/notes.txt	file	normal	141	74	2010-08-09T05:09:22.572594Z	sorcchan	$sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709
+src/server	trunk/src/server	dir	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	
+src/server/DesuServer.ncb	trunk/src/server/DesuServer.ncb	file	normal	141	6	2009-09-22T20:03:24.905027Z	pacprigun	$sha1$d3db2b1613d85a94b78e5ca6599b57a042c3a5c7
+src/server/DesuServer.sln	trunk/src/server/DesuServer.sln	file	normal	141	6	2009-09-22T20:03:24.905027Z	pacprigun	$sha1$7af24bb688825a6678239cc506b32056ca1af199
+src/server/DesuServer.vcproj	trunk/src/server/DesuServer.vcproj	file	normal	141	8	2009-09-23T18:00:22.792248Z	pacprigun	$sha1$8052e8b26f54b3909fd4bb0739c00118d841c374
+src/server/DesuServer.vcproj.NOUTEPRIGUN.prigun.user	trunk/src/server/DesuServer.vcproj.NOUTEPRIGUN.prigun.user	file	normal	141	6	2009-09-22T20:03:24.905027Z	pacprigun	$sha1$8c784ab34dd55812aadac7b59883242f633d04f8
+src/server/cpp	trunk/src/server/cpp	dir	normal	141	8	2009-09-23T18:00:22.792248Z	pacprigun	
+src/server/cpp/player.cpp	trunk/src/server/cpp/player.cpp	file	normal	141	8	2009-09-23T18:00:22.792248Z	pacprigun	$sha1$36e881b82fbfa24ea170b2e5de3430f874163a37
+src/server/cpp/server.cpp	trunk/src/server/cpp/server.cpp	file	normal	141	6	2009-09-22T20:03:24.905027Z	pacprigun	$sha1$264929b574c2aa77eb54b0a56e256c5f09fe9524
+src/server/include	trunk/src/server/include	dir	normal	141	8	2009-09-23T18:00:22.792248Z	pacprigun	
+src/server/include/player.h	trunk/src/server/include/player.h	file	normal	141	8	2009-09-23T18:00:22.792248Z	pacprigun	$sha1$0f70e73e05c0d361c42c61809e67ee029973eb1b
+src/server/include/server.h	trunk/src/server/include/server.h	file	normal	141	6	2009-09-22T20:03:24.905027Z	pacprigun	$sha1$029f32c9b432f3f8d962df2b6b3a83f9ddf59de3
+src/server/javatestserver	trunk/src/server/javatestserver	dir	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	
+src/server/javatestserver/DeathManager.java	trunk/src/server/javatestserver/DeathManager.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$e51e03adf56e67245ee27babebf8caa286b3918b
+src/server/javatestserver/GameField.java	trunk/src/server/javatestserver/GameField.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$95f739f15b6413e7642ba6d23fa66410fc7c83ef
+src/server/javatestserver/GeoDataController.java	trunk/src/server/javatestserver/GeoDataController.java	file	normal	141	99	2010-11-30T17:00:13.108221Z	sorcchan	$sha1$4247cdad56749e38da8efa1e8ad53f63f247af96
+src/server/javatestserver/JTSUnit.java	trunk/src/server/javatestserver/JTSUnit.java	file	normal	141	98	2010-11-30T10:48:01.902776Z	sorcchan	$sha1$d87238d9f67f88707906e549daca5d4974dab267
+src/server/javatestserver/JavaTestServer.java	trunk/src/server/javatestserver/JavaTestServer.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$9ed19f3633578346b57734a70c70b759ece7ef57
+src/server/javatestserver/MapFragment.java	trunk/src/server/javatestserver/MapFragment.java	file	normal	141	91	2010-11-21T21:22:02.703949Z	sorcchan	$sha1$64bfe8d7c869a0e8edfaca4170d9c78d20a4722c
+src/server/javatestserver/MapGenerator.java	trunk/src/server/javatestserver/MapGenerator.java	file	normal	141	91	2010-11-21T21:22:02.703949Z	sorcchan	$sha1$4058dced73ecb5720288741162c3246399b30e80
+src/server/javatestserver/MessageManager.java	trunk/src/server/javatestserver/MessageManager.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$013e01e3d843d5ce04bf23ee9cc2c2a0fb7baa58
+src/server/javatestserver/Monster.java	trunk/src/server/javatestserver/Monster.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$060e5ad92ace9a4301fe4e7f9549360f08a8363e
+src/server/javatestserver/NPC.java	trunk/src/server/javatestserver/NPC.java	file	normal	141	98	2010-11-30T10:48:01.902776Z	sorcchan	$sha1$300871e988dd6cae38dc266d98b616dca9cc86d9
+src/server/javatestserver/NukeAction.java	trunk/src/server/javatestserver/NukeAction.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$2b22f043ff6af504eef4d9cca83a7478dde795f2
+src/server/javatestserver/NukeBolt.java	trunk/src/server/javatestserver/NukeBolt.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$867c758b184ca10952cc20e9aea2936651f0c7f1
+src/server/javatestserver/PacketSenderTask.java	trunk/src/server/javatestserver/PacketSenderTask.java	file	normal	141	74	2010-08-09T05:09:22.572594Z	sorcchan	$sha1$81a7f1aff82c610dd6c658f84033e8ab6147ad73
+src/server/javatestserver/Player.java	trunk/src/server/javatestserver/Player.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$8f5b79bde75fde00ad2d258493aa383ea17d6049
+src/server/javatestserver/ShortMapFragment.java	trunk/src/server/javatestserver/ShortMapFragment.java	file	normal	141	91	2010-11-21T21:22:02.703949Z	sorcchan	$sha1$8f94e913c7f6f6d3427626a414482541dd31e209
+src/server/javatestserver/Tower.java	trunk/src/server/javatestserver/Tower.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$5ff7471e2bed63efdb29ec9be59b63d77321b92d
+src/server/javatestserver/TowerController.java	trunk/src/server/javatestserver/TowerController.java	file	normal	141	120	2010-12-22T16:46:29.232812Z	sorcchan	$sha1$7c0a820c59cdffa67d29b0e249459aea6280c012
+src/server/javatestserver/VisibleManager.java	trunk/src/server/javatestserver/VisibleManager.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$0eb32c6b1da7ce75a00c06e9db53db51fab06e00
+src/server/javatestserver/WanderingMap.java	trunk/src/server/javatestserver/WanderingMap.java	file	normal	141	100	2010-12-01T16:54:49.062901Z	sorcchan	$sha1$50b89caf126449e8f83a72907cbbd725d6c77c26
+src/server/javatestserver/WanderingPolygon.java	trunk/src/server/javatestserver/WanderingPolygon.java	file	normal	141	80	2010-08-11T14:58:45.665277Z	sorcchan	$sha1$17904bac3ce56910f56070b3047520eaef131574
+src/server/javatestserver/items	trunk/src/server/javatestserver/items	dir	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	
+src/server/javatestserver/items/ServerEtc.java	trunk/src/server/javatestserver/items/ServerEtc.java	file	normal	141	119	2010-12-21T16:56:29.940643Z	sorcchan	$sha1$110c18e83eeca5ff5041419587e317b4cb5d9e12
+src/server/schemetestserver	trunk/src/server/schemetestserver	dir	normal	141	35	2010-07-12T11:26:01.456497Z	sorcchan	
+src/server/schemetestserver/desu.scm	trunk/src/server/schemetestserver/desu.scm	file	normal	141	34	2010-07-12T09:53:24.338119Z	lisper.ru	$sha1$863e61167c0bd44379892334cf80d2e944371a55
+src/wand6	trunk/src/wand6	dir	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	
+src/wand6/client	trunk/src/wand6/client	dir	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	
+src/wand6/client/CMapFragment.java	trunk/src/wand6/client/CMapFragment.java	file	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	$sha1$93dc497df5ced17265d3b1142559ee8337944523
+src/wand6/client/GUI.java	trunk/src/wand6/client/GUI.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$d1b66fb1b622487e2aa869844de91ead14129bde
+src/wand6/client/MapManager.java	trunk/src/wand6/client/MapManager.java	file	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	$sha1$0391924de07fabfc7351acfdd17c90d39eb9eca5
+src/wand6/client/MessageManager.java	trunk/src/wand6/client/MessageManager.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$c33a5b35191e1a5f5469c4bbd705074ebcee7fdc
+src/wand6/client/PlayerManager.java	trunk/src/wand6/client/PlayerManager.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$612d03380553495d05355435962240993fc48053
+src/wand6/client/RedrawTask.java	trunk/src/wand6/client/RedrawTask.java	file	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	$sha1$d13f1a676a0cf5e00f92c4ef55dee6e9b742e404
+src/wand6/client/ServerInteraction.java	trunk/src/wand6/client/ServerInteraction.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$8906d6701dbd2bfdffcdb1d8ec674aecfc09f540
+src/wand6/client/Wand.java	trunk/src/wand6/client/Wand.java	file	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	$sha1$027736a81a52e031317133d8ff989a491d6acb7d
+src/wand6/client/WandJPanel.java	trunk/src/wand6/client/WandJPanel.java	file	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	$sha1$15f20a02257b67fd322315fbe0d2067f989e38c2
+src/wand6/client/exceptions	trunk/src/wand6/client/exceptions	dir	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	
+src/wand6/client/exceptions/MessageManagerException.java	trunk/src/wand6/client/exceptions/MessageManagerException.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$4df305784a1dabc2ff6976aa4777e315148a276f
+src/wand6/client/exceptions/PlayerManagerException.java	trunk/src/wand6/client/exceptions/PlayerManagerException.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$daff1c925d5190d17432a27d1b0b5d7425d58d44
+src/wand6/client/messages	trunk/src/wand6/client/messages	dir	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	
+src/wand6/client/messages/HelloMessage.java	trunk/src/wand6/client/messages/HelloMessage.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$a3837a23142c06eabc31ead9b4348e9cf3e2c1ad
+src/wand6/client/messages/MapFragmentRequestMessage.java	trunk/src/wand6/client/messages/MapFragmentRequestMessage.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$496c3e1b1c7a729902540b74fceae2500227076b
+src/wand6/client/messages/MoveRequestMessage.java	trunk/src/wand6/client/messages/MoveRequestMessage.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$05802cc60322268fb12829fa42e402b12bd459fb
+src/wand6/client/messages/NameMessage.java	trunk/src/wand6/client/messages/NameMessage.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$005900798b991f6df4aa648982ddd4414415af65
+src/wand6/client/messages/TextCloudMessage.java	trunk/src/wand6/client/messages/TextCloudMessage.java	file	normal	141	122	2010-12-24T16:43:54.421186Z	sorcchan	$sha1$c8cfc0568246bc66448c70fd893c6a94106cb385
+src/wand6/common	trunk/src/wand6/common	dir	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	
+src/wand6/common/CurveMovement.java	trunk/src/wand6/common/CurveMovement.java	file	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	$sha1$9311c3d1def5c8b3f71cf4afc478391862bf344e
+src/wand6/common/MapFragment.java	trunk/src/wand6/common/MapFragment.java	file	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	$sha1$fc1b76d1c7c16e4d4b8fbf253d0dc20e1d73da6e
+src/wand6/common/Player.java	trunk/src/wand6/common/Player.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$975afb046d9acc316675709798aacf0e6443abb1
+src/wand6/common/ServerTime.java	trunk/src/wand6/common/ServerTime.java	file	normal	141	123	2010-12-27T16:48:27.748164Z	sorcchan	$sha1$ab407b2a058699d67c46c1fd8856b95902cb99b0
+src/wand6/common/messages	trunk/src/wand6/common/messages	dir	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	
+src/wand6/common/messages/Message.java	trunk/src/wand6/common/messages/Message.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$b78c82fe389d1871ab0765f299cb1b059db0f7f8
+src/wand6/common/messages/MessageType.java	trunk/src/wand6/common/messages/MessageType.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$86cd68625400129afc5ec8faba36671c3ad7974a
+src/wand6/common/skills	trunk/src/wand6/common/skills	dir	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	
+src/wand6/common/skills/SkillAction.java	trunk/src/wand6/common/skills/SkillAction.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$44d5e5d7fdaeb09e3e665b6025a961945a4c5128
+src/wand6/common/skills/SkillPerformAction.java	trunk/src/wand6/common/skills/SkillPerformAction.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$f191d9a125c96aa6a1d61d73d2bde8153ea74b86
+src/wand6/server	trunk/src/wand6/server	dir	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	
+src/wand6/server/ClientInteraction.java	trunk/src/wand6/server/ClientInteraction.java	file	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	$sha1$ba5a6ccb2079085648a63f29ef47fb889d855a62
+src/wand6/server/IdManager.java	trunk/src/wand6/server/IdManager.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$c03cb98c2e12520efd7579fa5ce0e574237c45c9
+src/wand6/server/JavaServer.java	trunk/src/wand6/server/JavaServer.java	file	normal	141	127	2011-01-03T10:31:43.382795Z	sorcchan	$sha1$a864bfe9492872d92235967dd02ad7b5a9187108
+src/wand6/server/MapManager.java	trunk/src/wand6/server/MapManager.java	file	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	$sha1$05886b948659aabc1cdbe88f75b1c264e1dd56ce
+src/wand6/server/MessageManager.java	trunk/src/wand6/server/MessageManager.java	file	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	$sha1$2dc2af007d181c7e6402e5530b697e2af09c05ad
+src/wand6/server/PlayerManager.java	trunk/src/wand6/server/PlayerManager.java	file	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	$sha1$cc85a2c8c7f5f3fe6ba6e6f0ffe5af79adacd222
+src/wand6/server/SMapFragment.java	trunk/src/wand6/server/SMapFragment.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$ad70d3b610a93a9ca006f6376d6918ce21e01370
+src/wand6/server/TimeSyncTask.java	trunk/src/wand6/server/TimeSyncTask.java	file	normal	141	123	2010-12-27T16:48:27.748164Z	sorcchan	$sha1$2f0fdfe70027986b1d72a19e299e2ff2814b00d4
+src/wand6/server/VisibleManager.java	trunk/src/wand6/server/VisibleManager.java	file	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	$sha1$13959e2e7c5afdfd0fcdfa6d35ddc2bdb2b0dbae
+src/wand6/server/exceptions	trunk/src/wand6/server/exceptions	dir	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	
+src/wand6/server/exceptions/JavaServerException.java	trunk/src/wand6/server/exceptions/JavaServerException.java	file	normal	141	121	2010-12-24T16:43:13.462294Z	sorcchan	$sha1$3361a6b08eaa69ad28a725077846146d32e700f5
+src/wand6/server/exceptions/PlayerManagerException.java	trunk/src/wand6/server/exceptions/PlayerManagerException.java	file	normal	141	123	2010-12-27T16:48:27.748164Z	sorcchan	$sha1$86039ea892096c9c6c036535e4878f9c11a4f80c
+src/wand6/server/exceptions/VisibleManagerException.java	trunk/src/wand6/server/exceptions/VisibleManagerException.java	file	normal	141	126	2010-12-30T16:19:34.194924Z	sorcchan	$sha1$1e81e9bc49254babe9b780a16ecb94425c94a168
+src/wand6/server/messages	trunk/src/wand6/server/messages	dir	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	
+src/wand6/server/messages/MapFragmentMessage.java	trunk/src/wand6/server/messages/MapFragmentMessage.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$5cc0735fcfc4eef33216a8adf4350514587cca5d
+src/wand6/server/messages/MoveMessage.java	trunk/src/wand6/server/messages/MoveMessage.java	file	normal	141	125	2010-12-29T16:04:48.871817Z	sorcchan	$sha1$2739081cfd4aae7edb992c7ba0a33b2b425e54f9
+src/wand6/server/messages/TimeSyncMessage.java	trunk/src/wand6/server/messages/TimeSyncMessage.java	file	normal	141	123	2010-12-27T16:48:27.748164Z	sorcchan	$sha1$33584d269b62792f5d36441be8e415d3252d6ad9
+src/wand6/server/messages/WelcomeMessage.java	trunk/src/wand6/server/messages/WelcomeMessage.java	file	normal	141	123	2010-12-27T16:48:27.748164Z	sorcchan	$sha1$e2702239cfecd94d6e0573d155811ef63a9a7cc6
+src/wds-java.ps1	trunk/src/wds-java.ps1	file	normal	141	63	2010-08-01T21:23:31.169322Z	sorcchan	$sha1$090ddf944820ec30ccd5782a5f9cf463c697b58f
+src/wdscomp.ps1	trunk/src/wdscomp.ps1	file	normal	141	74	2010-08-09T05:09:22.572594Z	sorcchan	$sha1$f1ca439bc39e84d8e291a0acd603c22209de0377
+wand-java.jnlp	trunk/wand-java.jnlp	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$11a77f291f696a8c8acb38e7729a0d7612db141d
+wand.html	trunk/wand.html	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$589934f92351e82d34029f244646d7e54abc5ab8
+wandmanifest.txt	trunk/wandmanifest.txt	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$a8ecd01cb39634f2e181cffbb3d340d59b88f32f
+wjts.sh	trunk/wjts.sh	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$ec9219b23bbd5e068238b7c0ea83f05579b3cd07
+wjtsmanifest.txt	trunk/wjtsmanifest.txt	file	normal	141	110	2010-12-08T10:32:06.302331Z	sorcchan	$sha1$09f4fa898715106f44716eae69f92ba16b8b5591

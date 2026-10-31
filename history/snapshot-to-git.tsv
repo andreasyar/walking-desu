@@ -1,0 +1,4 @@
+snapshot	files	matched_paths	git_commit	different_paths
+old/src/WD/	146	142	ca4f2828410ff1fb5aa7c273f45796ac9233ecdb	"[""nbproject/build/classes/server/cpp/server.cpp"", ""nbproject/build/classes/server/cpp/player.cpp"", ""nbproject/build/classes/server/include/player.h"", ""nbproject/build/classes/server/include/server.h""]"
+old/src/wd2/	17	16	dd28ad143a5a2ce21e1ef3c2faec308a267c056b	"[""src/common/Main.java""]"
+walking-desu/	144	142	b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa	"[""src/ru/azuchan/walkingdesu/server/WalkingDesu.java"", ""src/ru/azuchan/walkingdesu/client/WalkingDesu.java""]"

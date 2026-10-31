@@ -1,0 +1,455 @@
+[
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "bin",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "(svn:ignore 2 *\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "img",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "(svn:ignore 2 *\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "log",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "(svn:ignore 2 *\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "mkwjtsjar.sh",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "(svn:executable 1 *)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "nbproject",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "build\ndist\n"
+    },
+    "raw_text": "(svn:ignore 11 build\ndist\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "src",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "img\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n"
+    },
+    "raw_text": "(svn:ignore 51 img\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "src/client",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*.zip\n*.class\nimg\n"
+    },
+    "raw_text": "(svn:ignore 18 *.zip\n*.class\nimg\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "src/server/DesuServer.ncb",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:mime-type": "application/octet-stream"
+    },
+    "raw_text": "(svn:mime-type application/octet-stream)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "src/server/schemetestserver",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "logs\n"
+    },
+    "raw_text": "(svn:ignore 5 logs\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "path": "wjts.sh",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "(svn:executable 1 *)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "bin",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "(svn:ignore 2 *\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "img",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "(svn:ignore 2 *\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "log",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "(svn:ignore 2 *\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "mkwjtsjar.sh",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "(svn:executable 1 *)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "nbproject",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "build\ndist\n"
+    },
+    "raw_text": "(svn:ignore 11 build\ndist\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "src",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "img\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n"
+    },
+    "raw_text": "(svn:ignore 51 img\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "src/client",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "*.zip\n*.class\nimg\n"
+    },
+    "raw_text": "(svn:ignore 18 *.zip\n*.class\nimg\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "src/server/DesuServer.ncb",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:mime-type": "application/octet-stream"
+    },
+    "raw_text": "(svn:mime-type application/octet-stream)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "src/server/schemetestserver",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:ignore": "logs\n"
+    },
+    "raw_text": "(svn:ignore 5 logs\n)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "path": "wjts.sh",
+    "working_revision": 141,
+    "format": "svn-skel",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "(svn:executable 1 *)"
+  },
+  {
+    "source": "local-project-snapshots.zip!/old/src/WD/.svn/prop-base/mkwjtsjar.sh.svn-base",
+    "path": "old/src/WD/mkwjtsjar.sh",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "K 14\nsvn:executable\nV 1\n*\nEND\n"
+  },
+  {
+    "source": "local-project-snapshots.zip!/old/src/WD/.svn/prop-base/wjts.sh.svn-base",
+    "path": "old/src/WD/wjts.sh",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "K 14\nsvn:executable\nV 1\n*\nEND\n"
+  },
+  {
+    "source": "local-project-snapshots.zip!/old/src/WD/src/server/.svn/prop-base/DesuServer.ncb.svn-base",
+    "path": "old/src/WD/src/server/DesuServer.ncb",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:mime-type": "application/octet-stream"
+    },
+    "raw_text": "K 13\nsvn:mime-type\nV 24\napplication/octet-stream\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/.svn/dir-prop-base",
+    "path": "walking-desu/tags/01a",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "img*\nbuild\ndist\nDesuDesu.gif\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 29\nimg*\nbuild\ndist\nDesuDesu.gif\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/nbproject/private/profiler/.svn/dir-prop-base",
+    "path": "walking-desu/tags/01a/nbproject/private/profiler",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "*.nps\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 6\n*.nps\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/.svn/dir-prop-base",
+    "path": "walking-desu/tags/01a/src",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "img\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 51\nimg\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/.svn/prop-base/wds-java.sh.svn-base",
+    "path": "walking-desu/tags/01a/src/wds-java.sh",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "K 14\nsvn:executable\nV 1\n*\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/.svn/prop-base/wds-scheme.sh.svn-base",
+    "path": "walking-desu/tags/01a/src/wds-scheme.sh",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "K 14\nsvn:executable\nV 1\n*\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/.svn/prop-base/wdscomp.sh.svn-base",
+    "path": "walking-desu/tags/01a/src/wdscomp.sh",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "K 14\nsvn:executable\nV 1\n*\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/client/.svn/dir-prop-base",
+    "path": "walking-desu/tags/01a/src/client",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "*.zip\n*.class\nimg\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 18\n*.zip\n*.class\nimg\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/server/.svn/prop-base/DesuServer.ncb.svn-base",
+    "path": "walking-desu/tags/01a/src/server/DesuServer.ncb",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:mime-type": "application/octet-stream"
+    },
+    "raw_text": "K 13\nsvn:mime-type\nV 24\napplication/octet-stream\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/server/javatestserver/.svn/dir-prop-base",
+    "path": "walking-desu/tags/01a/src/server/javatestserver",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "*.class\nlogs\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 13\n*.class\nlogs\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/tags/01a/src/server/schemetestserver/.svn/dir-prop-base",
+    "path": "walking-desu/tags/01a/src/server/schemetestserver",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "logs\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 5\nlogs\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/.svn/prop-base/mkwjtsjar.sh.svn-base",
+    "path": "walking-desu/trunk/mkwjtsjar.sh",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "K 14\nsvn:executable\nV 1\n*\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/.svn/prop-base/wjts.sh.svn-base",
+    "path": "walking-desu/trunk/wjts.sh",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:executable": "*"
+    },
+    "raw_text": "K 14\nsvn:executable\nV 1\n*\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/bin/.svn/dir-prop-base",
+    "path": "walking-desu/trunk/bin",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 2\n*\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/img/.svn/dir-prop-base",
+    "path": "walking-desu/trunk/img",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 2\n*\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/log/.svn/dir-prop-base",
+    "path": "walking-desu/trunk/log",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "*\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 2\n*\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/nbproject/.svn/dir-prop-base",
+    "path": "walking-desu/trunk/nbproject",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "build\ndist\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 11\nbuild\ndist\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/src/.svn/dir-prop-base",
+    "path": "walking-desu/trunk/src",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "img\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 51\nimg\nDesuDesu.gif\n*.jar\nWD-java.jnlp\nWD-scheme.jnlp\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/src/client/.svn/dir-prop-base",
+    "path": "walking-desu/trunk/src/client",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "*.zip\n*.class\nimg\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 18\n*.zip\n*.class\nimg\n\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/src/server/.svn/prop-base/DesuServer.ncb.svn-base",
+    "path": "walking-desu/trunk/src/server/DesuServer.ncb",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:mime-type": "application/octet-stream"
+    },
+    "raw_text": "K 13\nsvn:mime-type\nV 24\napplication/octet-stream\nEND\n"
+  },
+  {
+    "source": "google-code/source-archive.zip!/walking-desu/trunk/src/server/schemetestserver/.svn/dir-prop-base",
+    "path": "walking-desu/trunk/src/server/schemetestserver",
+    "working_revision": null,
+    "revision_note": "Not inferred from property bytes",
+    "format": "svn-hash",
+    "values": {
+      "svn:ignore": "logs\n"
+    },
+    "raw_text": "K 10\nsvn:ignore\nV 5\nlogs\n\nEND\n"
+  }
+]

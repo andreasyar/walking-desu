@@ -1,0 +1,146 @@
+svn_revision	author	date_utc	message	git_commit	method	confidence
+1		2009-09-22T18:04:18.447998Z	Initial directory structure.		no-match	metadata-only; tree and patch unavailable
+2	sorcchan	2009-09-22T18:24:17.887128Z	Набросок клиента. Спрайты не могут быть выложены здесь как часть клиента, так как они не принадлежат разработчикам. Ссылка на эксперементальный набор спрайтов от неизвестного нам автора будет добавлена позже в wiki.	94008225074e12801efe1dc08cf93650b55fcbde	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+3	sorcchan	2009-09-22T19:16:20.679354Z			no-match	metadata-only; tree and patch unavailable
+4	sorcchan	2009-09-22T19:16:47.542948Z		9eb2de2ba98d92d82c6deba2f87cf3ed397d4c52	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+5	pacprigun	2009-09-22T19:37:00.043154Z	Сервер бродячих дес		no-match	metadata-only; tree and patch unavailable
+6	pacprigun	2009-09-22T20:03:24.905027Z		2c46e084da5384a7c4b710014cb37a7a4c346a8f	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+7	pacprigun	2009-09-22T20:04:03.721147Z		0d228b36bccc4440c78c9df12d47fc710b8d2bda	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+8	pacprigun	2009-09-23T18:00:22.792248Z		3d96d9731f1916f30545c758e16ac2a52329dfc2	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+9	sorcchan	2010-05-08T11:40:24.574604Z	Comments now in Unicode.	11b2dfa833876c0fb26313b544e7a80483bad05e	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+10	sorcchan	2010-07-08T07:46:42.803873Z	Finally! New version work begins. WD is not applet any more. No animation yet. This is a demo code. Do not forget to put img directory with sprites near client and server directory.	cc0352df6559052863d15eb3146a6bb5e3bc9dc4	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+11	sorcchan	2010-07-08T07:50:26.777149Z	NBProject files also.	c08d692e168a6c57e62de0cd635afe126e53382f	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+12	sorcchan	2010-07-08T08:04:12.424607Z	Reorg.	07fd322680a0ed190b90aa7438e78047d979ce75	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+13	sorcchan	2010-07-08T08:07:34.264494Z	Reorg.	0e052091f13c6e5b404c0f18de5f2af29276a4fd	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+14	sorcchan	2010-07-08T08:23:11.643428Z	reorg again	ba5e929f7d870bdacb7a28d085305612397b405b	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+15	sorcchan	2010-07-08T08:42:55.409401Z	reorg	96e07d4ebbf5a69e399aed100eae76a7cfa20205	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+16	sorcchan	2010-07-08T13:29:12.991585Z	Primitive animations. YAY its ugly.	bd7b6a0458c907a3dbd2c4f4f7ff00a213ff2f71	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+17	sorcchan	2010-07-08T13:43:51.681761Z	Compilations fix.	ff0fbec17d6723092c98761f5509e3e984c3b6fa	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+18	sorcchan	2010-07-08T15:11:51.844994Z	More ignors.		no-match	metadata-only; tree and patch unavailable
+19	sorcchan	2010-07-08T20:10:42.774482Z	Скрипт запуска для Windows. Смена спрайта движения выравнена по интервалам проходимого пути. Время переведено на внутренний таймер. Другие небольшие изменения.	4d308b9176826264c8cdae6d02a1c3396a8e275b	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+20	sorcchan	2010-07-09T04:59:52.277919Z	Начальный вариант анимации простоя.	da53b265cac54b5c8b8a6c313500971b1631035c	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+21	sorcchan	2010-07-09T05:01:38.448451Z	oops forget bots	09be4f8c5fc1344a5bb472d93fd79630922b0a73	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+22	sorcchan	2010-07-09T07:19:33.847364Z	Cleanup. 50 fps again.	2e363ed8c4e073020dfefa99df6c34fc7aeb03b3	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+23	sorcchan	2010-07-09T14:27:33.610310Z	test server 1	efd59c007050ea906c3689526d829dba88f7f3dd	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+24	sorcchan	2010-07-09T15:12:44.119355Z		c24a9ac661b4794728aa830e4441c72a21cb422c	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+25	sorcchan	2010-07-11T08:10:06.814511Z	All functions almost done. Lite optimization.	d066f9dcb42598cb9d497c82812664b973a954a1	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+26	sorcchan	2010-07-11T08:51:34.108745Z		fcc593d75d5855d8ced12ed734aa9220eeb4dad5	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+27	sorcchan	2010-07-11T10:38:31.961147Z	Поддержка сообщений	c93a4cce0bae25596b2f30ef4abcaaa067c95894	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+28	sorcchan	2010-07-11T10:57:27.007971Z	Проблема с кодировкой.	f4dc9af9ea3ab3a0150646d484dba6b32904eacd	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+29	lisper.ru	2010-07-11T12:22:03.500796Z		1b3fc4803413bbd9c6a92113f837db56f22a139b	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+30	lisper.ru	2010-07-11T12:26:36.848378Z	"check cli start for schemeserver:
+  $ mzscheme --script desu.scm portno
+"	a6d1976f7a2a9370f73ea738abd5410cc1222292	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+31	sorcchan	2010-07-11T12:36:58.065304Z		1dd67504c951fc1aa9ce8487e784eea518851d81	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+32	sorcchan	2010-07-12T04:57:44.840019Z	No indexed colors any more.	d5c2e053c72bd8f59d164c39e5d76f24515b3271	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+33	sorcchan	2010-07-12T05:00:24.988257Z	For Java Web Start	9645356448a1a7a8aa0941319e6619bfe7becb04	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+34	lisper.ru	2010-07-12T09:53:24.338119Z	"
+add save old message 
+"	99c40c78fed1799e1954772b80efff9938caf398	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+35	sorcchan	2010-07-12T11:26:01.456497Z	New scripts, profiler info, player does not go over the map any more.	e93e7ee2854720edf324ed1bb93a559fb20ff127	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+36	sorcchan	2010-07-12T11:26:57.523499Z	Oops.	2254b83fd5156e4539f96f22a7b0bb99a6c9b300	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+37	sorcchan	2010-07-12T13:54:16.439161Z	Добавлено логирование ip адресов в Java Test Server. Прозрачное облачко текста. Мограние с задержкой.	c755833c6a0a3786f6c2a416ec68d38ef17fc9d2	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+38	sorcchan	2010-07-12T15:07:42.976237Z	Basics geodata work begins	79eb0e0a381daa076293891353a92873f8129be2	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+39	sorcchan	2010-07-13T04:59:57.462796Z	Prepare to nick choose.	ba2edc5d98feb3a8e0185e08cf646f03b4dcdd6c	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+40	sorcchan	2010-07-13T14:44:49.476270Z	Ники. Нюки.	029932788e2de747862ce493def1f6242b50b4fb	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+41	sorcchan	2010-07-14T05:07:41.220690Z	Small cleanup	d2852622e2c15df65200ae8dd5870bc07a0a49ec	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+42	sorcchan	2010-07-14T15:11:41.383831Z	Server rework begins.	d26d3f10ecdb730dda10123456b5feb61a51c8eb	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+43	sorcchan	2010-07-15T05:25:27.331428Z		b4c30832dada64cbcabdd0aec7dd06b03d9bec92	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+44	sorcchan	2010-07-15T15:02:58.174644Z	pvp	67addb662f8abcb9a1eb02b8fbc246111891338e	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+45	sorcchan	2010-07-19T04:59:35.788791Z		995ff038aa0ab7a118fd40c90642e552dccec8d4	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+46	sorcchan	2010-07-19T15:46:46.113214Z		3907b224163e441c82326f2a79742481735c9a21	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+47	sorcchan	2010-07-20T05:03:18.877938Z		e2feac0f5ab1f859a310ff4e6531257e674af297	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+48	sorcchan	2010-07-20T13:18:26.717571Z		8fd4ba133c616f45df27c86069f7e3ac54283b14	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+49	sorcchan	2010-07-21T05:09:51.555490Z		1c8bee8625d75fa306af5191673ec48f12db661e	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+50	sorcchan	2010-07-21T14:30:03.947016Z	Global client rework.	4245b786e9e76f9325295f1ea67abaac9c3b9690	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+51	sorcchan	2010-07-22T19:13:34.550473Z		20a1fb372230db130d2000ef234699399af90b08	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+52	sorcchan	2010-07-23T13:42:48.182581Z		fc6651c4d8c6abf6c8f89fdfe56b36dd8377bca5	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+53	sorcchan	2010-07-23T14:10:18.378057Z		107c2b08a531c8f371da32d5804f16db31fbcb08	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+54	sorcchan	2010-07-23T14:59:21.614924Z		c256146bd8e82d1f75f134324a414327e4aaa95a	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+55	sorcchan	2010-07-26T15:01:14.385193Z		d27c098443097cdf4a1d8f8a5ae8cc99a1d30035	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+56	sorcchan	2010-07-27T04:29:50.571165Z		e2a625dfeb1d1af78c709f9cd37287139af0c698	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+57	sorcchan	2010-07-27T14:47:06.179488Z	Client rework almost done. Also, geodata.	abe92ddf82f9cb6082387d6030ff8b3408134b05	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+58	sorcchan	2010-07-27T14:47:57.675040Z	oops	d6090e10e47119d27088f7cdbe1c2ed7dabb1a4d	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+59	sorcchan	2010-07-28T15:09:05.990322Z	tower defence	d5351c9fc8d17a765e2d2c881d6b56f0d8719074	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+60	sorcchan	2010-07-28T20:28:05.413007Z		65db390d45cbca88e88cfe5a4fbd7744e14ecace	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+61	sorcchan	2010-07-29T15:12:18.889369Z		f79543bbd87c88c967293e9680ea388fa0fc263c	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+62	sorcchan	2010-07-30T15:03:10.160440Z		43b4c586de04c14f34fe6c973059117ebe2a25c3	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+63	sorcchan	2010-08-01T21:23:31.169322Z		41724c19b0f512f8a5ef8a98c31d04cd45b6f957	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+64	sorcchan	2010-08-02T08:33:12.951055Z		531145143d68ad11642ed2784b734e7b3ed17e17	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+65	sorcchan	2010-08-02T14:54:09.544626Z		96e02add4f0ed105882ca95a8c834b2af52c42f1	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+66	sorcchan	2010-08-03T05:07:05.456546Z		e9a43f6ac853f5b2aee359e9a5d6de5afb727d55	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+67	sorcchan	2010-08-03T16:17:51.842581Z		594eb1d8246ac9d17a1e27f5cdb10d888737ecd7	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+68	sorcchan	2010-08-04T04:37:35.036602Z		f2596bc167ebae7829bb15eac17b3a069b7b5b06	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+69	sorcchan	2010-08-04T14:25:40.503067Z	Новая анимация выстрела башни. Переработаны классы нюка и анимации нюка. Начато добавление анимации смерти.	dc02ffae4d9b9e37f260164217d2fc686f74ae84	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+70	sorcchan	2010-08-04T14:59:10.202641Z		128a71d380b4db7107ddb5d754bb7ad34c067855	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+71	sorcchan	2010-08-05T15:16:13.643579Z	Анимация смерти, удара.	41248b7005873b142fb6c56511d2a5065b1c8eba	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+72	sorcchan	2010-08-06T05:39:57.282088Z	Исправлен баг при добавлении башни. Новая карта и геодата.	89fe71bf2df16126114f67c96a213d3d005456a8	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+73	sorcchan	2010-08-06T15:02:35.278220Z		1bf365cc0f5085af65ccc818319157a3514e5eef	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+74	sorcchan	2010-08-09T05:09:22.572594Z		11ee7a4995542668945047b30e35c3e48ffc2da0	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+75	sorcchan	2010-08-10T04:48:24.622144Z		1804ba9d06f0d39bd42276c09ab47eff368db44d	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+76	sorcchan	2010-08-11T04:21:53.434081Z	Animation first steps.	c5ff13b4023d4bb61da618a813eca1929acdcd8d	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+77	sorcchan	2010-08-11T05:55:35.155597Z		82a9d383d7e616e8e1fa690967241988dfd98b94	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+78	sorcchan	2010-08-11T06:16:16.127748Z		f99d410fa28d08181c4e16849e291909267ee28b	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+79	sorcchan	2010-08-11T06:18:23.368172Z	Small bug on my local copy	38b7ba5caf6c20890b08fb198b235062a274d42c	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+80	sorcchan	2010-08-11T14:58:45.665277Z	PVP. Attack and death animation. Server supports geodata.	b67013fe8c133de604429e0de8e440ba36b7aef4	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+81	sorcchan	2010-08-12T08:39:03.315608Z	Map shift fix.	a6f80a185b0f405bc078142dfaf95530916b1979	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+82	sorcchan	2010-08-12T09:12:01.239962Z		628f3c96d66e08fbb0be3b9dcd8fb88b03a7f71f	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+83	sorcchan	2010-08-12T09:23:43.172316Z	Created wiki page through web user interface.		no-match	metadata-only; tree and patch unavailable
+84	sorcchan	2010-08-12T17:30:55.538348Z	Edited wiki page through web user interface.		no-match	metadata-only; tree and patch unavailable
+85	sorcchan	2010-10-28T15:46:01.194700Z	Delmonster method added.	2b708aa71d39ff2f5a4676605dcc7a8e4f324bb9	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+86	sorcchan	2010-11-20T16:55:30.095868Z	Hackday 1	118a09b72ee5f9745523e4a0cc2a0d295c7255e6	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+87	sorcchan	2010-11-20T16:59:04.615488Z	Random maps draft 1.	7880e9eb46b34d69469aea85f452b79f786eaceb	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+88	sorcchan	2010-11-20T17:10:52.756510Z	oops	d8b1d9e99296dd9a6753d66314966a7cb969ab9c	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+89	sorcchan	2010-11-21T02:50:35.564834Z		7552dab6253812c28d7a1b2893708948b2c9620f	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+90	sorcchan	2010-11-21T02:52:33.542347Z	New map fragments cut-n-draw alg.	c6ec78895732d25fa051e1eff6cc2c2083c9c306	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+91	sorcchan	2010-11-21T21:22:02.703949Z		ce0239f8f940eb1d0b6fab7a2a200c6b8b9f02c5	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+92	sorcchan	2010-11-21T21:26:57.802062Z		2a3aabfc7071a2df6e21f54730619c215ddca600	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+93	sorcchan	2010-11-22T21:44:13.545839Z	JPanel already use a double buffering (default in Swing).	5c944fb7c95289d020eb016e88e0b6ce4d1e8ac6	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+94	sorcchan	2010-11-26T16:35:53.328048Z	Started work to create new common package what will be shared between client and server to provide common classes.	ded120e7962b5747734c0967ede22008bcbb7367	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+95	sorcchan	2010-11-26T22:10:49.422039Z		389de2c27172d69df57ff9f0da4d5a61cdd06e09	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+96	sorcchan	2010-11-29T07:00:32.043580Z		c024b1a861f25af00031cd055b999db8789c89a9	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+97	sorcchan	2010-11-29T16:53:41.926253Z	I going crazy =\	52f24270e164b6cb689283005c78193ecd2041bf	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+98	sorcchan	2010-11-30T10:48:01.902776Z	Now we use common + sprcific Unit classes at Client and Server.	7a08515bd7a21efd4a3e65277edce79ccefb459b	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+99	sorcchan	2010-11-30T17:00:13.108221Z	Pff. New async things. No more locks! New messages format.	3a28dc44ce4fbfa595e26dfc627d69865122cd3d	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+100	sorcchan	2010-12-01T16:54:49.062901Z	Some old files removed. New sync issues. Map fragments draw alg. improved.	41fad111d628a653076eaad5c4ccc82f39c6c781	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+101	sorcchan	2010-12-02T06:45:01.480195Z		c79aee619428d79ec1a6dfa01e02b2ae577509df	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+102	sorcchan	2010-12-02T17:07:00.210649Z		b9154691b7815287ba61b837ae3f2c2443c86a4b	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+103	sorcchan	2010-12-03T16:42:03.546673Z	I move script what creates client jar file and change it so looks like it works again. Also I start work to create new class hierarchy what will me more flexible and extendeble, include items and entities conception, new movement conception etc.	cc554c39a26dbee1aefe1f688d05b46ae6132dc0	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+104	sorcchan	2010-12-06T07:03:16.911187Z		0c27ec77929a0f0babe7ce03f01c8bcb2809db93	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+105	sorcchan	2010-12-06T16:46:30.574647Z	Now items are pickupable, but not complete yet. There is new drawing conception and z-buffer instead array sorting (brrrr). Interfaces is ugly anyway.	a66f6ab348e09b9aaa655ef8b6514fbf01508825	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+106	sorcchan	2010-12-06T23:05:38.775068Z		334d08fa62bf3813b690390bf9bc8ceca36e415d	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+107	sorcchan	2010-12-07T16:50:11.966517Z	Pickup. Inventory	d2cfc06312873288cbfaaebfc46771f16448a1ca	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+108	sorcchan	2010-12-07T22:27:34.668414Z	nbproject moved to separate folder and use relevant pathes.	0a12f2c9af03f9d34591bb5fffa5ffaaa19d97f6	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+109	sorcchan	2010-12-07T22:35:13.364842Z	Some properties changes and new folder added.		no-match	metadata-only; tree and patch unavailable
+110	sorcchan	2010-12-08T10:32:06.302331Z	New scripts.	dd28ad143a5a2ce21e1ef3c2faec308a267c056b	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+111	sorcchan	2010-12-08T16:46:46.324953Z		708db69d20d11549b1e877e39b60520fa7078507	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+112	sorcchan	2010-12-09T16:47:51.536040Z		54c3af798f38585903c11bfe9ea57105bb670a1a	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+113	sorcchan	2010-12-12T07:42:40.922806Z		71b0f1b410840eb84627b5dde9090edbea113f35	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+114	sorcchan	2010-12-13T16:42:59.075606Z	Wand startable again, but drawing things under construction.	abc142453051ef88a189a6b3b97830db0b12614d	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+115	sorcchan	2010-12-14T16:49:50.461011Z	New items works logic. New zbuffer class. New sprite creation conception draft.	240235e801d318d86d05bbd6ebf50d2301b5a2ab	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+116	sorcchan	2010-12-15T16:46:00.537863Z		0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+117	sorcchan	2010-12-20T06:38:32.704452Z		0bc73e92f9bebee7fad9439e7d2e7a80260db51c	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+118	sorcchan	2010-12-20T16:44:37.480187Z	Some epic changes comes.	7ab4355ec8798f5e2e0517e66fa72460998c1202	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+119	sorcchan	2010-12-21T16:56:29.940643Z	Oh my	0962dd67207429ac2411895c50cb66541834c518	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+120	sorcchan	2010-12-22T16:46:29.232812Z	Oh noes	6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+121	sorcchan	2010-12-24T16:43:13.462294Z	Game broken :\)	30a8613c0884e6d8aa7ad3ba029f82d46f08f023	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+122	sorcchan	2010-12-24T16:43:54.421186Z		6d684cbfe31fc21268a717cbcf6c12457e29b3bd	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+123	sorcchan	2010-12-27T16:48:27.748164Z		af3bd6ab30cfea9076e3553a2780ffcebab1f7e7	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+124	sorcchan	2010-12-28T16:41:34.024799Z		2023c2fbf4701d45fcf04ea2d31877cdcb1fc736	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+125	sorcchan	2010-12-29T16:04:48.871817Z		16c3c9d2c8f243e79d2c766f5364e860c65dd46f	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+126	sorcchan	2010-12-30T16:19:34.194924Z	Happy new year\!	ca4f2828410ff1fb5aa7c273f45796ac9233ecdb	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+127	sorcchan	2011-01-03T10:31:43.382795Z		b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa	author-time-second+trimmed-message	strong-correspondence; SVN patch not available
+128	sorcchan@gmail.com	2011-04-18T09:54:26.906141Z	Created wiki page through web user interface.		no-match	metadata-only; tree and patch unavailable
+129	sorcchan@gmail.com	2011-04-18T09:59:45.172841Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+130	sorcchan@gmail.com	2011-04-18T10:34:46.659778Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+131	sorcchan@gmail.com	2011-04-18T11:20:49.833528Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+132	sorcchan@gmail.com	2011-04-18T12:12:25.784982Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+133	sorcchan@gmail.com	2011-04-18T12:50:51.146877Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+134	sorcchan@gmail.com	2011-04-18T13:25:15.461213Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+135	sorcchan@gmail.com	2011-04-18T13:26:01.141180Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+136	sorcchan@gmail.com	2011-04-18T14:21:19.401884Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+137	sorcchan@gmail.com	2011-04-18T14:53:07.657284Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+138	sorcchan@gmail.com	2011-04-19T06:30:07.492208Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+139	sorcchan@gmail.com	2011-04-19T06:41:13.692465Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+140	sorcchan@gmail.com	2011-04-19T15:42:12.100440Z	Edited wiki page GameDraft through web user interface.		no-match	metadata-only; tree and patch unavailable
+141	sorcchan@gmail.com	2011-05-02T10:46:07.358829Z	Deleting wiki page GameDraft.		no-match	metadata-only; tree and patch unavailable

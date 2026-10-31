@@ -1,0 +1,45 @@
+[
+  {
+    "source": "local-project-snapshots.zip!/walking-desu/.svn/wc.db",
+    "sqlite_user_version": 29,
+    "repositories": [
+      {
+        "url": "https://walking-desu.googlecode.com/svn",
+        "uuid": "58aaa60e-a7a2-11de-8c46-7bd654735883"
+      }
+    ],
+    "node_count": 199,
+    "revision_counts": [
+      [
+        141,
+        199
+      ]
+    ],
+    "actual_node_count": 0,
+    "missing_pristine": [
+      "src/client/UnitAnimator.java",
+      "src/common/WanderingServerTime.java",
+      "src/server/cpp/player.cpp",
+      "src/server/javatestserver/TowerController.java"
+    ]
+  },
+  {
+    "source": "local-project-snapshots.zip!/legacy-snapshots/GAMES-AND-KOTOBA/2/walking-desu/.svn/wc.db",
+    "sqlite_user_version": 31,
+    "repositories": [
+      {
+        "url": "https://walking-desu.googlecode.com/svn",
+        "uuid": "58aaa60e-a7a2-11de-8c46-7bd654735883"
+      }
+    ],
+    "node_count": 199,
+    "revision_counts": [
+      [
+        141,
+        199
+      ]
+    ],
+    "actual_node_count": 0,
+    "missing_pristine": []
+  }
+]
