@@ -12,7 +12,7 @@ public class DirectionalSpriteSet {
     private static HashMap<String, DirectionalSpriteSet> cache = new HashMap<String, DirectionalSpriteSet>();
     private HashMap<Direction, ArrayList<BufferedImage>> sprites = new HashMap<Direction, ArrayList<BufferedImage>>();
 
-    public static DirectionalSpriteSet load(String name) {
+    public static synchronized DirectionalSpriteSet load(String name) {
         if (cache.containsKey(name)) {
             return (DirectionalSpriteSet) cache.get(name);
         } else {
@@ -183,8 +183,21 @@ public class DirectionalSpriteSet {
             loadSprFiles(Direction.SOUTH, new String[] {"img/" + name + ".png"});
             loadSprFiles(Direction.SOUTH_EAST, new String[] {"img/" + name + ".png"});
         } else {
-            System.err.println("Sprite set " + name + " not found");
-            System.exit(1);
+            throw new IllegalArgumentException("Unknown sprite set: " + name);
+        }
+        // These historical sets have no horizontal frames. Keep their original paths.
+        if (name.startsWith("desu_") || name.startsWith("tower_")) {
+            sprites.put(Direction.EAST, sprites.get(Direction.SOUTH_EAST));
+            sprites.put(Direction.WEST, sprites.get(Direction.SOUTH_WEST));
+        }
+        verifyDirections(name, sprites);
+    }
+
+    static void verifyDirections(String name, java.util.Map<Direction, ? extends java.util.List<BufferedImage>> sprites) {
+        for (Direction direction : Direction.values()) {
+            if (sprites.get(direction) == null || sprites.get(direction).isEmpty()) {
+                throw new IllegalArgumentException("Empty sprite set: " + name + " / " + direction);
+            }
         }
     }
 
@@ -229,10 +242,11 @@ public class DirectionalSpriteSet {
                         sprites.get(d).add(ImageIO.read(new File(paths[i])));
                     }
                 }
+                if (sprites.get(d).get(sprites.get(d).size() - 1) == null) {
+                    throw new IOException("Unsupported image format");
+                }
             } catch (IOException e) {
-                System.err.println(paths[i]);
-                e.printStackTrace();
-                System.exit(1);
+                throw new IllegalArgumentException("Cannot load sprite: " + paths[i], e);
             }
         }
     }

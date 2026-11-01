@@ -27,39 +27,14 @@ public class CanonHitAnimation extends HitAnimation {
 
     @Override
     public Sprite getSprite() {
-        long tmpTime;
-        Sprite tmpSpr;
-        long curTime = WanderingServerTime.getInstance().getTimeSinceStart();
-
-        tmpTime = (curTime - begTime) % (step * period + delay);
-
-        if (curTime > begTime + step * period + delay) {
-            done = true;
-            return set.getSprite(direction, period - 1);
-        }
-
-        if (tmpTime <= step * period) {
-            int sprIndex = (int) (((tmpTime % (step * period)) / step));
-            if (sprIndex < 0) {
-                System.err.println("Something wery bad happen right now.");
-            }
-            if (sprIndex < period && sprIndex >= 0) {
-                tmpSpr = set.getSprite(direction, sprIndex);
-            } else {
-                tmpSpr = set.getSprite(direction, 0);
-            }
-            tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
-            tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
-            return tmpSpr;
-        } else {
-
-            // Now time to delay before new animation cycle. So return last
-            // sprite from stand animation.
-            tmpSpr = set.getSprite(direction, period - 1);
-            tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
-            tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
-            return tmpSpr;
-        }
+        long elapsed = Math.max(0, WanderingServerTime.getInstance().getTimeSinceStart() - begTime);
+        done = elapsed >= step * period;
+        Sprite sprite = set.getSprite(direction, (int) Math.min(elapsed / step, period - 1L));
+        sprite.x = curPos.x - sprite.image.getWidth() / 2;
+        sprite.y = curPos.y - sprite.image.getHeight();
+        sprite.baseX = curPos.x;
+        sprite.baseY = curPos.y;
+        return sprite;
     }
 
     @Override

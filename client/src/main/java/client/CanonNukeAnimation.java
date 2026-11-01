@@ -34,16 +34,22 @@ public class CanonNukeAnimation extends NukeAnimation {
             s = dsSet.getSprite(d, 2);
             s.x = nX;
             s.y = nY;
+            s.baseX = nX;
+            s.baseY = nY;
             return s;
         } else if (curLength < length / 4.0 && curLength > length / 6.0) {
             s = dsSet.getSprite(d, 1);
             s.x = nX;
             s.y = nY;
+            s.baseX = nX;
+            s.baseY = nY;
             return s;
         } else {
             s = dsSet.getSprite(d, 0);
             s.x = nX;
             s.y = nY;
+            s.baseX = nX;
+            s.baseY = nY;
             return s;
         }
     }

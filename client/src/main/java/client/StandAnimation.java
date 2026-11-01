@@ -45,7 +45,6 @@ public class StandAnimation {
         // Animation ends. Return the last sprite from stand animation.
         if (endTime != 0 && curTime > endTime) {
             tmpSpr = set.getSprite(direct, period - 1);
-            System.out.println();
             tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
             tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
             tmpSpr.baseX = curPos.x;
@@ -53,7 +52,7 @@ public class StandAnimation {
             return tmpSpr;
         }
 
-        tmpTime = (curTime - begTime) % (step * period * repeat + delay);
+        tmpTime = Math.max(0, curTime - begTime) % (step * period * repeat + delay);
 
         if (tmpTime <= step * period * repeat) {
             int sprIndex = (int) (((tmpTime % (step * period)) / step));

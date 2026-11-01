@@ -15,7 +15,7 @@ public final class ClientRegressionCheck {
         WanderingServerTime.getInstance().setServerTime(System.currentTimeMillis());
         ServerInteraction.serverStartTime = WanderingServerTime.getInstance().getServerStartTime();
         for (Direction direction : Direction.values()) {
-            PlayerDeathAnimation animation = new PlayerDeathAnimation("peasant");
+            DeathAnimation animation = new DeathAnimation("peasant");
             animation.getSprite(0, new Point(100, 200)); // safe even before explicit run
             animation.run(direction, 1000);
             for (long time : new long[] {999, 1000, 1149, 1150, 1450, 10000}) {
@@ -38,18 +38,18 @@ public final class ClientRegressionCheck {
             require(!player.dead(), "First hit must not kill");
             player.doHit(50);
             require(player.dead() && !player.isMove(), "Lethal hit must start death and stop movement");
-            player.deathAnim.getSprite(0, player.getCurPos()); // before deathplayer packet
+            player.spriteAt(0); // before deathplayer packet
             player.teleportTo(0, 0);
             player.kill(); // duplicate deathplayer must not restart animation
-            player.deathAnim.getSprite(10000, player.getCurPos());
-            require(player.deathAnimationDone(), "Death completion");
+            player.spriteAt(10000);
+            require(player.spriteAt(10000).image == DirectionalSpriteSet.load("peasant_death").getSprite(Direction.SOUTH_EAST, 2).image, "Death completion and duplicate death retains frame");
             player.resurect();
             require(!player.dead(), "Respawn restores health");
             player.doHit(100);
             require(!player.deathAnimationDone(), "Next death starts a fresh animation");
         }
         for (Direction direction : Direction.values()) {
-            MonsterDeathAnimation animation = new MonsterDeathAnimation("poring");
+            DeathAnimation animation = new DeathAnimation("poring");
             animation.getSprite(0, new Point(100, 200));
             DirectionalSpriteSet frames = DirectionalSpriteSet.load("poring_death");
             animation.run(direction, 1000);
@@ -69,10 +69,10 @@ public final class ClientRegressionCheck {
             require(!monster.dead(), "Nonlethal monster hit");
             monster.doHit(10);
             require(monster.dead() && !monster.isMove(), "Lethal hit stops monster and starts death");
-            monster.deathAnim.getSprite(0, monster.getCurPos()); // before deathmonster packet
+            monster.spriteAt(0); // before deathmonster packet
             monster.kill();
-            monster.deathAnim.getSprite(10000, monster.getCurPos());
-            require(monster.deathAnimationDone(), "Duplicate deathmonster must not restart animation");
+            monster.spriteAt(10000);
+            require(monster.spriteAt(10000).image == frames.getSprite(Direction.SOUTH_EAST, frames.getSpriteCount(Direction.SOUTH_EAST) - 1).image, "Duplicate deathmonster retains final frame");
         }
         ClientEtc gold = new ClientEtc(2, "Gold", Items.GOLD);
         gold.setX(200);
@@ -89,6 +89,7 @@ public final class ClientRegressionCheck {
         require(!gold.onItem(sprite.x - 1, sprite.y), "Outside left edge");
         require(!gold.onItem(sprite.x + gold.getW(), sprite.y), "Outside right edge");
         require(!gold.onItem(sprite.x, sprite.y + gold.getH()), "Outside bottom edge");
+        RenderingRegressionCheck.run();
         System.out.println("PASS: moving player death/respawn, monster death in all directions; gold sprite hit bounds");
     }
 }

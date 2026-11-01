@@ -13,7 +13,7 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class GameField {
+public class GameField implements AutoCloseable {
 
     private static int debugLevel = 0;
     public static double visibleDistance = 500.0;
@@ -32,7 +32,8 @@ public class GameField {
      * drawable interface.
      */
     private final LinkedBlockingQueue<Drawable> drawqueue = new LinkedBlockingQueue<Drawable>();
-    private SelfExecutor selfExecutor;
+    private final SelfExecutor selfExecutor;
+    private Thread selfThread;
     /**
      * Tower Defence mini game status: N/M xS Where N - monsters loss, M -
      * monsters loss limit, S - strength multiplyer.
@@ -43,7 +44,6 @@ public class GameField {
      * List of etc items.
      */
     protected final ArrayList<ClientEtc> etcItems = new ArrayList<ClientEtc>();
-    private Graphics g = null;
 
     public GameField() {
         GeoDataController gdController = new GeoDataController(WanderingMap.getGeoData(), players);
@@ -55,34 +55,22 @@ public class GameField {
         selfExecutor = new SelfExecutor(this);
     }
 
-    public void setGraphics(Graphics g) {
-        this.g = g;
-    }
-
-    /**
-     * Fills the sprites z-buffer in proper order by sprite y-axys accedering.
-     * @param zbuffer z-buffer of sprites.
-     * @param x x-axys of left top drawing panel corner in world.
-     * @param y y-axys of left top drawing panel corner in world.
-     * @param dim dimensions of drawing panel.
-     */
-    public void updateZBuffer(ZBuffer zbuffer, int x, int y, Dimension dim) {
-        Sprite s;
-
+    /** Snapshot all drawable kinds through the same paint-time presentation path. */
+    public void updateZBuffer(ZBuffer zbuffer, Graphics graphics, int x, int y, Dimension dim) {
+        removeEndedHitAnimations();
+        for (Nuke nuke : nukes) {
+            if (!nuke.isMove()) {
+                removeDrawable(nuke);
+                nukes.remove(nuke);
+            }
+        }
         synchronized (zbuffer) {
-            for (Drawable d : drawqueue) {
-                if (d != null) {
-                    s = d.getSprite();
-                    if (s != null
-                            && s.y - y >= 0 && s.y - y + s.image.getHeight() < zbuffer.getSize()
-                            && s.x - x >= 0 && s.x - x + s.image.getWidth() <= dim.getWidth()) {
-
-                        zbuffer.addSprite(s, s.y - y + s.image.getHeight());
-                    }
-                }
-                else {
-                    System.err.println("Drawable unit is null. It cannot be! Skip it.");
-                    continue;
+            for (Drawable drawable : drawqueue) {
+                Sprite sprite = UnitPainter.sprite(drawable, graphics);
+                if (sprite != null && !(drawable instanceof HitAnimation hit && hit.isDone())
+                        && sprite.x < x + dim.width && sprite.x + sprite.image.getWidth() > x
+                        && sprite.y < y + dim.height && sprite.y + sprite.image.getHeight() > y) {
+                    zbuffer.addSprite(sprite, sprite.baseY);
                 }
             }
         }
@@ -396,6 +384,7 @@ public class GameField {
         for (Iterator<Monster> l = monsters.iterator(); l.hasNext();) {
             m = l.next();
             if (m.dead() && m.deathAnimationDone()) {
+                removeDrawable(m);
                 units.remove(m);
                 l.remove();
             }
@@ -437,7 +426,7 @@ public class GameField {
         for (Iterator<HitAnimation> l = hitAnimations.iterator(); l.hasNext();) {
             a = l.next();
             if (a.isDone()) {
-                hitAnimations.remove(a);
+                removeDrawable(a);
                 l.remove();
             }
         }
@@ -623,7 +612,8 @@ public class GameField {
      * Synchronously add drawable unit to draw queue.
      * @param d new drawable unit to add to queue.
      */
-    public void addDrawable(Drawable d) {
+    public synchronized void addDrawable(Drawable d) {
+        java.util.Objects.requireNonNull(d, "drawable");
         if (!drawqueue.contains(d)) {
             drawqueue.add(d);
         }
@@ -646,8 +636,9 @@ public class GameField {
      * Synchronously remove drawable unit from draw queue.
      * @param d drawable unit to remove from draw queue.
      */
-    public void removeDrawable(Drawable d) {
+    public synchronized void removeDrawable(Drawable d) {
         drawqueue.remove(d);
+        if (d instanceof WUnit unit) unit.releaseVisualState();
         //System.out.println("Drawable " + d.toString() + " removed.");
     }
 
@@ -738,12 +729,21 @@ public class GameField {
     }
     // </editor-fold>
 
-    public void startSelfExecution() {
-        new Thread(selfExecutor).start();
+    public synchronized void startSelfExecution() {
+        if (selfThread != null) throw new IllegalStateException("Field queue already started");
+        selfThread = new Thread(selfExecutor, "game-field-queue");
+        selfThread.start();
     }
 
-    public Graphics getPanelGraphics() {
-        return g;
+    @Override
+    public synchronized void close() {
+        selfExecutor.stop();
+        if (selfThread != null) selfThread.interrupt();
+        executor.shutdownNow();
+        for (Drawable drawable : drawqueue) {
+            if (drawable instanceof WUnit unit) unit.releaseVisualState();
+        }
+        drawqueue.clear();
     }
 
     /**
@@ -754,7 +754,7 @@ public class GameField {
         /**
          * Flag what cause thred to stop.
          */
-        private boolean stoped = false;
+        private volatile boolean stoped = false;
         /**
          * Execution queue.
          */
@@ -779,7 +779,6 @@ public class GameField {
                 Method m = field.getClass().getMethod(method, paramTypes);
                 //m.setAccessible(true);
                 q.add(new Invokable(m, args));
-                wakeup();
             } catch (NoSuchMethodException ex) {
                 ex.printStackTrace();
                 System.exit(1);
@@ -796,21 +795,12 @@ public class GameField {
         public void run() {
             try {
                 while (!stoped) {
-                    while (q.isEmpty()) {
-                        try {
-                            synchronized (q) {
-                                q.wait();
-                            }
-                        } catch (InterruptedException ex) {
-                            ex.printStackTrace();
-                            System.exit(1);
-                        }
-                    }
-
-                    Invokable i = q.remove();
+                    Invokable i = q.take();
                     i.getMethod().invoke(field, i.getArgs());
                     //System.out.println("I execute some method: " + i.getMethod().getName());
                 }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             } catch (IllegalAccessException ex) {
                 ex.printStackTrace();
                 System.exit(1);
@@ -828,12 +818,6 @@ public class GameField {
          */
         public void stop() {
             stoped = true;
-        }
-
-        private void wakeup() {
-            synchronized (q) {
-                q.notify();
-            }
         }
 
         private class Invokable {

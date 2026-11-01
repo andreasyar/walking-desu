@@ -57,7 +57,7 @@ val checks = sourceSets.create("checks") {
 
 val regressionCheck = tasks.register<JavaExec>("regressionCheck") {
     group = "verification"
-    description = "Check player death and gold hit bounds with the real client images."
+    description = "Check animations, rendering, drawable queues and gold hit bounds with real client images."
     classpath = checks.runtimeClasspath
     mainClass = "client.ClientRegressionCheck"
     jvmArgs("-Djava.awt.headless=true")

@@ -10,15 +10,13 @@ public class PeasantNuke extends Nuke {
     private WUnit attacker;
     private PeasantNukeAnimation animation;
     private Movement movement;
-    private long delay;
 
-    public PeasantNuke(WUnit attacker, long delay) {
+    public PeasantNuke(WUnit attacker) {
         final Point cur = attacker.getCurPos();
 
         movement = new Movement(cur.x, cur.y, 1.0);
         animation = new PeasantNukeAnimation("peasant_bolt");
         this.attacker = attacker;
-        this.delay = delay;
     }
 
     @Override
@@ -30,7 +28,7 @@ public class PeasantNuke extends Nuke {
             beg = (Point) attacker.getCurPos().clone();
             cur = target.getCurPos();
             movement.move(beg.x, beg.y, cur.x, cur.y, begTime);
-            animation.run(beg, target.getEnd(), movement.getCurPos());
+            animation.run(beg, new Point(cur), movement.getCurPos());
             lastUseTime = begTime;
         }
     }
@@ -42,7 +40,7 @@ public class PeasantNuke extends Nuke {
 
     @Override
     public boolean isMove() {
-        return movement.isMove();
+        return WUnit.now() < lastUseTime || movement.isMove();
     }
 
     @Override
@@ -56,7 +54,7 @@ public class PeasantNuke extends Nuke {
 
     @Override
     public Sprite getSprite() {
-        if (lastUseTime + delay <= System.currentTimeMillis() - ServerInteraction.serverStartTime) {
+        if (WUnit.now() >= lastUseTime && movement.isMove()) {
             return animation.getSprite();
         } else {
             return null;

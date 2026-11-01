@@ -62,7 +62,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     public synchronized void paintComponent(Graphics g) {
         try {
             super.paintComponent(g);
-            field.setGraphics(g);
 
             // Наш игрок.
             Player selfPlayer = field.getSelfPlayer();
@@ -156,7 +155,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 g.drawString("" + _count, 10, 20);// </editor-fold>
 
                 //field.drawAll(g, screenWorldX, screenWorldY, panelDim);
-                field.updateZBuffer(zbuffer, screenWorldX, screenWorldY, panelDim);
+                field.updateZBuffer(zbuffer, g, screenWorldX, screenWorldY, panelDim);
                 zbuffer.draw(g, screenWorldX, screenWorldY, panelDim);
 
                 field.drawTargetInfo(g, panelDim);
@@ -317,7 +316,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     @Override
     public void componentResized(ComponentEvent e) {
         panelDim = e.getComponent().getSize();
-        zbuffer.resize(panelDim.height);
     }
 
     @Override

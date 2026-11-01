@@ -10,6 +10,7 @@ public class CanonNuke extends Nuke {
     private WUnit attacker;
     private CanonNukeAnimation animation;
     private Movement movement;
+    private Point targetPosition;
 
     public CanonNuke(WUnit attacker) {
         final Point cur = attacker.getCurPos();
@@ -21,9 +22,8 @@ public class CanonNuke extends Nuke {
 
     @Override
     public Sprite getSprite() {
-        return animation.getSprite(attacker.getCurPos(),
-                                   attacker.getSelectedUnit().getCurPos(),
-                                   movement.getCurPos());
+        if (targetPosition == null || WUnit.now() < lastUseTime || !movement.isMove()) return null;
+        return animation.getSprite(movement.getBeg(), targetPosition, movement.getCurPos());
     }
 
     @Override
@@ -33,7 +33,8 @@ public class CanonNuke extends Nuke {
 
         if (target != null) {
             beg = (Point) attacker.getCurPos().clone();
-            cur = target.getCurPos();
+            cur = new Point(target.getCurPos());
+            targetPosition = cur;
             movement.move(beg.x, beg.y, cur.x, cur.y, begTime);
             lastUseTime = begTime;
         }
@@ -50,7 +51,7 @@ public class CanonNuke extends Nuke {
 
     @Override
     public boolean isMove() {
-        return movement.isMove();
+        return WUnit.now() < lastUseTime || movement.isMove();
     }
 
     @Override
