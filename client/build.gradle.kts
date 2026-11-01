@@ -38,6 +38,7 @@ tasks.processResources {
     dependsOn(verifyClientAssets)
     from(clientAssets) {
         include("img/**")
+        exclude("img/peasant.png", "img/peon.png") // Local source sheets, not runtime sprites.
     }
     duplicatesStrategy = DuplicatesStrategy.FAIL
 }

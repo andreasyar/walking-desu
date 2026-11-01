@@ -15,7 +15,7 @@ public final class DeathAnimation {
 
     public DeathAnimation(String set) {
         this.set = DirectionalSpriteSet.load(set + "_death");
-        if ("peasant".equals(set) || "poring".equals(set)) {
+        if ("peasant".equals(set) || "peon".equals(set) || "poring".equals(set)) {
             this.step = 150;
             run(Direction.SOUTH, 0);
         } else {

@@ -22,9 +22,8 @@ final class UnitAnimations {
         standing = new StandAnimation(name);
         standing.run(direction, time);
         attack = (name.equals("peasant") || name.equals("peon")) ? new UseSkillAnimation(name) : null;
-        // peon has no death frames; preserve the established peasant death fallback explicitly.
         death = switch (name) {
-            case "peasant", "peon" -> new DeathAnimation("peasant");
+            case "peasant", "peon" -> new DeathAnimation(name);
             case "poring" -> new DeathAnimation("poring");
             default -> null; // desu/tower: static standing frame, no death animator.
         };

@@ -59,7 +59,7 @@ final class RenderingRegressionCheck {
                 Sprite first = owner.sprite(3000, position, false, true);
                 owner.die(3100);
                 if (name.equals("peasant") || name.equals("peon") || name.equals("poring")) {
-                    String deathSet = name.equals("poring") ? "poring_death" : "peasant_death";
+                    String deathSet = name + "_death";
                     require(owner.sprite(3150, position, false, true).image
                             == DirectionalSpriteSet.load(deathSet).getSprite(direction, 1).image,
                             "Duplicate death must not restart elapsed time");
