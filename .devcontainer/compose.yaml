@@ -1,0 +1,32 @@
+services:
+  dev:
+    build:
+      context: .
+      target: dev
+      args:
+        HOST_UID: "${LOCAL_UID:?Open the project in Dev Container or run sh init-host.sh first}"
+        HOST_GID: "${LOCAL_GID:?Open the project in Dev Container or run sh init-host.sh first}"
+    init: true
+    user: "${LOCAL_UID:?Run sh init-host.sh first}:${LOCAL_GID:?Run sh init-host.sh first}"
+    working_dir: /workspace
+    environment:
+      GRADLE_USER_HOME: /workspace/.devcontainer/cache/gradle
+    volumes:
+      - ..:/workspace:z
+    command: ["sleep", "infinity"]
+
+  server:
+    profiles: ["runtime"]
+    build:
+      context: .
+      target: server
+    init: true
+    user: "${LOCAL_UID:?Run sh init-host.sh first}:${LOCAL_GID:?Run sh init-host.sh first}"
+    working_dir: /app
+    environment:
+      HOME: /tmp
+    volumes:
+      - ./artifacts/server:/app:ro,z
+    ports:
+      - "127.0.0.1:${SERVER_HOST_PORT:-45000}:45000"
+    stop_grace_period: 10s

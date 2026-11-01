@@ -1,1 +1,9 @@
 /recovered
+/.devcontainer/.env
+/.gradle/
+**/build/
+/.devcontainer/cache/
+/.devcontainer/artifacts/client/*
+!/.devcontainer/artifacts/client/.gitkeep
+/.devcontainer/artifacts/server/*
+!/.devcontainer/artifacts/server/.gitkeep

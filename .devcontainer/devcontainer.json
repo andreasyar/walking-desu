@@ -1,0 +1,12 @@
+{
+  "name": "Walking Desu",
+  "dockerComposeFile": "compose.yaml",
+  "service": "dev",
+  "runServices": ["dev"],
+  "workspaceFolder": "/workspace",
+  "remoteUser": "dev",
+  "initializeCommand": ["sh", "${localWorkspaceFolder}/.devcontainer/init-host.sh"],
+  "updateRemoteUserUID": false,
+  "overrideCommand": false,
+  "shutdownAction": "stopCompose"
+}
