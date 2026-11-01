@@ -860,7 +860,7 @@ public class GameField {
 
         private final Item item;
         private final ServerInteraction inter;
-        private boolean stopped = false;
+        private volatile boolean stopped = false;
 
         public PickupTask(Item item, ServerInteraction inter) throws IllegalArgumentException {
             if (item == null) {
@@ -881,11 +881,10 @@ public class GameField {
         @Override
         public void run() {
             double distance;
-            stopped = false;
             Point cur = selfPlayer.getCurPos();
 
             try {
-                while (!stopped && (distance = Point.distance(item.getX(), item.getY(), cur.x, cur.y)) > 10) {
+                while (!stopped && (distance = Point.distance(item.getX(), item.getY(), cur.x, cur.y)) > pickupDistance) {
 
                     // <editor-fold defaultstate="collapsed" desc="debug">
                     if (debugLevel > 0) {
@@ -896,20 +895,8 @@ public class GameField {
                             wait(500L);
                         }
                     } catch (InterruptedException ex) {
-
-                        // <editor-fold defaultstate="collapsed" desc="debug">
-                        if (debugLevel > 0) {
-                            System.out.println("We was interrupted.");
-                        }// </editor-fold>
-                        if ((distance = Point.distance(item.getX(), item.getY(), cur.x, cur.y)) > 10) {
-                            inter.addCommand(new PickupEtcItem(selfPlayer.getID(), item.getID()));
-                            selfPlayer.unselectItem(item);
-
-                            // <editor-fold defaultstate="collapsed" desc="debug">
-                            if (debugLevel > 0) {
-                                System.out.println("We pickup far item " + getItemID() + ".");
-                            }// </editor-fold>
-                        }
+                        Thread.currentThread().interrupt();
+                        selfPlayer.unselectItem(item);
                         return;
                     }
 

@@ -32,7 +32,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
     private BufferedImage geoDebugLayer = null;
     private Graphics geoDebugLayerGraph = null;
     private Dimension geoDebugLayerDim = null;
-    private boolean selectMode = false;
     private boolean showTowerRange = false;
     private GameField field;
     private ServerInteraction inter;
@@ -217,7 +216,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                 Item w = null;
                 Point selectedItemPos = null;
 
-                if (selectMode) {
+                if (e.isShiftDown()) {
                     for (Iterator<WUnit> li = field.getUnits().iterator(); li.hasNext();) {
                         unit = li.next();
                         spr = unit.getSprite();
@@ -239,6 +238,7 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
                             inter.addCommand(new PickupEtcItem(selfPlayer.getID(), w.getID()));
                             return;
                         } else {
+                            selected = false;
                             pickup = true;
                             selectedItemPos = new Point(w.getX(), w.getY());
                             // and we move to item if we can. See below.
@@ -373,10 +373,6 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
         int key = e.getKeyCode();
         if (key == KeyEvent.VK_ESCAPE) {
             field.getSelfPlayer().unselectUnit();
-        } else if (key == KeyEvent.VK_SHIFT) {
-            if (!selectMode) {
-                selectMode = true;
-            }
         } else if (key == KeyEvent.VK_F3) {
             WUnit self = field.getSelfPlayer();
             if (self.getSelectedUnit() != null
@@ -451,8 +447,5 @@ public class WanderingJPanel extends JPanel implements KeyListener, MouseListene
 
     @Override
     public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-            selectMode = false;
-        }
     }
 }

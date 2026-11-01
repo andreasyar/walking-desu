@@ -49,3 +49,18 @@ tasks.register<Sync>("publishDev") {
     into(rootProject.layout.projectDirectory.dir(".devcontainer/artifacts/client"))
     preserve { include(".gitkeep") }
 }
+
+val checks = sourceSets.create("checks") {
+    compileClasspath += sourceSets.main.get().runtimeClasspath
+    runtimeClasspath += sourceSets.main.get().runtimeClasspath
+}
+
+val regressionCheck = tasks.register<JavaExec>("regressionCheck") {
+    group = "verification"
+    description = "Check player death and gold hit bounds with the real client images."
+    classpath = checks.runtimeClasspath
+    mainClass = "client.ClientRegressionCheck"
+    jvmArgs("-Djava.awt.headless=true")
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+}
+tasks.check { dependsOn(regressionCheck) }

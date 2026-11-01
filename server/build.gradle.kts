@@ -1,3 +1,4 @@
+import java.time.Duration
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -54,3 +55,18 @@ tasks.register("publishDev") {
         }
     }
 }
+
+val checks = sourceSets.create("checks") {
+    compileClasspath += sourceSets.main.get().runtimeClasspath
+    runtimeClasspath += sourceSets.main.get().runtimeClasspath
+}
+
+val networkSmoke = tasks.register<JavaExec>("networkSmoke") {
+    group = "verification"
+    description = "Run protocol checks against an isolated server on an OS-assigned port."
+    classpath = checks.runtimeClasspath
+    mainClass = "server.javatestserver.NetworkSmokeCheck"
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+    timeout = Duration.ofSeconds(90)
+}
+tasks.check { dependsOn(networkSmoke) }

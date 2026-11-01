@@ -35,7 +35,7 @@ public class VisibleManager implements Runnable {
     /**
      * Require players lock.
      */
-    public void update() {
+    public synchronized void update() {
         Point beg, end, cur;
         for (Player p1 : players) {
             for (Player p2 : players) {
@@ -175,7 +175,7 @@ public class VisibleManager implements Runnable {
     /**
      * Require players lock.
      */
-    public void removePlayer(Player player) {
+    public synchronized void removePlayer(Player player) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(player)) {
                 server.sendTo("(delplayer " + player.getID() + ")", p);

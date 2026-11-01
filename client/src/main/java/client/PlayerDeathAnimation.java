@@ -7,14 +7,13 @@ public class PlayerDeathAnimation extends DeathAnimation {
     private int period; // Количество спрайтов в наборе
 
     private long step;  // Время показа каждого спрайта (или время смены спрайта)
-    private int delay;  // Задержка до очередного проигрывания
     private long begTime = 0;
 
     public PlayerDeathAnimation(String set) {
         super(set);
         if ("peasant".equals(set)) {
             this.step = 150;
-            this.delay = 0;
+            run(Direction.SOUTH, 0);
         } else {
             System.err.println("Death sprite set " + set + " not supported.");
             System.exit(1);
@@ -22,47 +21,20 @@ public class PlayerDeathAnimation extends DeathAnimation {
     }
 
     @Override
-    public final Sprite getSprite(long curTime, Point curPos) {
-        long tmpTime;
-        Sprite tmpSpr;
-
-        tmpTime = (curTime - begTime) % (step * period + delay);
-
-        if (curTime > begTime + step * period + delay) {
-            done = true;
-            return set.getSprite(direction, period - 1);
-        }
-
-        if (tmpTime <= step * period) {
-            int sprIndex = (int) (((tmpTime % (step * period)) / step));
-            if (sprIndex < 0) {
-                System.err.println("Something wery bad happen right now.");
-            }
-            if (sprIndex < period && sprIndex >= 0) {
-                tmpSpr = set.getSprite(direction, sprIndex);
-            } else {
-                tmpSpr = set.getSprite(direction, 0);
-            }
-            tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
-            tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
-            tmpSpr.baseX = curPos.x;
-            tmpSpr.baseY = curPos.y;
-            return tmpSpr;
-        } else {
-
-            // Now time to delay before new animation cycle. So return last
-            // sprite from stand animation.
-            tmpSpr = set.getSprite(direction, period - 1);
-            tmpSpr.x = curPos.x - tmpSpr.image.getWidth() / 2;
-            tmpSpr.y = curPos.y - tmpSpr.image.getHeight();
-            tmpSpr.baseX = curPos.x;
-            tmpSpr.baseY = curPos.y;
-            return tmpSpr;
-        }
+    public synchronized final Sprite getSprite(long curTime, Point curPos) {
+        long elapsed = Math.max(0, curTime - begTime);
+        int frame = (int) Math.min(elapsed / step, period - 1L);
+        done = elapsed >= step * period;
+        Sprite sprite = set.getSprite(direction, frame);
+        sprite.x = curPos.x - sprite.image.getWidth() / 2;
+        sprite.y = curPos.y - sprite.image.getHeight();
+        sprite.baseX = curPos.x;
+        sprite.baseY = curPos.y;
+        return sprite;
     }
 
     @Override
-    public void run(Direction direction, long begTime) {
+    public synchronized void run(Direction direction, long begTime) {
         done = false;
         this.begTime = begTime;
         this.direction = direction;

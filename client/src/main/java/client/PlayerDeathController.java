@@ -14,10 +14,11 @@ public class PlayerDeathController implements Runnable {
     @Override
     public void run() {
         for (Player p : players) {
-            if (p.dead() && p.deathAnimationDone()) {
-                p.restoreHitPoints();
-                p.teleportToSpawn();
-                p.resurect();
+            synchronized (p) {
+                if (p.dead() && p.deathAnimationDone()) {
+                    p.teleportToSpawn();
+                    p.resurect();
+                }
             }
         }
     }

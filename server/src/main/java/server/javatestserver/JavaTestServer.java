@@ -89,8 +89,8 @@ public class JavaTestServer {
                     final SocketProcessor processor = new SocketProcessor(s);
                     final Thread thread = new Thread(processor);
                     thread.setDaemon(true);
-                    thread.start();
                     clientQueue.offer(processor);
+                    thread.start();
                 } catch (IOException ignored) {
                 }
             }
@@ -223,8 +223,10 @@ public class JavaTestServer {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        System.out.println("Server starts at port: " + port);
-        new JavaTestServer(port).run();
+        int requestedPort = args.length == 0 ? port : Integer.parseInt(args[0]);
+        JavaTestServer server = new JavaTestServer(requestedPort);
+        System.out.println("Server starts at port: " + server.ss.getLocalPort());
+        server.run();
     }
 
     private class TimeSyncTask extends TimerTask {
@@ -257,8 +259,10 @@ public class JavaTestServer {
         BufferedWriter bw;
         private boolean helloReceived = false;
         private boolean nickReceived = false;
-        private boolean helloSended = false;
-        private Player self = null;
+        private volatile boolean helloSended = false;
+        private volatile Player self = null;
+        private volatile boolean closed;
+        private Thread senderThread;
         private LinkedBlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
         private ObjectOutputStream oos;
 
@@ -273,8 +277,16 @@ public class JavaTestServer {
 
         @Override
         public void run() {
+            try {
+                process();
+            } finally {
+                close();
+            }
+        }
+
+        private void process() {
             PacketSender sender = new PacketSender();
-            Thread senderThread = new Thread(sender);
+            senderThread = new Thread(sender);
             senderThread.setDaemon(true);
             senderThread.start();
 
@@ -284,8 +296,7 @@ public class JavaTestServer {
             try {
                 ois = new ObjectInputStream(s.getInputStream());
             } catch (IOException ex) {
-                ex.printStackTrace();
-                System.exit(1);
+                return;
             }
 
             while (!s.isClosed()) {
@@ -341,11 +352,14 @@ public class JavaTestServer {
 
                     }
 
+                } catch (EOFException e) {
+                    // Closing the client stream is a normal disconnect.
+                    return;
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    close();
-                    // Мы не возвращаем управление, потому что в строке
-                    // таки может что-то быть?
+                    if (!closed) {
+                        System.err.println("Client disconnected: " + e.getMessage());
+                    }
+                    return;
                 } catch (ClassNotFoundException ex) {
                     ex.printStackTrace();
                     System.exit(1);
@@ -473,30 +487,33 @@ public class JavaTestServer {
                             // <editor-fold defaultstate="collapsed" desc="Nick message processing">
                             Point selfCurPos;
 
-                            nickReceived = true;
-                            pieces = line.split(" ", 2);
-                            pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
-                            self = new Player(curPlayerID++, pieces[1], 100, 0, 0, 0.07);
-                            selfCurPos = self.getCurPos();
-                            if ("localhost".equals(s.getInetAddress().getHostName())) {
-                                self.setSpriteSetName("peasant");
-                            } else {
-                                self.setSpriteSetName("peon");
+                            synchronized (this) {
+                                if (closed) return;
+                                nickReceived = true;
+                                pieces = line.split(" ", 2);
+                                pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
+                                self = new Player(curPlayerID++, pieces[1], 100, 0, 0, 0.07);
+                                selfCurPos = self.getCurPos();
+                                if ("localhost".equals(s.getInetAddress().getHostName())) {
+                                    self.setSpriteSetName("peasant");
+                                } else {
+                                    self.setSpriteSetName("peon");
+                                }
+                                addMessage("(hello "
+                                        + self.getID() + " "
+                                        + self.getHitPoints() + " "
+                                        + 0.07 + " "
+                                        + selfCurPos.x + " "
+                                        + selfCurPos.y + " "
+                                        + (System.currentTimeMillis() - serverStartTime) + " "
+                                        + "\"" + self.getNick() + "\"" + " "
+                                        + "\"SOUTH\"" + " "
+                                        + "\"" + self.getSpriteSetName() + "\"" + ")");
+                                helloSended = true;
+                                players.add(self);
+                                units.add(self);
+                                System.out.println("Welcome to WD Java Test Server. Online: " + players.size() + " players (with you).");
                             }
-                            addMessage("(hello "
-                                    + self.getID() + " "
-                                    + self.getHitPoints() + " "
-                                    + 0.07 + " "
-                                    + selfCurPos.x + " "
-                                    + selfCurPos.y + " "
-                                    + (System.currentTimeMillis() - serverStartTime) + " "
-                                    + "\"" + self.getNick() + "\"" + " "
-                                    + "\"SOUTH\"" + " "
-                                    + "\"" + self.getSpriteSetName() + "\"" + ")");
-                            helloSended = true;
-                            players.add(self);
-                            units.add(self);
-                            System.out.println("Welcome to WD Java Test Server. Online: " + players.size() + " players (with you).");
                             // </editor-fold>
                         }
                     } else if ("hello".equals(pieces[0])) {
@@ -507,27 +524,28 @@ public class JavaTestServer {
         }
 
         public synchronized void close() {
+            if (closed) {
+                return;
+            }
+            closed = true;
+            helloSended = false;
             clientQueue.remove(this);
+            if (senderThread != null) {
+                senderThread.interrupt();
+            }
             if (!s.isClosed()) {
                 try {
                     s.close();
                 } catch (IOException ignored) {
                 }
-            } else {
-                return;
             }
             if (self != null) {
-                vm.removePlayer(self);
-                players.remove(self);
-                units.remove(self);
-                self = null;
+                synchronized (vm) {
+                    players.remove(self);
+                    units.remove(self);
+                    vm.removePlayer(self);
+                }
             }
-        }
-
-        @Override
-        protected void finalize() throws Throwable {
-            super.finalize();
-            close();
         }
 
         public Player getSelfPlayer() {
@@ -539,20 +557,11 @@ public class JavaTestServer {
         }
 
         public void addMessage(String s) {
-            try {
-                messages.put(new OtherMessage(s));
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
+            messages.offer(new OtherMessage(s));
         }
 
         public void addMessage(Message m) {
-            //System.out.println("Message " + m + " added.");
-            try {
-                messages.put(m);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
+            messages.offer(m);
         }
 
         private class PacketSender implements Runnable {
@@ -564,7 +573,7 @@ public class JavaTestServer {
                 Message message = null;
 
                 try {
-                    while (true) {
+                    while (!closed) {
                         if (messages.size() > 0) {
                             for (Iterator<Message> i = messages.iterator(); i.hasNext();) {
                                 message = i.next();
@@ -579,7 +588,7 @@ public class JavaTestServer {
                         Thread.sleep(50L);
                     }
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                    Thread.currentThread().interrupt();
                 } catch (IOException ex) {
                     System.err.println(message);
                     if (self != null) {
@@ -588,6 +597,8 @@ public class JavaTestServer {
                         System.err.println("Omg self player is null Sending packed failed also.");
                     }
                     ex.printStackTrace();
+                } finally {
+                    close();
                 }
             }
         }
@@ -612,10 +623,12 @@ public class JavaTestServer {
                         JTSUnit target = bolt.getTarget();
 
                         target.doHit(attacker.getDamage());
-                        sendFromUnit(new HitMessage(attacker.getID(),
-                                                    target.getID(),
-                                                    attacker.getDamage()),
-                                     target);
+                        HitMessage hit = new HitMessage(attacker.getID(), target.getID(), attacker.getDamage());
+                        sendFromUnit(hit, target);
+                        // A player does not include itself in its visible-units list.
+                        if (target instanceof Player player) {
+                            sendTo(hit, player);
+                        }
                         if (target.dead()) {
                             if (monsters.contains(target)) {
                                 monsters.remove(target);

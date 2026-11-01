@@ -36,6 +36,15 @@ public class ClientEtc extends Etc implements Drawable {
                 layAnimation = new LayGroundAnimation(name);
                 break;
         }
+        Sprite sprite = layAnimation.getSprite(0, 0);
+        setW(sprite.image.getWidth());
+        setH(sprite.image.getHeight());
+    }
+
+    @Override
+    public boolean onItem(int x, int y) {
+        return x >= getX() - getW() / 2 && x < getX() - getW() / 2 + getW()
+                && y >= getY() - getH() / 2 && y < getY() - getH() / 2 + getH();
     }
 
     /**
@@ -70,12 +79,12 @@ public class ClientEtc extends Etc implements Drawable {
      * @param d dimensions of drawing context on world map.
      */
     public void draw(Graphics g, int x, int y, Dimension d) {
-        Sprite s = layAnimation.getSprite(getX(), getY());
+        Sprite s = getSprite();
 
         if (s != null) {
             g.drawImage(s.image,
-                        s.x - x - s.image.getWidth() / 2,
-                        s.y - y - s.image.getHeight() / 2,
+                        s.x - x,
+                        s.y - y,
                         null);
             g.drawString(getName() + "(" + getCount() + ")",
                          s.x - x,
@@ -84,8 +93,8 @@ public class ClientEtc extends Etc implements Drawable {
             // Point where item placed in world map and border around sprite
             // image.
             g.drawLine(s.x - x, s.y - y, s.x - x, s.y - y);
-            g.drawRect(s.x - x - s.image.getWidth() / 2 - 1,
-                       s.y - y - s.image.getHeight() / 2,
+            g.drawRect(s.x - x - 1,
+                       s.y - y,
                        s.image.getWidth() + 1,
                        s.image.getHeight() + 1);
         }
@@ -96,6 +105,11 @@ public class ClientEtc extends Etc implements Drawable {
      * @return sprite.
      */
     public Sprite getSprite() {
-        return layAnimation.getSprite(getX(), getY());
+        Sprite sprite = layAnimation.getSprite(getX(), getY());
+        sprite.baseX = getX();
+        sprite.baseY = getY();
+        sprite.x -= getW() / 2;
+        sprite.y -= getH() / 2;
+        return sprite;
     }
 }

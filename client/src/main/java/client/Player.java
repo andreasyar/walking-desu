@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class Player extends WUnit {
 
     private PickupAnimation pickupAnim;
+    private boolean deathStarted;
 
     private final Inventory inventory = new Inventory();
 
@@ -21,31 +22,36 @@ public class Player extends WUnit {
     }
 
     @Override
-    public void doHit(int dmg) {
-        hitPoints -= dmg;
-        if (hitPoints < 0) {
-            hitPoints = 0;
+    public synchronized void doHit(int dmg) {
+        hitPoints = Math.max(0, hitPoints - dmg);
+        if (hitPoints == 0) {
+            kill();
         }
     }
 
-    public void restoreHitPoints() {
+    public synchronized void restoreHitPoints() {
         hitPoints = maxHitPoints;
+        deathStarted = false;
     }
 
-    public void teleportToSpawn() {
+    public synchronized void teleportToSpawn() {
         move(0, 0, 0, 0, System.currentTimeMillis() - ServerInteraction.serverStartTime);
     }
 
-    public void teleportTo(int x, int y) {
+    public synchronized void teleportTo(int x, int y) {
         move(x, y, x, y, System.currentTimeMillis() - ServerInteraction.serverStartTime);
     }
 
-    public void doHeal(int val) {
+    public synchronized void doHeal(int val) {
         hitPoints += val;
     }
 
     @Override
-    public void kill() {
+    public synchronized void kill() {
+        if (deathStarted) {
+            return;
+        }
+        deathStarted = true;
         Direction d;
 
         if ((d = moveAnim.getDirection()) == null
@@ -54,15 +60,31 @@ public class Player extends WUnit {
         }
         deathAnim.run(d, System.currentTimeMillis() - ServerInteraction.serverStartTime);
         mv.stop();
+        hitPoints = 0;
     }
 
-    public void resurect() {
-        hitPoints = maxHitPoints;
+    public synchronized void resurect() {
+        restoreHitPoints();
     }
 
     @Override
-    public boolean dead() {
+    public synchronized boolean dead() {
         return hitPoints <= 0;
+    }
+
+    @Override
+    public synchronized void move(int begX, int begY, int endX, int endY, long begTime) {
+        super.move(begX, begY, endX, endY, begTime);
+    }
+
+    @Override
+    public synchronized Sprite getSprite() {
+        return super.getSprite();
+    }
+
+    @Override
+    public synchronized boolean deathAnimationDone() {
+        return super.deathAnimationDone();
     }
 
     /**
