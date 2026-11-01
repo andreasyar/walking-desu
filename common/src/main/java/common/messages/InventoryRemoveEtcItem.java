@@ -9,6 +9,7 @@ import java.io.Serializable;
  * @author CatsPaw
  */
 public class InventoryRemoveEtcItem implements Message, Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Message type.

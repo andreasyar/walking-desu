@@ -2,7 +2,7 @@ package server.javatestserver;
 
 import common.items.Item;
 import common.MoveMessage;
-import common.messages.PickupEtcItem;
+import common.messages.DisappearEtcItem;
 import java.awt.Point;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -28,7 +28,7 @@ public class VisibleManager implements Runnable {
             update();
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(1);
+
         }
     }
 
@@ -166,7 +166,7 @@ public class VisibleManager implements Runnable {
 
                     // Игрок больше не видит этот итем.
                     p1.delVisibleItem(i);
-                    server.sendTo(new PickupEtcItem(p1.getID(), i.getID()), p1);
+                    server.sendTo(new DisappearEtcItem(i.getID()), p1);
                 }
             }//items
         }
@@ -175,6 +175,15 @@ public class VisibleManager implements Runnable {
     /**
      * Require players lock.
      */
+    public synchronized void removeItem(Item item) {
+        for (Player player : players) {
+            if (player.see(item)) {
+                player.delVisibleItem(item);
+                server.sendTo(new DisappearEtcItem(item.getID()), player);
+            }
+        }
+    }
+
     public synchronized void removePlayer(Player player) {
         for (Player p : players) {
             if (p.getVisibleUnitsList().remove(player)) {

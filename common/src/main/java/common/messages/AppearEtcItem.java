@@ -8,12 +8,13 @@ import java.io.Serializable;
  * Message what nofity client what etc item appears on the ground.
  * @author CatsPaw
  */
-public class AddEtcItem implements Message, Serializable {
+public class AppearEtcItem implements Message, Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Message type.
      */
-    private final MessageType type = MessageType.ADDETCITEM;
+    private final MessageType type = MessageType.APPEARETCITEM;
     /**
      * Id of etc item.
      */
@@ -43,7 +44,7 @@ public class AddEtcItem implements Message, Serializable {
      * @param count count of etc item.
      * @param itemType type of etc item.
      */
-    public AddEtcItem(long id, int x, int y, int count, Items itemType) {
+    public AppearEtcItem(long id, int x, int y, int count, Items itemType) {
         this.id = id;
         this.x = x;
         this.y = y;

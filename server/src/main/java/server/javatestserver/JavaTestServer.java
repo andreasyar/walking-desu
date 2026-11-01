@@ -40,7 +40,7 @@ public class JavaTestServer {
     private ServerSocket ss;
     private Thread serverThread;
     BlockingQueue<SocketProcessor> clientQueue = new LinkedBlockingQueue<SocketProcessor>();
-    private long curPlayerID = 1;
+    private final java.util.concurrent.atomic.AtomicLong nextId = new java.util.concurrent.atomic.AtomicLong(1);
     ArrayList<Long> playerIDs = new ArrayList<Long>();
     private final LinkedBlockingQueue<JTSUnit> units = new LinkedBlockingQueue<JTSUnit>();
     private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
@@ -54,10 +54,12 @@ public class JavaTestServer {
     public static final long serverStartTime = System.currentTimeMillis();
     private static final int port = 45000;
     private TimeSyncTask ts;
-    private VisibleManager vm;
+    // Shared monitor for item visibility, transfers, drops and disconnects (always before Inventory).
+    private final VisibleManager vm;
 
     public JavaTestServer(int port) throws IOException {
         ss = new ServerSocket(port);
+        vm = new VisibleManager(players, towers, monsters, items, this);
         ts = new TimeSyncTask();
 
         // Classes what server use also whant to know server start time.
@@ -74,7 +76,6 @@ public class JavaTestServer {
         c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));
         TowerController t = new TowerController();
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
-        vm = new VisibleManager(players, towers, monsters, items, this);
         executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
         GeoDataController gdController = new GeoDataController(players);
         gdController.setScheduledFuture(executor.scheduleAtFixedRate(gdController, 0L, 200L, TimeUnit.MILLISECONDS));
@@ -316,33 +317,7 @@ public class JavaTestServer {
 
                     } else if (message.getType() == MessageType.PICKUPETCITEM) {
 
-                        System.out.println(s.getInetAddress() + " --> " + message);
-
-                        // We ignore pickerId because we expect what all PICKUP
-                        // messages sends from self player.
-
-                        PickupEtcItem tmpMsg = ((PickupEtcItem) message);
-                        Item tmpItem = null;
-                        for (Item i : items) {
-                            if (i.getID() == tmpMsg.getItemId()) {
-                                tmpItem = i;
-                                break;
-                            }
-                        }
-                        if (tmpItem != null) {
-
-                            // We can pickup this item.
-                            // TODO lol may be some check if we actually can pickup?
-
-                            items.remove(tmpItem);
-                            sendToAll(new Message[] {new PickupEtcItem(self.getID(), tmpItem.getID())});
-                            tmpItem.addToInventory(self.getInventory());
-                            sendTo(tmpItem.getAddToInvenrotyMessage(), self);
-                        } else {
-                            System.err.println("Item " + tmpMsg.getItemId() + " not found!");
-                        }
-
-                        // Read next message from client.
+                        pickup((PickupEtcItem) message);
                         continue;
 
                     } else {
@@ -447,7 +422,7 @@ public class JavaTestServer {
                                 /* Создадим новую башню и добавим её в список
                                  * башен.
                                  */
-                                Tower t = new Tower(curPlayerID++, "Tower", 200.0, 10, 1000L, Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
+                                Tower t = new Tower(nextId.getAndIncrement(), "Tower", 200.0, 10, 1000L, Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
                                 towers.add(t);
                                 units.add(t);
                                 // </editor-fold>
@@ -474,7 +449,7 @@ public class JavaTestServer {
                                 }
                                 sendTo(new HMapMessage(mapFrag.getHmap(), idx, idy), self);
 
-                                Monster mon = new Monster(curPlayerID++, "Monster", 100, idx * MapFragment.getHeight() + 100, idy * MapFragment.getWidth() + 100, 0.5);
+                                Monster mon = new Monster(nextId.getAndIncrement(), "Monster", 100, idx * MapFragment.getHeight() + 100, idy * MapFragment.getWidth() + 100, 0.5);
                                 System.out.println("New mon spawned in " + (idx * MapFragment.getHeight() + 100)
                                                    + ", "
                                                    + (idy * MapFragment.getWidth() + 100));
@@ -492,7 +467,7 @@ public class JavaTestServer {
                                 nickReceived = true;
                                 pieces = line.split(" ", 2);
                                 pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
-                                self = new Player(curPlayerID++, pieces[1], 100, 0, 0, 0.07);
+                                self = new Player(nextId.getAndIncrement(), pieces[1], 100, 0, 0, 0.07);
                                 selfCurPos = self.getCurPos();
                                 if ("localhost".equals(s.getInetAddress().getHostName())) {
                                     self.setSpriteSetName("peasant");
@@ -523,29 +498,49 @@ public class JavaTestServer {
             }
         }
 
-        public synchronized void close() {
-            if (closed) {
-                return;
-            }
-            closed = true;
-            helloSended = false;
-            clientQueue.remove(this);
-            if (senderThread != null) {
-                senderThread.interrupt();
-            }
-            if (!s.isClosed()) {
-                try {
-                    s.close();
-                } catch (IOException ignored) {
+        private void pickup(PickupEtcItem request) {
+            synchronized (vm) {
+                if (closed || !loggedIn() || self == null || !players.contains(self) || self.dead()) return;
+                Etc item = null;
+                for (Item candidate : items) {
+                    if (candidate.getID() == request.getItemId() && candidate instanceof Etc etc) {
+                        item = etc;
+                        break;
+                    }
                 }
+                if (item == null || self.getCurPos().distance(item.getX(), item.getY()) > 50.0) return;
+                synchronized (self.getInventory()) {
+                    try {
+                        self.getInventory().validateAdd(item);
+                    } catch (common.InventoryException rejected) {
+                        return;
+                    }
+                    if (!items.remove(item)) return;
+                    Etc stack = self.getInventory().addEtc(item);
+                    // Delta quantity, canonical inventory stack ID (may differ from ground ID).
+                    sendTo(new common.messages.InventoryAddEtcItem(stack.getID(), item.getCount(), stack.getType()), self);
+                }
+                vm.removeItem(item);
+                sendTo(new PickupEtcItem(self.getID(), item.getID()), self);
             }
-            if (self != null) {
-                synchronized (vm) {
+        }
+
+        public synchronized void close() {
+            synchronized (vm) {
+                if (closed) return;
+                closed = true;
+                helloSended = false;
+                clientQueue.remove(this);
+                if (self != null) {
+                    // A committed pickup survives a simultaneous disconnect as a world drop.
+                    dropGold(self, false);
                     players.remove(self);
                     units.remove(self);
                     vm.removePlayer(self);
                 }
             }
+            if (senderThread != null) senderThread.interrupt();
+            try { s.close(); } catch (IOException ignored) { }
         }
 
         public Player getSelfPlayer() {
@@ -604,6 +599,22 @@ public class JavaTestServer {
         }
     }
 
+    private void dropGold(Player player, boolean notifyOwner) {
+        synchronized (vm) {
+            synchronized (player.getInventory()) {
+                ArrayList<Etc> gold = player.getInventory().getEtc(Items.GOLD);
+                if (gold.isEmpty()) return;
+                Etc stack = gold.get(0);
+                player.getInventory().removeEtc(stack.getID(), stack.getCount());
+                if (notifyOwner) sendTo(new common.messages.InventoryRemoveEtcItem(stack.getID(), stack.getCount(), stack.getType()), player);
+                Point position = player.getCurPos();
+                stack.setX(position.x);
+                stack.setY(position.y);
+                items.add(stack);
+            }
+        }
+    }
+
     private class NukeAction implements Runnable {
 
         private NukeBolt bolt;
@@ -636,14 +647,7 @@ public class JavaTestServer {
                                 vm.killMonster((Monster) target);
                             } else if (players.contains(target)) {
                                 Player p = (Player) target;
-                                ArrayList<Etc> gold = p.getInventory().getEtc(Items.GOLD);
-                                if (gold != null) {
-                                    p.getInventory().removeEtc(gold.get(0));
-                                    sendTo(gold.get(0).getRemoveFromInventoryMessage(), p);
-                                    gold.get(0).setX(p.getCurPos().x);
-                                    gold.get(0).setY(p.getCurPos().y);
-                                    items.add(gold.get(0));
-                                }
+                                dropGold(p, true);
                                 p.restoreHitPoints();
                                 p.teleportToSpawn();
                                 sendToAll(new String[] { "(teleport " + p.getID() + " " + p.getCurPos().x + " " + p.getCurPos().y + ")" });
@@ -780,7 +784,7 @@ public class JavaTestServer {
                     // Spawn new monsters.
                     for (int i = 0; i < monsterCount + monCountAdd; i++) {
                         beg = new Point(544 + rand.nextInt(287), 0 + rand.nextInt(64));
-                        m = new Monster(curPlayerID++, "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
+                        m = new Monster(nextId.getAndIncrement(), "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
                         m.setSpriteSetName("poring");
                         tdMonsters.add(m);
                         monsters.add(m);
@@ -815,11 +819,10 @@ public class JavaTestServer {
                         mCurPos = m.getCurPos();
 
                         // Drop coins.
-                        ServerEtc coins = new ServerEtc(curPlayerID++, "Gold", Items.GOLD);
-                        coins.setCount(1 + rand.nextInt(99));
+                        ServerEtc coins = new ServerEtc(nextId.getAndIncrement(), "Gold", Items.GOLD, 1 + rand.nextInt(99));
                         coins.setX(mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10);
                         coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
-                        items.add(coins);
+                        synchronized (vm) { items.add(coins); }
 
                         units.remove(m);
                         monsters.remove(m);

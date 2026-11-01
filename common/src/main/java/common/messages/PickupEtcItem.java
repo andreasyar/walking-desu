@@ -4,12 +4,13 @@ import common.Message;
 import java.io.Serializable;
 
 /**
- * Pickup message what used both on client and server. Cliet use this message
- * to request pickup action from server. Server use this message to notify
- * client about any pickup actions.
+ * Client pickup request; the server derives the player from the connection.
+ * The server acknowledges success only to the picker. This message changes
+ * neither visibility nor inventory: those have separate messages.
  * @author sorc
  */
 public class PickupEtcItem implements Message, Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Message type.

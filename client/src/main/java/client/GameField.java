@@ -657,6 +657,7 @@ public class GameField implements AutoCloseable {
         synchronized (etcItems) {
             switch (item.getType()) {
                 case GOLD:
+                    removeEtcById(item.getID());
                     etcItems.add(item);
                     addDrawable(item);
                     //System.out.println("Item id=" + item.getID() + " dropped to the ground.");
@@ -684,10 +685,22 @@ public class GameField implements AutoCloseable {
      * Synchronous remove etc item from game field.
      * @param item etc item.
      */
+    public void removeEtcById(long id) {
+        synchronized (etcItems) {
+            ClientEtc item = getEtc(id);
+            if (item != null) removeEtc(item);
+        }
+    }
+
+    public void asyncRemoveEtcById(long id) {
+        selfExecutor.add("removeEtcById", new Class[]{long.class}, new Object[]{id});
+    }
+
     public void removeEtc(ClientEtc item) {
         synchronized(etcItems) {
             removeDrawable(item);
             etcItems.remove(item);
+            if (selfPlayer != null) selfPlayer.unselectItem(item);
         }
     }
 

@@ -19,7 +19,7 @@ import javax.swing.Timer;
 /** Optional desktop integration check. Needs DISPLAY, GUI Java and an isolated server JAR. */
 public final class GraphicalClientCheck {
     private static final Path OUTPUT = Path.of("client/build/graphical-check");
-    private static final class Session {
+    static final class Session {
         final GameField field = new GameField();
         final ServerInteraction interaction;
         final WanderingGUI gui;
@@ -123,7 +123,7 @@ public final class GraphicalClientCheck {
             Tower tower = new Tower(-13, "tower", 100, 10, 1000, 390, 150, Direction.EAST, "tower");
             first.field.asyncAddPlayer(peon); first.field.asyncAddPlayer(desu);
             first.field.asyncAddMonster(poring); first.field.asyncAddTower(tower);
-            ClientEtc gold = new ClientEtc(-14, "Gold", Items.GOLD);
+            ClientEtc gold = new ClientEtc(-14, "Gold", Items.GOLD, 1);
             gold.setX(140); gold.setY(180); first.field.asyncAddEtc(gold);
             await(() -> first.field.getDrawQueue().contains(gold), "visual fixtures");
             peon.selectUnit(self); peon.attack(WUnit.now());

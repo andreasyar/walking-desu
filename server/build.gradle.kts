@@ -70,3 +70,13 @@ val networkSmoke = tasks.register<JavaExec>("networkSmoke") {
     timeout = Duration.ofSeconds(90)
 }
 tasks.check { dependsOn(networkSmoke) }
+
+val itemNetworkCheck = tasks.register<JavaExec>("itemNetworkCheck") {
+    group = "verification"
+    description = "Check atomic item transfers and visibility with real sockets on an isolated port."
+    classpath = checks.runtimeClasspath
+    mainClass = "server.javatestserver.ItemNetworkCheck"
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+    timeout = Duration.ofSeconds(90)
+}
+tasks.check { dependsOn(itemNetworkCheck) }

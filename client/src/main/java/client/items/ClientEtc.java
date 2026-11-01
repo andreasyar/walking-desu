@@ -25,9 +25,10 @@ public class ClientEtc extends Etc implements Drawable {
      * @param id id of new etc item.
      * @param name name of new etc item.
      * @param type type of new etc item.
+     * @param count initial positive quantity.
      */
-    public ClientEtc (long id, String name, Items type) {
-        super(id, name, type);
+    public ClientEtc (long id, String name, Items type, int count) {
+        super(id, name, type, count);
         switch (type) {
             case GOLD:
                 layAnimation = new LayGroundAnimation("coin_stacks_gold");
@@ -45,22 +46,6 @@ public class ClientEtc extends Etc implements Drawable {
     public boolean onItem(int x, int y) {
         return x >= getX() - getW() / 2 && x < getX() - getW() / 2 + getW()
                 && y >= getY() - getH() / 2 && y < getY() - getH() / 2 + getH();
-    }
-
-    /**
-     * Returns message notify user what etc item added to his inventory.
-     * @return message what notify user what etc item added to his inventory.
-     */
-    public Message getAddToInvenrotyMessage() {
-        throw new UnsupportedOperationException("Client cannot send to server this message.");
-    }
-
-    /**
-     * Returns message notify user what etc item removed from his inventory.
-     * @return message waht notify user what etc item removed from his inventory.
-     */
-    public Message getRemoveFromInventoryMessage() {
-        throw new UnsupportedOperationException("Client cannot send to server this message.");
     }
 
     /**

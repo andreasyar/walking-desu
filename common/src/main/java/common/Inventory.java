@@ -4,84 +4,59 @@ import common.items.Etc;
 import common.items.Items;
 import java.util.ArrayList;
 
-/**
- * Inventory.
- * @author sorc
- */
+/** Inventory owns stack changes. World transfers additionally require the server world lock. */
 public class Inventory {
+    private final ArrayList<Etc> etcs = new ArrayList<>();
 
-    /**
-     * List of etc items.
-     */
-    protected final ArrayList<Etc> etcs = new ArrayList<Etc>();
-
-    /**
-     * Returns etc items of <i>type</i> type.
-     * @param type type of etc items.
-     */
-    public ArrayList<Etc> getEtc(Items type) {
-        ArrayList<Etc> tmpEtcs = null;
-
-        synchronized (etcs) {
-            for (Etc items : etcs) {
-                if (items.getType() == type) {
-                    if (tmpEtcs == null) {
-                        tmpEtcs = new ArrayList<Etc>();
-                    }
-                    tmpEtcs.add(items);
-                }
-            }
-        }
-
-        return tmpEtcs;
+    public synchronized ArrayList<Etc> getEtc(Items type) {
+        ArrayList<Etc> result = new ArrayList<>();
+        for (Etc item : etcs) if (item.getType() == type) result.add(item);
+        return result;
     }
 
-    /**
-     * Adds etc item to inventory.
-     * @param etc item item to add.
-     * @return return TRUE if new item added to items list, FALSE otherwise.
-     */
-    public boolean addEtc(Etc item) {
-        synchronized (etcs) {
-            switch (item.getType()) {
-                case GOLD:
-                    ArrayList<Etc> tmpEtcs = getEtc(Items.GOLD);
-                    if (tmpEtcs == null) {
-                        return etcs.add(item);
-                    } else {
-                        tmpEtcs.get(0).setCount(tmpEtcs.get(0).getCount() + item.getCount());
-                        return false;
-                    }
-                default:
-                    return false;
-            }
-        }
+    public synchronized Etc getEtc(long id) {
+        for (Etc item : etcs) if (item.getID() == id) return item;
+        return null;
     }
 
-    /**
-     * Removes etc item from inventory.
-     * @param item etc item to remove.
-     */
-    public void removeEtc(Etc item) {
-        synchronized (etcs) {
-            switch (item.getType()) {
-                case GOLD:
-                    etcs.remove(item);
-                    break;
-            }
-        }
+    /** Validate before removing a ground item. Caller holds the world lock across transfer. */
+    public synchronized void validateAdd(Etc item) {
+        if (item == null || item.getType() == null || item.getCount() <= 0)
+            throw new InventoryException("Invalid item or quantity");
+        Etc byId = getEtc(item.getID());
+        if (byId != null && byId.getType() != item.getType())
+            throw new InventoryException("Item ID belongs to a different type");
+        ArrayList<Etc> stacks = getEtc(item.getType());
+        if (!stacks.isEmpty() && (long) stacks.get(0).getCount() + item.getCount() > Integer.MAX_VALUE)
+            throw new InventoryException("Stack quantity overflow");
     }
 
-    /**
-     * Removes item by id.
-     * @param id item id.
-     */
-    public void removeById(long id) {
-        for (Etc etc : etcs) {
-            if (etc.getID() == id) {
-                etc.removeFromInventory(this);
-                return;
-            }
+    /** Adds a quantity and returns the canonical stack, retaining its existing ID. */
+    public synchronized Etc addEtc(Etc item) {
+        validateAdd(item);
+        ArrayList<Etc> stacks = getEtc(item.getType());
+        if (stacks.isEmpty()) {
+            etcs.add(item);
+            return item;
         }
+        Etc stack = stacks.get(0);
+        stack.setCount(stack.getCount() + item.getCount());
+        return stack;
+    }
+
+    /** Subtract by authoritative ID and quantity, never by object identity or type. */
+    public synchronized void removeEtc(long id, int count) {
+        Etc stack = getEtc(id);
+        if (stack == null) throw new InventoryException("Item not found: " + id);
+        if (count <= 0 || count > stack.getCount())
+            throw new InventoryException("Invalid removal quantity: " + count);
+        if (count == stack.getCount()) etcs.remove(stack);
+        else stack.setCount(stack.getCount() - count);
+    }
+
+    public synchronized void removeById(long id) {
+        Etc stack = getEtc(id);
+        if (stack == null) throw new InventoryException("Item not found: " + id);
+        removeEtc(id, stack.getCount());
     }
 }

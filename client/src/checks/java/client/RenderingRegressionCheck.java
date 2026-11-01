@@ -112,7 +112,7 @@ final class RenderingRegressionCheck {
             field.removeDrawable(front);
             field.removeDrawable(back);
 
-            ClientEtc gold = new ClientEtc(900, "Gold", Items.GOLD);
+            ClientEtc gold = new ClientEtc(900, "Gold", Items.GOLD, 1);
             gold.setX(100); gold.setY(100);
             field.addDrawable(gold);
             Player player = new Player(901, "Long name for paint metrics", 100, .07, 100, 100, Direction.SOUTH, "peasant");

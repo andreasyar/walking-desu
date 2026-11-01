@@ -1,6 +1,7 @@
 package server.javatestserver;
 
 import common.Inventory;
+import common.items.Etc;
 import common.items.Item;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -138,8 +139,8 @@ public class Player extends JTSUnit {
      * Adds item to inventory.
      * @param item item to add.
      */
-    public void addItemToInventory(Item item) {
-        item.addToInventory(getInventory());
+    public void addItemToInventory(Etc item) {
+        getInventory().addEtc(item);
     }
 
     /**
@@ -154,8 +155,8 @@ public class Player extends JTSUnit {
      * Removes item from inventory.
      * @param item item.
      */
-    void removeItemFromInventory(Item item) {
-        item.removeFromInventory(getInventory());
+    public void removeItemFromInventory(long id, int count) {
+        getInventory().removeEtc(id, count);
     }
 
     /**

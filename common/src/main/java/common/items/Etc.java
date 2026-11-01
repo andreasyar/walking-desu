@@ -1,6 +1,6 @@
 package common.items;
 
-import common.Inventory;
+import java.util.Objects;
 
 /**
  * Прочий предмет. Например: золото, кусок металла, пробка. Все предметы, для
@@ -19,33 +19,19 @@ public abstract class Etc extends Item {
      * @param id id нового предмета.
      * @param name имя нового предмета.
      * @param type тип нового предмета.
+     * @param count начальное положительное количество.
      */
-    protected Etc(long id, String name, Items type) {
-        super(id, name);
-        this.type = type;
+    protected Etc(long id, String name, Items type, int count) {
+        super(id, name, count);
+        this.type = Objects.requireNonNull(type);
     }
 
     /**
      * Возвращает тип прочего предмета.
-     * @param тип прочего предмета.
+     * @return тип прочего предмета.
      */
     public Items getType() {
         return type;
     }
 
-    /**
-     * Adds etc item to inventory <i>inv</i>.
-     * @param inv inventory.
-     */
-    public void addToInventory(Inventory inv) {
-        inv.addEtc(this);
-    }
-
-    /**
-     * Removes etc item from inventory <i>inv</i>.
-     * @param inv inventory.
-     */
-    public void removeFromInventory(Inventory inv) {
-        inv.removeEtc(this);
-    }
 }

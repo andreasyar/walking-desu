@@ -1,7 +1,6 @@
 package client;
 
 import client.items.ClientEtc;
-import common.items.Item;
 import common.BoltMessage;
 import java.awt.Point;
 import java.io.PrintWriter;
@@ -24,10 +23,10 @@ import common.messages.MessageType;
 import common.MoveMessage;
 
 import common.WanderingServerTime;
-import common.messages.AddEtcItem;
+import common.messages.AppearEtcItem;
 import common.messages.InventoryAddEtcItem;
 import common.messages.InventoryRemoveEtcItem;
-import common.messages.PickupEtcItem;
+import common.messages.DisappearEtcItem;
 import java.io.ObjectOutputStream;
 
 public class ServerInteraction {
@@ -84,9 +83,10 @@ public class ServerInteraction {
     }
 
     public void disconnect() {
-        if (serverSocket.isConnected()) {
+        if (!serverSocket.isClosed()) {
             try {
                 serverSocket.close();
+                synchronized (commands) { commands.notifyAll(); }
             } catch (IOException ignored) {}
         }
     }
@@ -239,10 +239,6 @@ public class ServerInteraction {
                 field.addNuke(self, self.getSelectedUnit(), System.currentTimeMillis() - ServerInteraction.serverStartTime + self.getNukeAnimationDelay());
                 WanderingLocks.unlockNukes();
             }*/
-        } else if ("delitemfrominv".equals(pieces1[0])) {
-
-            field.getSelfPlayer().removeItemFromInventory(Long.parseLong(pieces1[1]));
-
         }
 
     }
@@ -294,43 +290,27 @@ public class ServerInteraction {
         } else if (m.getType() == MessageType.INVENTORYADDETCITEM) {
 
             InventoryAddEtcItem tmpMsg = (InventoryAddEtcItem) m;
-            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
-            etcItem.setCount(tmpMsg.getCount());
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "Gold", tmpMsg.getItemType(), tmpMsg.getCount());
             field.getSelfPlayer().addItemToInventory(etcItem);
 
         } else if (m.getType() == MessageType.INVENTORYREMOVEETCITEM) {
 
             InventoryRemoveEtcItem tmpMsg = (InventoryRemoveEtcItem) m;
-            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
-            etcItem.setCount(tmpMsg.getCount());
-            field.getSelfPlayer().removeItemFromInventory(etcItem);
+            field.getSelfPlayer().removeItemFromInventory(tmpMsg.getId(), tmpMsg.getCount());
 
         } else if (m.getType() == MessageType.PICKUPETCITEM) {
 
-            // TODO Not only players can pickup items!
-            PickupEtcItem tmpMsg = (PickupEtcItem) m;
-            Player p = field.getPlayer(tmpMsg.getPickerId());
-            ClientEtc i = field.getEtc(tmpMsg.getItemId());
-            if (p != null && i != null) {
-                field.asyncRemoveEtc(i);
-            } else {
-                if (p == null) {
-                    System.err.println("While processing " + m.getType().name() + " message, picker id=" + tmpMsg.getPickerId() + " was not found.");
-                }
-                if (i == null) {
-                    System.err.println("While processing " + m.getType().name() + " message, item id=" + tmpMsg.getItemId() + " was not found.");
-                }
-            }
+            // Successful pickup acknowledgement. Visibility is handled independently.
+        } else if (m.getType() == MessageType.DISAPPEARETCITEM) {
+            field.asyncRemoveEtcById(((DisappearEtcItem) m).getId());
 
-        } else if (m.getType() == MessageType.ADDETCITEM) {
+        } else if (m.getType() == MessageType.APPEARETCITEM) {
 
-            AddEtcItem tmpMsg = (AddEtcItem) m;
-            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "etc item", tmpMsg.getItemType());
-            etcItem.setCount(tmpMsg.getCount());
+            AppearEtcItem tmpMsg = (AppearEtcItem) m;
+            ClientEtc etcItem = new ClientEtc(tmpMsg.getId(), "Gold", tmpMsg.getItemType(), tmpMsg.getCount());
             etcItem.setX(tmpMsg.getX());
             etcItem.setY(tmpMsg.getY());
             field.asyncAddEtc(etcItem);
-            field.asyncAddDrawable(etcItem);
 
         }
     }
@@ -349,7 +329,7 @@ public class ServerInteraction {
             Message command;
 
             try {
-                while (serverSocket.isConnected()) {
+                while (!serverSocket.isClosed()) {
                     synchronized(commands) {
                         while (commands.size() > 0) {
                             command = commands.poll();
@@ -358,7 +338,7 @@ public class ServerInteraction {
                             System.out.println("--> " + command);
                         }
                         try {
-                            commands.wait();
+                            if (!serverSocket.isClosed()) commands.wait();
                         } catch (InterruptedException ignore) {}
                     }
                 }
@@ -367,7 +347,9 @@ public class ServerInteraction {
                 in.close();
                 serverSocket.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!serverSocket.isClosed()) e.printStackTrace();
+            } finally {
+                disconnect();
             }
 
             return null;
@@ -384,7 +366,7 @@ public class ServerInteraction {
             try {
                 ois = new ObjectInputStream(serverSocket.getInputStream());
 
-                while (serverSocket.isConnected()) {
+                while (!serverSocket.isClosed()) {
                     //command = in.readLine();
                     messages = (LinkedBlockingQueue<Message>) ois.readObject();
                     for (Message m : messages) {
@@ -397,16 +379,17 @@ public class ServerInteraction {
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            System.exit(1);
+                            disconnect();
+                            return null;
                         }
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
+                if (!serverSocket.isClosed()) e.printStackTrace();
+                disconnect();
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
-                System.exit(1);
+                disconnect();
             }
             return null;
         }

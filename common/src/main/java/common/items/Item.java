@@ -1,6 +1,5 @@
 package common.items;
 
-import common.Inventory;
 import common.Message;
 
 /**
@@ -36,17 +35,19 @@ public abstract class Item {
     /**
      * Count of this item.
      */
-    private int count;
+    private volatile int count;
     // </editor-fold>
 
     /**
      * Creates new item.
      * @param id id of new item.
      * @param name name of new item.
+     * @param count initial positive quantity.
      */
-    protected Item(long id, String name) {
+    protected Item(long id, String name, int count) {
         this.id = id;
         this.name = name;
+        setCount(count);
     }
 
     /**
@@ -176,33 +177,6 @@ public abstract class Item {
         this.count = count;
     }
     // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Inventory">
-    /**
-     * Adds item to inventory <i>inv</i>.
-     * @param inv inventory.
-     */
-    public abstract void addToInventory(Inventory inv);
-
-    /**
-     * Removes item from inventory <i>inv</i>.
-     * @param inv inventory.
-     */
-    public abstract void removeFromInventory(Inventory inv);
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Server-client interaction messages.">
-    /**
-     * Returns message notify user what item added to his inventory.
-     * @return message what notify user what item added to his inventory.
-     */
-    public abstract Message getAddToInvenrotyMessage();
-
-    /**
-     * Returns message notify user what item removed from his inventory.
-     * @return message waht notify user what item removed from his inventory.
-     */
-    public abstract Message getRemoveFromInventoryMessage();
 
     /**
      * Returns message notify user what item dropped to the ground.

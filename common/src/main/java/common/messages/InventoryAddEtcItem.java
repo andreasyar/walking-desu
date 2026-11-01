@@ -5,10 +5,11 @@ import common.items.Items;
 import java.io.Serializable;
 
 /**
- * Message what nofity client what etc item added to his inventory.
+ * Inventory quantity delta, addressed to the owner, with the canonical stack ID.
  * @author CatsPaw
  */
 public class InventoryAddEtcItem implements Message, Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Message type.

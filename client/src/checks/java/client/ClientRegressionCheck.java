@@ -11,7 +11,7 @@ public final class ClientRegressionCheck {
         if (!condition) throw new AssertionError(message);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         WanderingServerTime.getInstance().setServerTime(System.currentTimeMillis());
         ServerInteraction.serverStartTime = WanderingServerTime.getInstance().getServerStartTime();
         for (Direction direction : Direction.values()) {
@@ -74,7 +74,7 @@ public final class ClientRegressionCheck {
             monster.spriteAt(10000);
             require(monster.spriteAt(10000).image == frames.getSprite(Direction.SOUTH_EAST, frames.getSpriteCount(Direction.SOUTH_EAST) - 1).image, "Duplicate deathmonster retains final frame");
         }
-        ClientEtc gold = new ClientEtc(2, "Gold", Items.GOLD);
+        ClientEtc gold = new ClientEtc(2, "Gold", Items.GOLD, 1);
         gold.setX(200);
         gold.setY(300);
         Sprite sprite = gold.getSprite();
@@ -90,6 +90,7 @@ public final class ClientRegressionCheck {
         require(!gold.onItem(sprite.x + gold.getW(), sprite.y), "Outside right edge");
         require(!gold.onItem(sprite.x, sprite.y + gold.getH()), "Outside bottom edge");
         RenderingRegressionCheck.run();
+        ItemClientCheck.run();
         System.out.println("PASS: moving player death/respawn, monster death in all directions; gold sprite hit bounds");
     }
 }
