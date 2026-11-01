@@ -115,6 +115,8 @@ public class Player extends JTSUnit {
         }
     }
 
+    void clearVisibility() { visibleUnits.clear(); visibleItems.clear(); }
+
     public boolean see(JTSUnit unit) {
         return visibleUnits.contains(unit);
     }

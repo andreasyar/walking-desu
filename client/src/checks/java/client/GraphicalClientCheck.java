@@ -2,17 +2,12 @@ package client;
 
 import client.items.ClientEtc;
 import common.items.Items;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Robot;
-import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.function.BooleanSupplier;
 import javax.imageio.ImageIO;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -27,28 +22,19 @@ public final class GraphicalClientCheck {
             field.startSelfExecution();
             field.addMapFragment(new ClientMapFragment(0, 0, new int[][]{}));
             interaction = new ServerInteraction(field, Executors.newCachedThreadPool(), "localhost", port);
-            gui = new WanderingGUI(field, interaction);
+            common.PlayerName.requireValid(nick);
+            System.setProperty("walkingdesu.testMode", "true");
+            System.setProperty("walkingdesu.testNick", nick);
+            try { gui = new WanderingGUI(field, interaction); }
+            finally { System.clearProperty("walkingdesu.testMode"); System.clearProperty("walkingdesu.testNick"); }
             SwingUtilities.invokeAndWait(() -> {
-                Timer login = new Timer(100, event -> {
-                    setNick(gui.dialog, nick);
-                    gui.dialog.actionPerformed(null);
-                });
-                login.setRepeats(false);
-                login.start();
-                gui.run(); // real modal login, completed by the timer on the EDT
+                gui.run(); // Explicit test mode uses the same validated name without a modal dialog.
                 gui.frame.setLocation(x, 40);
                 new Timer(30, event -> gui.panel.repaint()).start();
             });
             interaction.run(gui.dialog.getValidatedText());
             await(() -> field.getSelfPlayer() != null, "login");
             SwingUtilities.invokeAndWait(gui::showPanel);
-        }
-    }
-
-    private static void setNick(Container root, String name) {
-        for (Component component : root.getComponents()) {
-            if (component instanceof JTextField text) text.setText(name);
-            if (component instanceof Container container) setNick(container, name);
         }
     }
 
@@ -60,11 +46,17 @@ public final class GraphicalClientCheck {
         }
     }
 
-    private static void capture(Session session, String name) throws Exception {
-        SwingUtilities.invokeAndWait(() -> session.gui.panel.paintImmediately(0, 0,
-                session.gui.panel.getWidth(), session.gui.panel.getHeight()));
-        BufferedImage image = new Robot().createScreenCapture(session.gui.frame.getBounds());
-        ImageIO.write(image, "png", OUTPUT.resolve(name + ".png").toFile());
+    private static void capture(GraphicalClientCheck.Session session, String name) throws Exception {
+        // Capture the live Swing window on the EDT; avoids Wayland's screen-sharing permission dialog.
+        java.awt.image.BufferedImage[] image = new java.awt.image.BufferedImage[1];
+        SwingUtilities.invokeAndWait(() -> {
+            session.gui.panel.paintImmediately(0, 0, session.gui.panel.getWidth(), session.gui.panel.getHeight());
+            image[0] = new java.awt.image.BufferedImage(session.gui.frame.getWidth(), session.gui.frame.getHeight(),
+                    java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D graphics = image[0].createGraphics();
+            try { session.gui.frame.printAll(graphics); } finally { graphics.dispose(); }
+        });
+        ImageIO.write(image[0], "png", OUTPUT.resolve(name + ".png").toFile());
     }
 
     private static Drawable fixedFrame(Sprite sprite) {

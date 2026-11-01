@@ -80,3 +80,13 @@ val itemNetworkCheck = tasks.register<JavaExec>("itemNetworkCheck") {
     timeout = Duration.ofSeconds(90)
 }
 tasks.check { dependsOn(itemNetworkCheck) }
+
+val combatCheck = tasks.register<JavaExec>("combatCheck") {
+    group = "verification"
+    description = "Check server ownership, projectile cancellation, deaths, tower waves and message ordering."
+    classpath = checks.runtimeClasspath
+    mainClass = "server.javatestserver.ServerCombatCheck"
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+    timeout = Duration.ofSeconds(90)
+}
+tasks.check { dependsOn(combatCheck) }

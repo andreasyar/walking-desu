@@ -2,7 +2,6 @@ package server.javatestserver;
 
 import common.MapFragment;
 
-import common.BoltMessage;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
@@ -10,56 +9,48 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.ArrayList;
 import java.awt.Point;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ScheduledFuture;
 
 import common.HMapMessage;
-import common.HitMessage;
 import common.items.Item;
 import common.Message;
 import common.messages.MessageType;
 import common.MoveMessage;
-import common.Movement;
 import common.OtherMessage;
 import common.WanderingServerTime;
 import common.items.Etc;
-import common.items.Items;
 import common.messages.PickupEtcItem;
-import server.javatestserver.items.ServerEtc;
 
 /**
  * Главный класс тестового ява сервера блуждающей же.
  */
-public class JavaTestServer {
+public class JavaTestServer implements AutoCloseable {
 
-    private ServerSocket ss;
+    private final ServerSocket ss;
+    private volatile boolean stopping;
     private Thread serverThread;
-    BlockingQueue<SocketProcessor> clientQueue = new LinkedBlockingQueue<SocketProcessor>();
-    private final java.util.concurrent.atomic.AtomicLong nextId = new java.util.concurrent.atomic.AtomicLong(1);
-    ArrayList<Long> playerIDs = new ArrayList<Long>();
-    private final LinkedBlockingQueue<JTSUnit> units = new LinkedBlockingQueue<JTSUnit>();
-    private final LinkedBlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
-    private final LinkedBlockingQueue<Monster> monsters = new LinkedBlockingQueue<Monster>();
-    private final LinkedBlockingQueue<Tower> towers = new LinkedBlockingQueue<Tower>();
-    private final LinkedBlockingQueue<Item> items = new LinkedBlockingQueue<Item>();
-    private final ArrayList<MapFragment> mapfragments = new ArrayList<MapFragment>();
-    private final int tdMonsterLossLimit = 100;
-    private int tdMonsterLoss = 0;
-    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
+    private final BlockingQueue<SocketProcessor> clientQueue = new LinkedBlockingQueue<SocketProcessor>();
+    final WorldState world = new WorldState();
+    final MessageService messages = new MessageService(world, clientQueue);
+    final CombatController combat;
+    final DeathController deaths;
+    final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
     public static final long serverStartTime = System.currentTimeMillis();
     private static final int port = 45000;
-    private TimeSyncTask ts;
-    // Shared monitor for item visibility, transfers, drops and disconnects (always before Inventory).
+    private final TimeSyncTask ts;
+    // Visibility uses the same world monitor as commands, tasks and item transfers.
     private final VisibleManager vm;
+
+    VisibleManager visibility() { return vm; }
 
     public JavaTestServer(int port) throws IOException {
         ss = new ServerSocket(port);
-        vm = new VisibleManager(players, towers, monsters, items, this);
+        vm = new VisibleManager(world, messages);
+        combat = new CombatController(world, executor, messages, vm);
+        deaths = combat.deaths;
         ts = new TimeSyncTask();
 
         // Classes what server use also whant to know server start time.
@@ -72,155 +63,58 @@ public class JavaTestServer {
     void run() {
         serverThread = Thread.currentThread();
 
-        MonsterController c = new MonsterController(20 * 1000, 5);
+        MonsterController c = new MonsterController(world, vm, messages, combat, 20 * 1000);
         c.setScheduledFuture(executor.scheduleAtFixedRate(c, 0L, 100L, TimeUnit.MILLISECONDS));
-        TowerController t = new TowerController();
+        TowerController t = new TowerController(world, combat);
         t.setScheduledFuture(executor.scheduleAtFixedRate(t, 0L, 100L, TimeUnit.MILLISECONDS));
         executor.scheduleAtFixedRate(vm, 0L, 100L, TimeUnit.MILLISECONDS);
-        GeoDataController gdController = new GeoDataController(players);
+        GeoDataController gdController = new GeoDataController(world);
         gdController.setScheduledFuture(executor.scheduleAtFixedRate(gdController, 0L, 200L, TimeUnit.MILLISECONDS));
 
-        while (true) {
-            Socket s = getNewConnection();
+        try {
+            while (!stopping) {
+                Socket s = getNewConnection();
 
-            if (serverThread.isInterrupted()) {
-                break;
-            } else if (s != null) {
-                try {
-                    final SocketProcessor processor = new SocketProcessor(s);
-                    final Thread thread = new Thread(processor);
-                    thread.setDaemon(true);
-                    clientQueue.offer(processor);
-                    thread.start();
-                } catch (IOException ignored) {
+                if (serverThread.isInterrupted()) {
+                    break;
+                } else if (s != null) {
+                    try {
+                        final SocketProcessor processor = new SocketProcessor(s);
+                        final Thread thread = new Thread(processor);
+                        thread.setDaemon(true);
+                        synchronized (world) {
+                            if (stopping) processor.close();
+                            else { clientQueue.offer(processor); thread.start(); }
+                        }
+                    } catch (IOException ignored) {
+                        try { s.close(); } catch (IOException closeFailure) { }
+                    }
                 }
             }
-        }
 
-        ts.cancel();
+        } finally { close(); }
     }
 
     private Socket getNewConnection() {
-        Socket cs = null;
-        try {
-            cs = ss.accept();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        return cs;
-    }
-
-    public void sendFromUnit(String msg, JTSUnit unit) {
-        for (SocketProcessor sp : clientQueue) {
-            if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
-                sp.addMessage(msg);
-            }
+        try { return ss.accept(); }
+        catch (IOException failure) {
+            if (!stopping) throw new UncheckedIOException(failure);
+            return null;
         }
     }
 
-    /**
-     * Sends message to all players what see unit.
-     * @param msg message to send.
-     * @param unit unit.
-     */
-    public void sendFromUnit(Message msg, JTSUnit unit) {
-        for (SocketProcessor sp : clientQueue) {
-            if (sp.loggedIn() && sp.getSelfPlayer().getVisibleUnitsList().contains(unit)) {
-                sp.addMessage(msg);
-            }
+    int localPort() { return ss.getLocalPort(); }
+
+    @Override public void close() {
+        synchronized (world) {
+            if (stopping) return;
+            stopping = true;
+            for (SocketProcessor processor : clientQueue) processor.close();
+            ts.cancel();
+            combat.cancelAll();
+            executor.shutdownNow();
+            try { ss.close(); } catch (IOException ignored) { }
         }
-    }
-
-    public void sendTo(String msg, Player player) {
-        for (SocketProcessor sp : clientQueue) {
-            if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
-                sp.addMessage(msg);
-                return;
-            }
-        }
-    }
-
-    /**
-     * Отправляет сообщение игроку.
-     * @param msg сообщение.
-     * @param player игрок.
-     */
-    public void sendTo(Message msg, Player player) {
-        for (SocketProcessor sp : clientQueue) {
-            if (sp.loggedIn() && sp.getSelfPlayer().equals(player)) {
-                sp.addMessage(msg);
-                return;
-            }
-        }
-
-        System.err.println("Message processor for player " + player + " was not found or player not logged in.");
-        System.err.println("Message " + msg + " was not send.");
-    }
-
-    public void sendToAll(String[] msgs) {
-        for (String msg : msgs) {
-            for (SocketProcessor sp : clientQueue) {
-                if (sp.loggedIn()) {
-                    sp.addMessage(msg);
-                }
-            }
-        }
-    }
-
-    public void sendToAll(Message[] msgs) {
-        for (Message msg : msgs) {
-            for (SocketProcessor sp : clientQueue) {
-                if (sp.loggedIn()) {
-                    sp.addMessage(msg);
-                }
-            }
-        }
-    }
-
-    public void sendToAll(String[] msgs, long excID) {
-        for (String msg : msgs) {
-            for (SocketProcessor sp : clientQueue) {
-                if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID && sp.loggedIn()) {
-                    sp.addMessage(msg);
-                }
-            }
-        }
-    }
-
-    public void sendToAll(Message[] msgs, long excID) {
-        for (Message msg : msgs) {
-            for (SocketProcessor sp : clientQueue) {
-                if (sp.getSelfPlayer() != null && sp.getSelfPlayer().getID() != excID && sp.loggedIn()) {
-                    sp.addMessage(msg);
-                }
-            }
-        }
-    }
-
-    /**
-     * Require player lock.
-     */
-    private Player getPlayer(long id) {
-        for (Player p : players) {
-            if (p.getID() == id) {
-                return p;
-            }
-        }
-
-        return null;
-    }
-    /**
-     * Require lock all.
-     */
-    private JTSUnit getUnit(long id) {
-        for (JTSUnit u : units) {
-            if (u.getID() == id) {
-                return u;
-            }
-        }
-
-        return null;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -241,7 +135,7 @@ public class JavaTestServer {
 
         @Override
         public void run() {
-            sendToAll(new String[]{"(timesync "
+            messages.sendToAll(new String[]{"(timesync "
                         + (System.currentTimeMillis() - serverStartTime) + ")"});
         }
 
@@ -253,26 +147,20 @@ public class JavaTestServer {
         }
     }
 
-    private class SocketProcessor implements Runnable {
+    private class SocketProcessor implements Runnable, MessageService.Connection {
 
         Socket s;
-        BufferedReader br;
-        BufferedWriter bw;
         private boolean helloReceived = false;
         private boolean nickReceived = false;
         private volatile boolean helloSended = false;
         private volatile Player self = null;
         private volatile boolean closed;
         private Thread senderThread;
-        private LinkedBlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
+        private final LinkedBlockingQueue<Message> outbound = new LinkedBlockingQueue<Message>();
         private ObjectOutputStream oos;
 
         SocketProcessor(Socket socketParam) throws IOException {
             s = socketParam;
-            br = new BufferedReader(new InputStreamReader(s.getInputStream(),
-                    "UTF-8"));
-            bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream(),
-                    "UTF-8"));
             oos = new ObjectOutputStream(s.getOutputStream());
         }
 
@@ -303,8 +191,6 @@ public class JavaTestServer {
             while (!s.isClosed()) {
 
                 String line = null;
-                String[] pieces;
-
                 try {
                     //line = br.readLine();
                     message = (Message) ois.readObject();
@@ -323,7 +209,7 @@ public class JavaTestServer {
                     } else {
 
                         System.err.println("Unknown message type.");
-                        System.exit(1);
+                        return;
 
                     }
 
@@ -337,10 +223,10 @@ public class JavaTestServer {
                     return;
                 } catch (ClassNotFoundException ex) {
                     ex.printStackTrace();
-                    System.exit(1);
+                    return;
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    System.exit(1);
+                    return;
                 }
 
                 if (line == null) {
@@ -348,6 +234,19 @@ public class JavaTestServer {
                     return;
                 }
 
+                try {
+                    command(line);
+                } catch (RuntimeException rejected) {
+                    System.err.println("Rejected client command: " + rejected);
+                    return;
+                }
+            }
+        }
+
+        private void command(String line) {
+            synchronized (world) {
+                if (closed) return;
+                String[] pieces;
                 if (line.length() > 0) {
                     //System.out.println(s.getInetAddress() + " --> " + line);
 
@@ -370,29 +269,20 @@ public class JavaTestServer {
                                                             selfCurPos.y,
                                                             Integer.parseInt(pieces[0]),
                                                             Integer.parseInt(pieces[1]));
-                                sendFromUnit(m, self);
-                                sendTo(m, self);
+                                messages.sendFromUnit(m, self);
+                                messages.sendTo(m, self);
                                 // </editor-fold>
                             } else if ("message".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Message message processing">
                                 line = line.substring("message".length() + 1, line.length());
                                 line = line.substring(1, line.length() - 1);
                                 self.setText(line);
-                                sendToAll(new String[]{"(message " + self.getID() + " \"" + line + "\")"}, self.getID());
+                                messages.sendToAll(new String[]{"(message " + self.getID() + " \"" + line + "\")"}, self.getID());
                                 // </editor-fold>
                             } else if ("bolt".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Bolt message processing">
                                 line = line.substring("bolt".length() + 1, line.length());
-                                Player target = getPlayer(Long.parseLong(line));
-                                if (target != null) {
-                                    NukeAction a = new NukeAction(new NukeBolt(self, target, System.currentTimeMillis() - serverStartTime));
-                                    ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
-                                    a.setScheduledFuture(f);
-                                }
-                                sendToAll(new Message[] { new BoltMessage(self.getID(),
-                                                                          target.getID(),
-                                                                          System.currentTimeMillis() - serverStartTime)},
-                                          self.getID());
+                                combat.attack(self, Long.parseLong(line), false);
 
                                 // </editor-fold>
                             } else if ("attack".equals(pieces[0])) {
@@ -400,20 +290,7 @@ public class JavaTestServer {
                                 line = line.substring("attack".length() + 1, line.length());
                                 pieces = line.split(" ");
 
-                                JTSUnit target = getUnit(Long.parseLong(pieces[0]));
-                                long begTime = System.currentTimeMillis() - serverStartTime;
-
-                                if (target != null) {
-                                    NukeAction a = new NukeAction(new NukeBolt(self, target, begTime + self.getNukeAnimationDelay()));
-                                    ScheduledFuture f = executor.scheduleAtFixedRate(a, self.getNukeAnimationDelay(), 10L, TimeUnit.MILLISECONDS);
-                                    a.setScheduledFuture(f);
-                                    sendToAll(new String[]{"(attack "
-                                                + self.getID() + " "
-                                                + target.getID() + " "
-                                                + begTime + ")"});
-                                } else {
-                                    System.err.println("Taget not found: " + Long.parseLong(pieces[0]));
-                                }
+                                combat.attack(self, Long.parseLong(pieces[0]), true);
                                 // </editor-fold>
                             } else if ("tower".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Tower processing">
@@ -422,9 +299,9 @@ public class JavaTestServer {
                                 /* Создадим новую башню и добавим её в список
                                  * башен.
                                  */
-                                Tower t = new Tower(nextId.getAndIncrement(), "Tower", 200.0, 10, 1000L, Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
-                                towers.add(t);
-                                units.add(t);
+                                Tower t = new Tower(world.nextId(), "Tower", 200.0, 10, 1000L, Integer.parseInt(pieces[1]), Integer.parseInt(pieces[2]));
+                                world.towers.add(t);
+                                world.units.add(t);
                                 // </editor-fold>
                             } else if ("getmapfragm".equals(pieces[0])) {
                                 // <editor-fold defaultstate="collapsed" desc="Map fragment request processing">
@@ -434,7 +311,7 @@ public class JavaTestServer {
                                 int idy = Integer.parseInt(pieces[2]);
                                 boolean found = false;
                                 MapFragment mapFrag = null;
-                                for (MapFragment f: mapfragments) {
+                                for (MapFragment f: world.mapfragments) {
                                     if (idx == f.getIdx() && idy == f.getIdy()) {
                                         found = true;
                                         mapFrag = f;
@@ -445,50 +322,49 @@ public class JavaTestServer {
                                     mapFrag = new MapFragment(idx,
                                                               idy,
                                                               MapFragment.create2DHMap());
-                                    mapfragments.add(mapFrag);
+                                    world.mapfragments.add(mapFrag);
                                 }
-                                sendTo(new HMapMessage(mapFrag.getHmap(), idx, idy), self);
+                                messages.sendTo(new HMapMessage(mapFrag.getHmap(), idx, idy), self);
 
-                                Monster mon = new Monster(nextId.getAndIncrement(), "Monster", 100, idx * MapFragment.getHeight() + 100, idy * MapFragment.getWidth() + 100, 0.5);
+                                Monster mon = new Monster(world.nextId(), "Monster", 100, idx * MapFragment.getHeight() + 100, idy * MapFragment.getWidth() + 100, 0.5);
                                 System.out.println("New mon spawned in " + (idx * MapFragment.getHeight() + 100)
                                                    + ", "
                                                    + (idy * MapFragment.getWidth() + 100));
                                 mon.setSpriteSetName("poring");
-                                monsters.add(mon);
-                                units.add(mon);
+                                world.monsters.add(mon);
+                                world.units.add(mon);
                                 // </editor-fold>
                             }
                         } else if ("nick".equals(pieces[0])) {
                             // <editor-fold defaultstate="collapsed" desc="Nick message processing">
                             Point selfCurPos;
 
-                            synchronized (this) {
-                                if (closed) return;
-                                nickReceived = true;
-                                pieces = line.split(" ", 2);
-                                pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
-                                self = new Player(nextId.getAndIncrement(), pieces[1], 100, 0, 0, 0.07);
-                                selfCurPos = self.getCurPos();
-                                if ("localhost".equals(s.getInetAddress().getHostName())) {
-                                    self.setSpriteSetName("peasant");
-                                } else {
-                                    self.setSpriteSetName("peon");
-                                }
-                                addMessage("(hello "
-                                        + self.getID() + " "
-                                        + self.getHitPoints() + " "
-                                        + 0.07 + " "
-                                        + selfCurPos.x + " "
-                                        + selfCurPos.y + " "
-                                        + (System.currentTimeMillis() - serverStartTime) + " "
-                                        + "\"" + self.getNick() + "\"" + " "
-                                        + "\"SOUTH\"" + " "
-                                        + "\"" + self.getSpriteSetName() + "\"" + ")");
-                                helloSended = true;
-                                players.add(self);
-                                units.add(self);
-                                System.out.println("Welcome to WD Java Test Server. Online: " + players.size() + " players (with you).");
+                            if (closed) return;
+                            nickReceived = true;
+                            pieces = line.split(" ", 2);
+                            pieces[1] = pieces[1].substring(1, pieces[1].length() - 1);
+                            common.PlayerName.requireValid(pieces[1]);
+                            self = new Player(world.nextId(), pieces[1], 100, 0, 0, 0.07);
+                            selfCurPos = self.getCurPos();
+                            if ("localhost".equals(s.getInetAddress().getHostName())) {
+                                self.setSpriteSetName("peasant");
+                            } else {
+                                self.setSpriteSetName("peon");
                             }
+                            addMessage("(hello "
+                                    + self.getID() + " "
+                                    + self.getHitPoints() + " "
+                                    + 0.07 + " "
+                                    + selfCurPos.x + " "
+                                    + selfCurPos.y + " "
+                                    + (System.currentTimeMillis() - serverStartTime) + " "
+                                    + "\"" + self.getNick() + "\"" + " "
+                                    + "\"SOUTH\"" + " "
+                                    + "\"" + self.getSpriteSetName() + "\"" + ")");
+                            helloSended = true;
+                            world.players.add(self);
+                            world.units.add(self);
+                            System.out.println("Welcome to WD Java Test Server. Online: " + world.players.size() + " players (with you).");
                             // </editor-fold>
                         }
                     } else if ("hello".equals(pieces[0])) {
@@ -499,10 +375,10 @@ public class JavaTestServer {
         }
 
         private void pickup(PickupEtcItem request) {
-            synchronized (vm) {
-                if (closed || !loggedIn() || self == null || !players.contains(self) || self.dead()) return;
+            synchronized (world) {
+                if (closed || !loggedIn() || self == null || !world.players.contains(self) || self.dead()) return;
                 Etc item = null;
-                for (Item candidate : items) {
+                for (Item candidate : world.items) {
                     if (candidate.getID() == request.getItemId() && candidate instanceof Etc etc) {
                         item = etc;
                         break;
@@ -515,27 +391,28 @@ public class JavaTestServer {
                     } catch (common.InventoryException rejected) {
                         return;
                     }
-                    if (!items.remove(item)) return;
+                    if (!world.items.remove(item)) return;
                     Etc stack = self.getInventory().addEtc(item);
                     // Delta quantity, canonical inventory stack ID (may differ from ground ID).
-                    sendTo(new common.messages.InventoryAddEtcItem(stack.getID(), item.getCount(), stack.getType()), self);
+                    messages.sendTo(new common.messages.InventoryAddEtcItem(stack.getID(), item.getCount(), stack.getType()), self);
                 }
                 vm.removeItem(item);
-                sendTo(new PickupEtcItem(self.getID(), item.getID()), self);
+                messages.sendTo(new PickupEtcItem(self.getID(), item.getID()), self);
             }
         }
 
-        public synchronized void close() {
-            synchronized (vm) {
+        public void close() {
+            synchronized (world) {
                 if (closed) return;
                 closed = true;
                 helloSended = false;
                 clientQueue.remove(this);
                 if (self != null) {
                     // A committed pickup survives a simultaneous disconnect as a world drop.
-                    dropGold(self, false);
-                    players.remove(self);
-                    units.remove(self);
+                    deaths.dropGold(self, false);
+                    combat.cancelFor(self.getID());
+                    world.players.remove(self);
+                    world.units.remove(self);
                     vm.removePlayer(self);
                 }
             }
@@ -552,11 +429,11 @@ public class JavaTestServer {
         }
 
         public void addMessage(String s) {
-            messages.offer(new OtherMessage(s));
+            outbound.offer(new OtherMessage(s));
         }
 
         public void addMessage(Message m) {
-            messages.offer(m);
+            outbound.offer(m);
         }
 
         private class PacketSender implements Runnable {
@@ -569,8 +446,8 @@ public class JavaTestServer {
 
                 try {
                     while (!closed) {
-                        if (messages.size() > 0) {
-                            for (Iterator<Message> i = messages.iterator(); i.hasNext();) {
+                        if (outbound.size() > 0) {
+                            for (Iterator<Message> i = outbound.iterator(); i.hasNext();) {
                                 message = i.next();
                                 i.remove();
                                 System.out.println(s.getInetAddress() + " <-- " + message);
@@ -599,331 +476,4 @@ public class JavaTestServer {
         }
     }
 
-    private void dropGold(Player player, boolean notifyOwner) {
-        synchronized (vm) {
-            synchronized (player.getInventory()) {
-                ArrayList<Etc> gold = player.getInventory().getEtc(Items.GOLD);
-                if (gold.isEmpty()) return;
-                Etc stack = gold.get(0);
-                player.getInventory().removeEtc(stack.getID(), stack.getCount());
-                if (notifyOwner) sendTo(new common.messages.InventoryRemoveEtcItem(stack.getID(), stack.getCount(), stack.getType()), player);
-                Point position = player.getCurPos();
-                stack.setX(position.x);
-                stack.setY(position.y);
-                items.add(stack);
-            }
-        }
-    }
-
-    private class NukeAction implements Runnable {
-
-        private NukeBolt bolt;
-        private ScheduledFuture future = null;
-        private boolean canceled = false;
-
-        public NukeAction(NukeBolt bolt) {
-            this.bolt = bolt;
-        }
-
-        @Override
-        public void run() {
-            if (!canceled) {
-                if (!bolt.isFlight()) {
-                    try {
-                        JTSUnit attacker = bolt.getAttacker();
-                        JTSUnit target = bolt.getTarget();
-
-                        target.doHit(attacker.getDamage());
-                        HitMessage hit = new HitMessage(attacker.getID(), target.getID(), attacker.getDamage());
-                        sendFromUnit(hit, target);
-                        // A player does not include itself in its visible-units list.
-                        if (target instanceof Player player) {
-                            sendTo(hit, player);
-                        }
-                        if (target.dead()) {
-                            if (monsters.contains(target)) {
-                                monsters.remove(target);
-                                units.remove(target);
-                                vm.killMonster((Monster) target);
-                            } else if (players.contains(target)) {
-                                Player p = (Player) target;
-                                dropGold(p, true);
-                                p.restoreHitPoints();
-                                p.teleportToSpawn();
-                                sendToAll(new String[] { "(teleport " + p.getID() + " " + p.getCurPos().x + " " + p.getCurPos().y + ")" });
-                                vm.killPlayer(p);
-                            }
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        System.exit(1);
-                    }
-
-                    this.cancel();
-                }
-            }
-        }
-
-        public void setScheduledFuture(ScheduledFuture future) {
-            this.future = future;
-        }
-
-        public void cancel() {
-            if (future != null) {
-                future.cancel(true);
-                canceled = true;
-            }
-        }
-    }
-
-    private class MonsterController implements Runnable {
-
-        /**
-         * Absolute delay between spawn monsters in milliseconds.
-         */
-        private final long spawnDelay;
-
-        /**
-         * Current monster count.
-         */
-        private int monsterCount;
-
-        /**
-         * Possible monster speeds.
-         */
-        private final double[] speeds = new double[] {0.08, 0.07, 0.06};
-
-        /**
-         * Count of monsters losses in current wave.
-         */
-        private int curWaveMonLoss;
-
-        /**
-         * Current monster strength multiplyer.
-         */
-        private int monStrMult;
-
-        /**
-         * Current monster count summand.
-         */
-        private int monCountAdd;
-
-        /**
-         * Current wave number since server start.
-         */
-        private long wave;
-
-        private Random rand = new Random();
-
-        private ScheduledFuture future = null;
-
-        private boolean canceled = false;
-
-        private final LinkedBlockingQueue<Monster> tdMonsters = new LinkedBlockingQueue<Monster>();
-
-        public MonsterController(long spawnDelay, int monsterCount) {
-            this.spawnDelay = spawnDelay;
-            //this.monsterCount = monsterCount;
-            this.monsterCount = 0;
-            wave = WanderingServerTime.getInstance().getTimeSinceStart() / spawnDelay;
-            curWaveMonLoss = 0;
-            monStrMult = 0;
-            monCountAdd = 0;
-        }
-
-        @Override
-        public void run() {
-            if (!canceled) {
-                long curWave = WanderingServerTime.getInstance().getTimeSinceStart() / spawnDelay;
-                Monster m;
-                Point beg;
-
-                // For monster current position temporary storage purpose.
-                Point mCurPos;
-
-                // Monsters destenation point.
-                Point end = new Point(705, 755);
-
-                // We need to start a new wave of monsters.
-                if (curWave > wave) {
-                    wave = curWave;
-                    tdMonsterLoss += curWaveMonLoss;
-
-                    // If we reach the monster loss limit we remove all towers
-                    // and rest game parameters to initial values.
-                    if (tdMonsterLoss >= tdMonsterLossLimit) {
-                        tdMonsterLoss = 0;
-                        curWaveMonLoss = 0;
-                        monStrMult = 0;
-                        monCountAdd = 0;
-
-                        Tower t;
-                        for (Iterator<Tower> li = towers.iterator(); li.hasNext();) {
-                            t = li.next();
-                            vm.removeTower(t);
-                            units.remove(t);
-                            li.remove();
-                        }
-                    }
-
-                    // If we have no monster loss previous wave (we kill all
-                    // monsters) we monsters stronger and incrase monsters count.
-                    if (curWaveMonLoss == 0) {
-                        monStrMult++;
-                        monCountAdd += 5;
-                    }
-
-                    // Update tower defence game status on clients.
-                    sendToAll(new String[]{"(monsterloss "
-                                + tdMonsterLoss + " "
-                                + tdMonsterLossLimit + " "
-                                + monStrMult + ")"});
-
-                    curWaveMonLoss = 0;
-
-                    // Spawn new monsters.
-                    for (int i = 0; i < monsterCount + monCountAdd; i++) {
-                        beg = new Point(544 + rand.nextInt(287), 0 + rand.nextInt(64));
-                        m = new Monster(nextId.getAndIncrement(), "Monster", 20 * monStrMult, beg.x, beg.y, speeds[rand.nextInt(2)]);
-                        m.setSpriteSetName("poring");
-                        tdMonsters.add(m);
-                        monsters.add(m);
-                        units.add(m);
-                        m.move(beg.x, beg.y, end.x, end.y, WanderingServerTime.getInstance().getTimeSinceStart());
-                    }
-                }
-
-                // Process current wave of monsters.
-
-                boolean isDead;
-                boolean isStop;
-
-                for (Iterator<Monster> li = tdMonsters.iterator(); li.hasNext();) {
-                    m = li.next();
-                    isDead = m.dead();
-                    isStop = !m.isMove();
-
-                    if (isStop && !isDead) {
-                        curWaveMonLoss++;
-                        sendToAll(new String[]{"(monsterloss "
-                                    + (tdMonsterLoss + curWaveMonLoss) + " "
-                                    + tdMonsterLossLimit + " "
-                                    + monStrMult + ")"});
-                        vm.killMonster(m);
-                        units.remove(m);
-                        monsters.remove(m);
-                        li.remove();
-                    }
-
-                    if (isDead) {
-                        mCurPos = m.getCurPos();
-
-                        // Drop coins.
-                        ServerEtc coins = new ServerEtc(nextId.getAndIncrement(), "Gold", Items.GOLD, 1 + rand.nextInt(99));
-                        coins.setX(mCurPos.x + (int) Math.pow(-1, rand.nextInt(2)) * 10);
-                        coins.setY(mCurPos.y + (int) Math.pow(-1, rand.nextInt(2)) * 10);
-                        synchronized (vm) { items.add(coins); }
-
-                        units.remove(m);
-                        monsters.remove(m);
-                        li.remove();
-                    }
-                }
-            }
-        }
-
-        public void setScheduledFuture(ScheduledFuture future) {
-            this.future = future;
-        }
-
-        public void cancel() {
-            if (future != null) {
-                future.cancel(true);
-                canceled = true;
-            }
-        }
-    }
-
-    private class TowerController implements Runnable {
-
-        private ScheduledFuture future = null;
-        private boolean canceled = false;
-
-        public TowerController() {
-        }
-
-        @Override
-        public void run() {
-            if (!canceled) {
-                try {
-                    for (Tower t : towers) {
-                        if (!attackRandomMonster(t)) {
-                            t.selectMonster(monsters);
-                            attackRandomMonster(t);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-            }
-        }
-
-        private boolean attackRandomMonster(Tower t) {
-            if (t.targetInRange()) {
-                if (!t.reuse()) {
-                    //t.getTarget().doHit(t.getDamage());
-                    long begTime = System.currentTimeMillis() - JavaTestServer.serverStartTime;
-                    t.setLastAttackTime(begTime);
-                    NukeAction a = new NukeAction(new NukeBolt((JTSUnit) t, (JTSUnit) t.getTarget(), begTime));
-                    ScheduledFuture f = executor.scheduleAtFixedRate(a, 0L, 10L, TimeUnit.MILLISECONDS);
-                    a.setScheduledFuture(f);
-                    sendToAll(new Message[] { new BoltMessage(t.getID(), t.getTarget().getID(), begTime) });
-                    return true;
-                }
-                return false;
-            }
-            return false;
-        }
-
-        public void setScheduledFuture(ScheduledFuture future) {
-            this.future = future;
-        }
-
-        public void cancel() {
-            if (future != null) {
-                future.cancel(true);
-                canceled = true;
-            }
-        }
-    }
-}
-
-class NukeBolt {
-
-    private JTSUnit attacker;
-    private JTSUnit target;
-    private Movement mv;
-
-    public NukeBolt(JTSUnit attacker, JTSUnit target, long begTime) {
-        this.attacker = attacker;
-        this.target = target;
-
-        Point tmp = attacker.getCurPos();
-        Point cur = target.getCurPos();
-        mv = new Movement(tmp.x, tmp.y, 1.0);
-        mv.move(tmp.x, tmp.y, cur.x, cur.y, begTime);
-    }
-
-    public boolean isFlight() {
-        return mv.isMove();
-    }
-
-    public JTSUnit getAttacker() {
-        return attacker;
-    }
-
-    public JTSUnit getTarget() {
-        return target;
-    }
 }

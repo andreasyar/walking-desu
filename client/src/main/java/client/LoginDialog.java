@@ -77,6 +77,8 @@ public class LoginDialog extends JDialog implements ActionListener, PropertyChan
         optionPane.addPropertyChangeListener(this);
     }
 
+    void useTestNickname(String name) { typedText = common.PlayerName.requireValid(name); }
+
     public String getValidatedText() {
         return typedText;
     }
@@ -107,12 +109,12 @@ public class LoginDialog extends JDialog implements ActionListener, PropertyChan
 
             if (btnString1.equals(value)) {
                 typedText = textField.getText();
-                if (typedText.length() >= 3 && typedText.length() <= 10) {
+                if (common.PlayerName.isValid(typedText)) {
                     clearAndHide();
                 } else {
                     textField.selectAll();
                     JOptionPane.showMessageDialog(LoginDialog.this,
-                            "Nick must be 3-10 symbols long.",
+                            "Nick must be 3-10 symbols long, without quotes or line breaks.",
                             "Try again",
                             JOptionPane.ERROR_MESSAGE);
                     typedText = "Desu";

@@ -12,6 +12,20 @@ public final class ClientRegressionCheck {
     }
 
     public static void main(String[] args) throws Exception {
+        for (String name : new String[]{"abc", "abcdefghij", "stage5-one"}) require(common.PlayerName.isValid(name), "Valid nickname boundary");
+        for (String name : new String[]{"", "ab", "abcdefghijk", "bad\"nick", "bad\nnick"}) require(!common.PlayerName.isValid(name), "Rejected nickname");
+        System.setProperty("walkingdesu.testNick", "ignored");
+        require(ClientTestMode.nickname() == null, "Test nickname alone cannot skip login");
+        System.setProperty("walkingdesu.testMode", "true");
+        System.setProperty("walkingdesu.testNick", "stage5-one");
+        require(ClientTestMode.nickname().equals("stage5-one"), "Explicit test nickname");
+        System.setProperty("walkingdesu.testNick", "elevenchars");
+        try { ClientTestMode.nickname(); throw new AssertionError("Invalid test nickname accepted"); }
+        catch (IllegalArgumentException expected) { }
+        System.clearProperty("walkingdesu.testNick");
+        try { ClientTestMode.nickname(); throw new AssertionError("Missing test nickname accepted"); }
+        catch (IllegalArgumentException expected) { }
+        System.clearProperty("walkingdesu.testMode");
         WanderingServerTime.getInstance().setServerTime(System.currentTimeMillis());
         ServerInteraction.serverStartTime = WanderingServerTime.getInstance().getServerStartTime();
         for (Direction direction : Direction.values()) {

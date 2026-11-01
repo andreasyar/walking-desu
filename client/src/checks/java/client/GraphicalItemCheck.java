@@ -1,7 +1,6 @@
 package client;
 
 import common.items.Items;
-import java.awt.Robot;
 import java.nio.file.*;
 import java.util.function.BooleanSupplier;
 import javax.imageio.ImageIO;
@@ -18,12 +17,16 @@ public final class GraphicalItemCheck {
         }
     }
     private static void capture(GraphicalClientCheck.Session session, String name) throws Exception {
+        // Capture the live Swing window on the EDT; avoids Wayland's screen-sharing permission dialog.
+        java.awt.image.BufferedImage[] image = new java.awt.image.BufferedImage[1];
         SwingUtilities.invokeAndWait(() -> {
-            session.gui.frame.toFront();
             session.gui.panel.paintImmediately(0, 0, session.gui.panel.getWidth(), session.gui.panel.getHeight());
+            image[0] = new java.awt.image.BufferedImage(session.gui.frame.getWidth(), session.gui.frame.getHeight(),
+                    java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D graphics = image[0].createGraphics();
+            try { session.gui.frame.printAll(graphics); } finally { graphics.dispose(); }
         });
-        Thread.sleep(100);
-        ImageIO.write(new Robot().createScreenCapture(session.gui.frame.getBounds()), "png", OUTPUT.resolve(name + ".png").toFile());
+        ImageIO.write(image[0], "png", OUTPUT.resolve(name + ".png").toFile());
     }
     private static void pickup(GraphicalClientCheck.Session session, long id) {
         var item = session.field.getEtc(id);
@@ -45,8 +48,8 @@ public final class GraphicalItemCheck {
             }, "fixture server startup");
             String line = Files.readAllLines(OUTPUT.resolve("server.log")).stream().filter(l -> l.startsWith("Isolated item server port: ")).findFirst().orElseThrow();
             int port = Integer.parseInt(line.split(": ")[1]);
-            GraphicalClientCheck.Session first = new GraphicalClientCheck.Session(port, "items-gui-one", 20);
-            GraphicalClientCheck.Session second = new GraphicalClientCheck.Session(port, "items-gui-two", 850);
+            GraphicalClientCheck.Session first = new GraphicalClientCheck.Session(port, "items-one", 20);
+            GraphicalClientCheck.Session second = new GraphicalClientCheck.Session(port, "items-two", 850);
             await(() -> first.field.getEtc(200001) != null && second.field.getEtc(200001) != null, "ground appearance");
             if (!first.field.getEtc(200001).onItem(10, 0)) throw new AssertionError("Gold click anchor");
             capture(first, "01-ground-counts");

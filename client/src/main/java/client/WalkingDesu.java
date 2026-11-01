@@ -28,6 +28,7 @@ public class WalkingDesu {
     }
 
     private WalkingDesu(String[] args) {
+        ClientTestMode.nickname(); // Reject a missing/invalid test nickname before starting threads.
         GameField field = new GameField();
         field.startSelfExecution();
         ClientMapFragment.setWidth(1024);

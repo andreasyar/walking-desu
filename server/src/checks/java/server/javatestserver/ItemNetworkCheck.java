@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 /** Real sockets + authoritative world inspection. All fixtures stay in the checks source set. */
 public final class ItemNetworkCheck {
     private static JavaTestServer server;
-    private static VisibleManager world;
+    private static WorldState world;
     private static Queue<Item> ground;
     private static Queue<Player> players;
     private static int port;
@@ -81,8 +81,9 @@ public final class ItemNetworkCheck {
         ServerEtc coins = new ServerEtc(id, "Gold", Items.GOLD, quantity); coins.setX(x); return coins;
     }
     private static void seed(long id, int quantity, int x) {
-        synchronized (world) { ground.add(coins(id, quantity, x)); world.update(); }
+        synchronized (world) { ground.add(coins(id, quantity, x)); fieldVisibility().update(); }
     }
+    private static VisibleManager fieldVisibility() { return server.visibility(); }
     private static boolean onGround(long id) { synchronized (world) { return ground.stream().anyMatch(i -> i.getID() == id); } }
     private static int serverGold(Peer peer) {
         synchronized (world) { var gold = peer.player().getInventory().getEtc(Items.GOLD); return gold.isEmpty() ? 0 : gold.get(0).getCount(); }
@@ -126,13 +127,13 @@ public final class ItemNetworkCheck {
             seed(100003, 3, 100); loser.pickup(100003); barrier(loser);
             synced(loser, 0); require(onGround(100003), "far pickup rejected without removal");
             long disappears = loser.count(m -> m instanceof DisappearEtcItem d && d.getId() == 100003);
-            synchronized (world) { loser.player().teleportTo(1000, 0); world.update(); }
+            synchronized (world) { loser.player().teleportTo(1000, 0); fieldVisibility().update(); }
             await(() -> loser.count(m -> m instanceof DisappearEtcItem d && d.getId() == 100003) > disappears, "visibility exit");
             synced(loser, 0);
-            synchronized (world) { loser.player().teleportTo(100, 0); world.update(); }
+            synchronized (world) { loser.player().teleportTo(100, 0); fieldVisibility().update(); }
             await(() -> loser.count(m -> m instanceof AppearEtcItem a && a.getId() == 100003) == 2, "visibility reentry");
             loser.pickup(100003); barrier(loser); synced(loser, 3);
-            synchronized (world) { loser.player().teleportTo(1000, 0); world.update(); loser.player().teleportTo(0, 0); world.update(); }
+            synchronized (world) { loser.player().teleportTo(1000, 0); fieldVisibility().update(); loser.player().teleportTo(0, 0); fieldVisibility().update(); }
             barrier(loser);
             require(loser.count(m -> m instanceof AppearEtcItem a && a.getId() == 100003) == 2, "no ghost after picked item reentry");
 
@@ -147,7 +148,7 @@ public final class ItemNetworkCheck {
             require(loser.stackId() == 100003, "repick merges into recipient stack");
 
             seed(100004, 2, 0);
-            try (Peer interrupted = new Peer("items-disconnect")) {
+            try (Peer interrupted = new Peer("items-disc")) {
                 interrupted.pickup(100004);
                 interrupted.socket.setSoLinger(true, 0);
             }
@@ -156,7 +157,7 @@ public final class ItemNetworkCheck {
             require(onGround(100004), "disconnect conserves item");
             loser.pickup(100004); barrier(loser); synced(loser, 17);
             seed(100005, 4, 0);
-            try (Peer committed = new Peer("items-committed")) {
+            try (Peer committed = new Peer("items-done")) {
                 committed.pickup(100005); barrier(committed); synced(committed, 4);
             }
             await(() -> players.size() == 2 && onGround(100005), "committed pickup returned on disconnect");
@@ -172,7 +173,7 @@ public final class ItemNetworkCheck {
     public static void main(String[] args) throws Exception {
         int status = 1;
         try {
-            server = new JavaTestServer(0); world = field("vm"); ground = field("items"); players = field("players");
+            server = new JavaTestServer(0); world = server.world; ground = world.items; players = world.players;
             port = ((ServerSocket) field("ss")).getLocalPort();
             Thread runner = new Thread(server::run, "item-check-server"); runner.setDaemon(true); runner.start();
             System.out.println("Isolated item server port: " + port);

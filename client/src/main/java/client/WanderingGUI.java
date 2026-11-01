@@ -15,8 +15,10 @@ public class WanderingGUI implements Runnable {
     public final JTextField msgField;
     public final JButton sendBtn;
     public final LoginDialog dialog;
+    private final String testNickname;
 
     public WanderingGUI(GameField field, ServerInteraction inter) {
+        testNickname = ClientTestMode.nickname();
         panel = new WanderingJPanel(field, inter);
         panel.addMouseListener(panel);
         panel.addComponentListener(panel);
@@ -40,8 +42,12 @@ public class WanderingGUI implements Runnable {
         frame.setSize(800,600);
         dialog.setSize(new Dimension(400, 200));
         frame.setVisible(true);
-        dialog.startTimer();
-        dialog.setVisible(true);
+        if (testNickname == null) {
+            dialog.startTimer();
+            dialog.setVisible(true);
+        } else {
+            dialog.useTestNickname(testNickname);
+        }
     }
 
     public void showPanel() {
