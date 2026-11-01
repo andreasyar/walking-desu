@@ -156,7 +156,7 @@ docker compose -p walking-desu_devcontainer -f .devcontainer/compose.yaml up -d 
 ./gradlew :client:regressionCheck :server:networkSmoke
 ```
 
-Обе проверки также входят в `./gradlew build`. Клиентская проверка использует
+Эти проверки также входят в `./gradlew build`. Клиентская проверка использует
 локальные изображения и работает без экрана. Сетевая проверка сама запускает
 отдельную JVM сервера на свободном порту, проверяет вход двух игроков, карту,
 движение, текст, смерть/возрождение и отключение/повторный вход, затем завершает
@@ -175,3 +175,19 @@ docker compose -p walking-desu_devcontainer -f .devcontainer/compose.yaml up -d 
 Атака и смерть `peon` восстановлены из локального листа `img/peon.png`.
 Программа нарезки, удаление фона, резервные копии и порядок воспроизведения
 описаны в [заметке о спрайтах peon](docs/PEON-SPRITES.md).
+
+Серверные контроллеры, порядок сообщений и отмену задач проверяет
+`./gradlew :server:combatCheck`, предметные гонки — `:server:itemNetworkCheck`.
+Обе проверки входят в `build`. Контракт мира, результаты этапа 5 и команды
+двух графических прогонов описаны в [отчёте этапа 5](docs/RECOVERY-STAGE-5.md).
+
+Для автоматизированного графического запуска без диалога ника включите
+явный тестовый режим (ник — 3–10 символов, без кавычек и переводов строк):
+
+```sh
+JAVA_OPTS='-Dwalkingdesu.testMode=true -Dwalkingdesu.testNick=stage5-one' \
+  .devcontainer/artifacts/client/bin/walking-desu-client localhost 45001
+```
+
+Укажите порт своего проверочного сервера. Без `testMode=true` остаётся обычный
+диалог; в тестовом режиме пропущенный или неверный `testNick` отвергается.
