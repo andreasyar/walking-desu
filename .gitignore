@@ -3,6 +3,7 @@
 /.gradle/
 **/build/
 /.devcontainer/cache/
+/.devcontainer/assets/
 /.devcontainer/artifacts/client/*
 !/.devcontainer/artifacts/client/.gitkeep
 /.devcontainer/artifacts/server/*

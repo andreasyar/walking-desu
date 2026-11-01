@@ -1,0 +1,126 @@
+# Walking Desu
+
+Java-клиент с Swing-интерфейсом и игровой Java-сервер. Сборка — Gradle 9.8.2
+через Wrapper, JDK 21. Внешних Java-зависимостей сейчас нет.
+
+## Исходники
+
+Для новой сборки выбрана согласованная игровая линия **3.1.0**, состояние
+`240235e` (полный хеш и основания — в [заметке о миграции](docs/GRADLE-MIGRATION.md)).
+В ней сохранены подсистемы PvP, башен, монстров, предметов и инвентаря.
+Это исторический прототип, а не утверждение о полной работоспособности игры.
+
+- `common/src/main/java` — общая модель, карта, сообщения и навыки.
+- `client/src/main/java` — графический клиент, точка входа `client.WalkingDesu`.
+- `server/src/main/java` — сервер, точка входа `server.javatestserver.JavaTestServer`.
+
+Клиент и сервер зависят только от `common`; зависимости друг на друга нет.
+Старые shell/PowerShell-скрипты, Ant/NetBeans, Visual Studio-проекты, JNLP
+и ручные манифесты больше не используются и удалены. Исторические варианты
+остаются доступны в Git.
+
+## Окружение и сборка
+
+Открыть проект в IDE через **Reopen in Container / Open in Container**.
+Подробности — в [.devcontainer/README.md](.devcontainer/README.md).
+Все Gradle-команды ниже выполняются из корня проекта в терминале контейнера
+или на хосте с установленным JDK 21. На Windows использовать `gradlew.bat`.
+
+```sh
+./gradlew build
+```
+
+Wrapper сам загружает зафиксированный Gradle и проверяет SHA-256 дистрибутива.
+Первый запуск требует доступа к серверам загрузки Gradle.
+
+Графика хранится **только локально** и передаётся сборке отдельно.
+По умолчанию ожидается `.devcontainer/assets/client/img/`. Можно указать
+другой каталог, содержащий `img/`, абсолютным путём или относительно корня:
+
+```sh
+./gradlew build -PclientAssetsDir=/path/to/client-assets
+```
+
+В контейнере путь должен быть доступен внутри контейнера. Например,
+`/workspace/recovered/...`, если используются файлы из смонтированного проекта.
+Проверка `:client:verifyClientAssets` требует все 280 путей из
+`client/required-assets.txt`. При отсутствии ресурса упаковка клиента
+останавливается с диагностикой. В JAR попадает содержимое `img/`, а не каталог
+`recovered`, отчёты или альтернативные варианты изображений.
+
+На текущей машине локальный набор подготовлен в `.devcontainer/assets/client`
+из восстановленного профиля для `240235e`. В Git изображения не включены.
+Для двух неоднозначных путей при локальной проверке выбраны варианты из
+Google Code: `img/map.png` с SHA-256 `32cc7d14b866cd25890b1816754d5e0ad27d4d1d3752711a84d6b47aefa3c83c`
+и `img/peasant_walk/w_01.png` с SHA-256 `18968ef023d9924686f1efadef2fb13fe1a1015f08565fbe0751444d19455d0f`.
+Их точное соответствие пикселям выбранного коммита не доказано.
+Описание восстановления — в [аудите ресурсов](docs/archive-source-audit/HISTORICAL-ASSETS.md).
+
+Для компиляции или сборки одного сервера графика не нужна:
+
+```sh
+./gradlew :client:compileJava :server:build
+```
+
+## Результаты и запуск
+
+`build` собирает библиотеку `common`, клиентский и серверный дистрибутивы
+ZIP/TAR. Каждый дистрибутив содержит своё приложение, общую библиотеку и
+скрипты запуска для Linux/macOS и Windows. Архивы находятся в
+`client/build/distributions/` и `server/build/distributions/`.
+Сервер дополнительно получает самостоятельный JAR
+`server/build/libs/walking-desu-server-3.1.0-dev-standalone.jar`.
+Клиентские классы и изображения в сервер не входят.
+
+Для разработки подготовить клиентский дистрибутив и серверный JAR:
+
+```sh
+./gradlew prepareDev
+```
+
+Параметр `-PclientAssetsDir=...` работает и для этой команды.
+Клиент публикуется в `.devcontainer/artifacts/client/`, сервер — в
+`.devcontainer/artifacts/server/server.jar`. Можно публиковать их независимо:
+`:client:publishDev` и `:server:publishDev`.
+
+На **хосте** с Java 21 запустить клиент:
+
+```sh
+.devcontainer/artifacts/client/bin/walking-desu-client localhost 45000
+```
+
+В Windows использовать соответствующий `.bat`-файл. Если опубликованный
+порт сервера изменён, передать его вместо 45000.
+В dev-контейнере запуск клиента через `:client:run` потребует доступа к
+графическому серверу, который текущая конфигурация проекта не настраивает.
+
+Сервером управлять из терминала **на хосте**:
+
+```sh
+docker compose -p walking-desu_devcontainer -f .devcontainer/compose.yaml up -d --build server
+```
+
+Имя Compose-проекта должно совпадать с именем, которое использовала IDE.
+Для текущего расположения и VS Code это `walking-desu_devcontainer`.
+Фактическое имя можно посмотреть в логе Dev Containers или Docker labels.
+
+При обновлении сначала собрать новую версию, затем остановить сервер,
+опубликовать JAR и снова запустить сервер. Команды Gradle — в контейнере,
+Compose — на хосте:
+
+```sh
+./gradlew :server:build
+# На хосте:
+docker compose -p walking-desu_devcontainer -f .devcontainer/compose.yaml stop server
+# В контейнере:
+./gradlew :server:publishDev
+# На хосте:
+docker compose -p walking-desu_devcontainer -f .devcontainer/compose.yaml up -d server
+```
+
+Публикация заменяет серверный JAR атомарно после успешной сборки.
+Она не управляет Docker и не перезапускает работающую JVM автоматически.
+`:server:run` позволяет запустить сервер непосредственно через Gradle.
+
+`./gradlew clean` удаляет Gradle-результаты всех модулей. Локальные ресурсы,
+кэш Wrapper и опубликованные dev-артефакты сохраняются.

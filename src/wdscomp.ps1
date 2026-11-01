@@ -1,1 +1,0 @@
-javac -encoding "UTF-8" server/javatestserver/*.java
