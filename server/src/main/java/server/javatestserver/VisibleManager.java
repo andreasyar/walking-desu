@@ -1,0 +1,234 @@
+package server.javatestserver;
+
+import common.items.Item;
+import common.MoveMessage;
+import common.messages.DisappearEtcItem;
+import java.awt.Point;
+
+final class VisibleManager implements Runnable {
+
+    private final WorldState world;
+    private final MessageService server;
+
+    VisibleManager(WorldState world, MessageService server) {
+        this.world = world;
+        this.server = server;
+    }
+
+    @Override
+    public void run() {
+        try {
+            update();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+    }
+
+    /**
+     * Uses the shared world monitor.
+     */
+    public void update() {
+        synchronized (world) {
+            Point beg, end, cur;
+            for (Player p1 : world.players) {
+                for (Player p2 : world.players) {
+                    if (!p1.equals(p2)) {
+                        if (p1.inRange(p2) && !p1.see(p2)) {
+
+                            // Сообщим игрокам p1 и p2 друг о друге.
+                            p1.addVisibleUnit(p2);
+                            cur = p2.getCurPos();
+                            server.sendTo("(newplayer "
+                                    + p2.getID() + " "
+                                    + p2.getHitPoints() + " "
+                                    + 0.07 + " "
+                                    + cur.x + " "
+                                    + cur.y + " "
+                                    + "\"" + p2.getNick() + "\"" + " "
+                                    + "\"SOUTH\"" + " "
+                                    + "\"" + p2.getSpriteSetName() + "\"" + ")", p1);
+                            if (p2.getText() != null) {
+                                server.sendTo("(message " + p2.getID() + " \"" + p2.getText() + "\")", p1);
+                            }
+                            p2.addVisibleUnit(p1);
+
+                            cur = p1.getCurPos();
+                            server.sendTo("(newplayer "
+                                    + p1.getID() + " "
+                                    + p1.getHitPoints() + " "
+                                    + 0.07 + " "
+                                    + cur.x + " "
+                                    + cur.y + " "
+                                    + "\"" + p1.getNick() + "\"" + " "
+                                    + "\"SOUTH\"" + " "
+                                    + "\"" + p1.getSpriteSetName() + "\"" + ")", p2);
+                            if (p1.getText() != null) {
+                                server.sendTo("(message " + p1.getID() + " \"" + p1.getText() + "\")", p2);
+                            }
+                            if (p1.isMove()) {
+                                beg = p1.getBeg();
+                                end = p1.getEnd();
+                                server.sendTo(new MoveMessage(p1.getID(),
+                                                              p1.getBegTime(),
+                                                              beg.x,
+                                                              beg.y,
+                                                              end.x,
+                                                              end.y),
+                                              p2);
+                            }
+                            if (p2.isMove()) {
+                                beg = p2.getBeg();
+                                end = p2.getEnd();
+                                server.sendTo(new MoveMessage(p2.getID(),
+                                                              p2.getBegTime(),
+                                                              beg.x,
+                                                              beg.y,
+                                                              end.x,
+                                                              end.y),
+                                              p1);
+                            }
+                        } else if (!p1.inRange(p2) && p1.see(p2)) {
+
+                            // Игроки p1 и p2 больше не видят друг друга.
+                            p1.delVisibleUnit(p2);
+                            server.sendTo("(delplayer " + p2.getID() + ")", p1);
+                            p2.delVisibleUnit(p1);
+                            server.sendTo("(delplayer " + p1.getID() + ")", p2);
+                        }
+                    }
+                }
+                for (Tower t : world.towers) {
+                    if (p1.inRange(t) && !p1.see(t)) {
+
+                        // Игрок увидел башню.
+                        p1.addVisibleUnit(t);
+                        server.sendTo("(tower "
+                                + t.getID() + " "
+                                + t.getRange() + " "
+                                + t.getDamage() + " "
+                                + t.getCurPos().x + " "
+                                + t.getCurPos().y + " "
+                                + "\"" + t.getNick() + "\"" + ")", p1);
+                    } else if (!p1.inRange(t) && p1.see(t)) {
+
+                        // Игрок больше не видит эту башню.
+                        p1.delVisibleUnit(t);
+                        server.sendTo("(deltower " + t.getID() + ")", p1);
+                    }
+                }
+                for (Monster m : world.monsters) {
+                    if (p1.inRange(m) && !p1.see(m)) {
+
+                        // Игрок увидел монстра.
+                        p1.addVisibleUnit(m);
+                        server.sendTo("(newmonster "
+                                + m.getID() + " "
+                                + m.getHitPoints() + " "
+                                + m.getSpeed() + " "
+                                + m.getCurPos().x + " "
+                                + m.getCurPos().y + " "
+                                + "\"" + m.getNick() + "\"" + " "
+                                + "\"SOUTH\"" + " "
+                                + "\"" + m.getSpriteSetName() + "\"" + ")", p1);
+                        if (m.isMove()) {
+                            beg = m.getBeg();
+                            end = m.getEnd();
+                            server.sendTo(new MoveMessage(m.getID(),
+                                                          m.getBegTime(),
+                                                          beg.x,
+                                                          beg.y,
+                                                          end.x,
+                                                          end.y),
+                                          p1);
+                        }
+                    } else if (!p1.inRange(m) && p1.see(m)) {
+
+                        // Игрок больше не видит этого монстра.
+                        p1.delVisibleUnit(m);
+                        server.sendTo("(delmonster " + m.getID() + ")", p1);
+                    }
+                }//monsters
+
+                for (Item i : world.items) {
+                    if (p1.inRange(i) && !p1.see(i)) {
+
+                        // Игрок увидел предмет.
+                        p1.addVisibleItem(i);
+                        server.sendTo(i.getDropMessage(), p1);
+                    } else if (!p1.inRange(i) && p1.see(i)) {
+
+                        // Игрок больше не видит этот итем.
+                        p1.delVisibleItem(i);
+                        server.sendTo(new DisappearEtcItem(i.getID()), p1);
+                    }
+                }//items
+            }
+        }
+    }
+
+    /**
+     * Uses the shared world monitor.
+     */
+    public void removeItem(Item item) {
+        synchronized (world) {
+            for (Player player : world.players) {
+                if (player.see(item)) {
+                    player.delVisibleItem(item);
+                    server.sendTo(new DisappearEtcItem(item.getID()), player);
+                }
+            }
+        }
+    }
+
+    public void removePlayer(Player player) {
+        synchronized (world) {
+            player.clearVisibility();
+            for (Player p : world.players) {
+                if (p.getVisibleUnitsList().remove(player)) {
+                    server.sendTo("(delplayer " + player.getID() + ")", p);
+                }
+            }
+        }
+    }
+
+    /**
+     * Uses the shared world monitor.
+     */
+    public void removeTower(Tower tower) {
+        synchronized (world) {
+            for (Player p : world.players) {
+                if (p.getVisibleUnitsList().remove(tower)) {
+                    server.sendTo("(deltower " + tower.getID() + ")", p);
+                }
+            }
+        }
+    }
+
+    /**
+     * Uses the shared world monitor.
+     */
+    public void killMonster(Monster monster) {
+        synchronized (world) {
+            for (Player p : world.players) {
+                if (p.getVisibleUnitsList().remove(monster)) {
+                    server.sendTo("(deathmonster " + monster.getID() + ")", p);
+                }
+            }
+        }
+    }
+
+    /**
+     * Uses the shared world monitor.
+     */
+    public void killPlayer(Player player) {
+        synchronized (world) {
+            for (Player p : world.players) {
+                if (p.getVisibleUnitsList().contains(player)) {
+                    server.sendTo("(deathplayer " + player.getID() + ")", p);
+                }
+            }
+            server.sendTo("(deathplayer " + player.getID() + ")", player);
+        }
+    }
+}
