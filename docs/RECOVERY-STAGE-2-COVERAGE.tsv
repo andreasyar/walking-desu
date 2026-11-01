@@ -1,0 +1,116 @@
+commit	status	old_path	new_path	decisions
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	M	src/client/DirectionalSpriteSet.java	src/client/DirectionalSpriteSet.java	R01
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	M	src/client/GameField.java	src/client/GameField.java	R02,R14
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	M	src/client/MovementAnimation.java	src/client/MovementAnimation.java	R01
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	M	src/client/Player.java	src/client/Player.java	R14
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	M	src/client/ServerInteraction.java	src/client/ServerInteraction.java	R02,R14
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	M	src/client/WUnit.java	src/client/WUnit.java	R01,R02,R14
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	M	src/client/WanderingJPanel.java	src/client/WanderingJPanel.java	R02,R14
+0bc73e92f9bebee7fad9439e7d2e7a80260db51c	M	src/client/Player.java	src/client/Player.java	R04,R14
+0bc73e92f9bebee7fad9439e7d2e7a80260db51c	M	src/client/WUnit.java	src/client/WUnit.java	R03
+0bc73e92f9bebee7fad9439e7d2e7a80260db51c	M	src/common/items/Item.java	src/common/items/Item.java	R04
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/DeathAnimation.java	src/client/DeathAnimation.java	R03
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/client/DrawableItem.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/GameField.java	src/client/GameField.java	R02,R05
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/Monster.java	src/client/Monster.java	R03
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/MonsterDeathAnimation.java	src/client/MonsterDeathAnimation.java	R03
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/Player.java	src/client/Player.java	R03,R04
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/PlayerDeathAnimation.java	src/client/PlayerDeathAnimation.java	R03
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/ServerInteraction.java	src/client/ServerInteraction.java	R02,R05
+7ab4355ec8798f5e2e0517e66fa72460998c1202	A		src/client/UnitAnimator.java	R02,R03
+7ab4355ec8798f5e2e0517e66fa72460998c1202	A		src/client/UnitPainter.java	R02
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/UseSkillAnimation.java	src/client/UseSkillAnimation.java	R01,R03
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/WUnit.java	src/client/WUnit.java	R01,R03
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/WanderingGUI.java	src/client/WanderingGUI.java	R14
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/WanderingJPanel.java	src/client/WanderingJPanel.java	R02
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/client/items/ClientEtc.java	src/client/items/ClientEtc.java	R04,R05
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/GoldCoinMessage.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/common/Inventory.java	src/common/Inventory.java	R04
+7ab4355ec8798f5e2e0517e66fa72460998c1202	A		src/common/InventoryException.java	R04
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/MultiItem.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/PickupGoldCoinItem.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	A		src/common/Player.java	R06
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/common/Unit.java	src/common/Unit.java	R02,R03,R11
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/WPickupMessage.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/common/items/Etc.java	src/common/items/Etc.java	R04
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/common/items/Item.java	src/common/items/Item.java	R04
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/common/items/Items.java	src/common/items/Items.java	R04
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/messages/AddGoldCoin.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	R070	src/common/messages/AddEtcItem.java	src/common/messages/AppearEtcItem.java	R05
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/messages/DelGoldCoin.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	A		src/common/messages/DisappearEtcItem.java	R05
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/messages/InventoryAddGoldCoin.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	D	src/common/messages/InventoryDelGoldCoin.java		R13
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/common/messages/MessageType.java	src/common/messages/MessageType.java	R05
+7ab4355ec8798f5e2e0517e66fa72460998c1202	A		src/common/skills/Skill.java	R11
+7ab4355ec8798f5e2e0517e66fa72460998c1202	A		src/common/skills/SkillType.java	R11
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/server/javatestserver/JavaTestServer.java	src/server/javatestserver/JavaTestServer.java	R04,R05
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/server/javatestserver/Player.java	src/server/javatestserver/Player.java	R04,R05,R14
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/server/javatestserver/VisibleManager.java	src/server/javatestserver/VisibleManager.java	R05,R14
+7ab4355ec8798f5e2e0517e66fa72460998c1202	M	src/server/javatestserver/items/ServerEtc.java	src/server/javatestserver/items/ServerEtc.java	R04,R05
+0962dd67207429ac2411895c50cb66541834c518	M	src/client/Player.java	src/client/Player.java	R04,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/client/ServerInteraction.java	src/client/ServerInteraction.java	R05,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/client/WInventory.java	src/client/WInventory.java	R04,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/client/items/ClientEtc.java	src/client/items/ClientEtc.java	R04,R05,R06
+0962dd67207429ac2411895c50cb66541834c518	D	src/common/InventoryException.java		R04,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/common/items/Etc.java	src/common/items/Etc.java	R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/common/items/Item.java	src/common/items/Item.java	R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/common/messages/AppearEtcItem.java	src/common/messages/AppearEtcItem.java	R05,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/common/messages/InventoryAddEtcItem.java	src/common/messages/InventoryAddEtcItem.java	R05,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/common/messages/InventoryRemoveEtcItem.java	src/common/messages/InventoryRemoveEtcItem.java	R05,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/newcommon/CurveMovement.java	src/newcommon/CurveMovement.java	R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/newcommon/Entity.java	src/newcommon/Entity.java	R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/newcommon/Furniture.java	src/newcommon/Furniture.java	R06
+0962dd67207429ac2411895c50cb66541834c518	R072	src/common/Inventory.java	src/newcommon/Inventory.java	R04,R06
+0962dd67207429ac2411895c50cb66541834c518	D	src/newcommon/Item.java		R06
+0962dd67207429ac2411895c50cb66541834c518	A		src/newcommon/Monster.java	R06
+0962dd67207429ac2411895c50cb66541834c518	D	src/newcommon/Movable.java		R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/newcommon/Movement.java	src/newcommon/Movement.java	R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/newcommon/Player.java	src/newcommon/Player.java	R04,R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/newcommon/Unit.java	src/newcommon/Unit.java	R06,R11
+0962dd67207429ac2411895c50cb66541834c518	A		src/newcommon/exceptions/InventoryException.java	R04,R06
+0962dd67207429ac2411895c50cb66541834c518	A		src/newcommon/exceptions/UnitException.java	R06
+0962dd67207429ac2411895c50cb66541834c518	A		src/newcommon/items/Etc.java	R06
+0962dd67207429ac2411895c50cb66541834c518	A		src/newcommon/items/Item.java	R06
+0962dd67207429ac2411895c50cb66541834c518	R091	src/common/items/Items.java	src/newcommon/items/Items.java	R06
+0962dd67207429ac2411895c50cb66541834c518	A		src/server/javatestserver/DeathManager.java	R08
+0962dd67207429ac2411895c50cb66541834c518	A		src/server/javatestserver/GameField.java	R06,R07
+0962dd67207429ac2411895c50cb66541834c518	M	src/server/javatestserver/JavaTestServer.java	src/server/javatestserver/JavaTestServer.java	R06,R07,R10
+0962dd67207429ac2411895c50cb66541834c518	A		src/server/javatestserver/MessageManager.java	R10
+0962dd67207429ac2411895c50cb66541834c518	M	src/server/javatestserver/Monster.java	src/server/javatestserver/Monster.java	R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/server/javatestserver/Player.java	src/server/javatestserver/Player.java	R06
+0962dd67207429ac2411895c50cb66541834c518	M	src/server/javatestserver/VisibleManager.java	src/server/javatestserver/VisibleManager.java	R06,R07,R10
+0962dd67207429ac2411895c50cb66541834c518	M	src/server/javatestserver/items/ServerEtc.java	src/server/javatestserver/items/ServerEtc.java	R05,R06
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/client/GameField.java	src/client/GameField.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/client/ServerInteraction.java	src/client/ServerInteraction.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/client/WalkingDesu.java	src/client/WalkingDesu.java	R12,R13
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/client/WanderingJPanel.java	src/client/WanderingJPanel.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/common/messages/MessageType.java	src/common/messages/MessageType.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/common/skills/Skill.java	src/common/skills/Skill.java	R11
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/common/skills/SkillType.java	src/common/skills/SkillType.java	R11
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/newcommon/CurveMovement.java	src/newcommon/CurveMovement.java	R06
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/newcommon/Unit.java	src/newcommon/Unit.java	R06,R11
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/newcommon/exceptions/GameFieldException.java	R06,R07
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/newcommon/exceptions/SkillException.java	R06,R11
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/ClientInteraction.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/HelloMessage.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/IdManager.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/JavaServer.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/JavaServerException.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/Message.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/MessageManager.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/MessageTypes.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/MonsterManager.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/NameMessage.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/PlayerManager.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/SkillAction.java	R11,R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/SkillManager.java	R11,R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/SkillPerformAction.java	R11,R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javaserver/WelcomeMessage.java	R12
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/server/javatestserver/GameField.java	src/server/javatestserver/GameField.java	R06,R07,R11
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/server/javatestserver/JavaTestServer.java	src/server/javatestserver/JavaTestServer.java	R08,R09,R13,R14
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/server/javatestserver/MessageManager.java	src/server/javatestserver/MessageManager.java	R10
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javatestserver/NukeAction.java	R08
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javatestserver/NukeBolt.java	R08
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	M	src/server/javatestserver/Tower.java	src/server/javatestserver/Tower.java	R09
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	A		src/server/javatestserver/TowerController.java	R09

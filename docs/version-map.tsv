@@ -1,0 +1,122 @@
+commit	date_moscow	version	subject
+94008225074e12801efe1dc08cf93650b55fcbde	2009-09-22	1.0.0	Набросок клиента. Спрайты не могут быть выложены здесь как часть клиента, так как они не принадлежат разработчикам. Ссылка на эксперементальный набор спрайтов от неизвестного нам автора будет добавлена позже в wiki.
+9eb2de2ba98d92d82c6deba2f87cf3ed397d4c52	2009-09-22	1.0.0	
+2c46e084da5384a7c4b710014cb37a7a4c346a8f	2009-09-23	1.0.0	
+0d228b36bccc4440c78c9df12d47fc710b8d2bda	2009-09-23	1.0.0	
+3d96d9731f1916f30545c758e16ac2a52329dfc2	2009-09-23	1.0.0	
+11b2dfa833876c0fb26313b544e7a80483bad05e	2010-05-08	1.0.0	Comments now in Unicode.
+cc0352df6559052863d15eb3146a6bb5e3bc9dc4	2010-07-08	2.0.0	Finally! New version work begins. WD is not applet any more. No animation yet. This is a demo code. Do not forget to put img directory with sprites near client and server directory.
+c08d692e168a6c57e62de0cd635afe126e53382f	2010-07-08	2.0.0	NBProject files also.
+07fd322680a0ed190b90aa7438e78047d979ce75	2010-07-08	2.0.0	Reorg.
+0e052091f13c6e5b404c0f18de5f2af29276a4fd	2010-07-08	2.0.0	Reorg.
+ba5e929f7d870bdacb7a28d085305612397b405b	2010-07-08	2.0.0	reorg again
+96e07d4ebbf5a69e399aed100eae76a7cfa20205	2010-07-08	2.0.0	reorg
+bd7b6a0458c907a3dbd2c4f4f7ff00a213ff2f71	2010-07-08	2.0.0	Primitive animations. YAY its ugly.
+ff0fbec17d6723092c98761f5509e3e984c3b6fa	2010-07-08	2.0.0	Compilations fix.
+4d308b9176826264c8cdae6d02a1c3396a8e275b	2010-07-09	2.0.0	Скрипт запуска для Windows. Смена спрайта движения выравнена по интервалам проходимого пути. Время переведено на внутренний таймер. Другие небольшие изменения.
+da53b265cac54b5c8b8a6c313500971b1631035c	2010-07-09	2.0.0	Начальный вариант анимации простоя.
+09be4f8c5fc1344a5bb472d93fd79630922b0a73	2010-07-09	2.0.0	oops forget bots
+2e363ed8c4e073020dfefa99df6c34fc7aeb03b3	2010-07-09	2.0.0	Cleanup. 50 fps again.
+efd59c007050ea906c3689526d829dba88f7f3dd	2010-07-09	2.1.0	test server 1
+c24a9ac661b4794728aa830e4441c72a21cb422c	2010-07-09	2.1.0	
+d066f9dcb42598cb9d497c82812664b973a954a1	2010-07-11	2.1.0	All functions almost done. Lite optimization.
+fcc593d75d5855d8ced12ed734aa9220eeb4dad5	2010-07-11	2.1.0	
+c93a4cce0bae25596b2f30ef4abcaaa067c95894	2010-07-11	2.1.0	Поддержка сообщений
+f4dc9af9ea3ab3a0150646d484dba6b32904eacd	2010-07-11	2.1.0	Проблема с кодировкой.
+1b3fc4803413bbd9c6a92113f837db56f22a139b	2010-07-11	2.1.0	
+a6d1976f7a2a9370f73ea738abd5410cc1222292	2010-07-11	2.1.0	check cli start for schemeserver:   $ mzscheme --script desu.scm portno
+1dd67504c951fc1aa9ce8487e784eea518851d81	2010-07-11	2.1.0	
+d5c2e053c72bd8f59d164c39e5d76f24515b3271	2010-07-12	2.1.0	No indexed colors any more.
+9645356448a1a7a8aa0941319e6619bfe7becb04	2010-07-12	2.1.0	For Java Web Start
+99c40c78fed1799e1954772b80efff9938caf398	2010-07-12	2.1.0	add save old message
+e93e7ee2854720edf324ed1bb93a559fb20ff127	2010-07-12	2.1.0	New scripts, profiler info, player does not go over the map any more.
+2254b83fd5156e4539f96f22a7b0bb99a6c9b300	2010-07-12	2.1.0	Oops.
+c755833c6a0a3786f6c2a416ec68d38ef17fc9d2	2010-07-12	2.1.0	Добавлено логирование ip адресов в Java Test Server. Прозрачное облачко текста. Мограние с задержкой.
+79eb0e0a381daa076293891353a92873f8129be2	2010-07-12	2.1.0	Basics geodata work begins
+ba2edc5d98feb3a8e0185e08cf646f03b4dcdd6c	2010-07-13	2.1.0	Prepare to nick choose.
+029932788e2de747862ce493def1f6242b50b4fb	2010-07-13	2.1.0	Ники. Нюки.
+d2852622e2c15df65200ae8dd5870bc07a0a49ec	2010-07-14	2.1.0	Small cleanup
+d26d3f10ecdb730dda10123456b5feb61a51c8eb	2010-07-14	2.1.0	Server rework begins.
+b4c30832dada64cbcabdd0aec7dd06b03d9bec92	2010-07-15	2.1.0	
+67addb662f8abcb9a1eb02b8fbc246111891338e	2010-07-15	2.2.0	pvp
+995ff038aa0ab7a118fd40c90642e552dccec8d4	2010-07-19	2.2.0	
+3907b224163e441c82326f2a79742481735c9a21	2010-07-19	2.2.0	
+e2feac0f5ab1f859a310ff4e6531257e674af297	2010-07-20	2.2.0	
+8fd4ba133c616f45df27c86069f7e3ac54283b14	2010-07-20	2.2.0	
+1c8bee8625d75fa306af5191673ec48f12db661e	2010-07-21	2.2.0	
+4245b786e9e76f9325295f1ea67abaac9c3b9690	2010-07-21	2.3.0	Global client rework.
+20a1fb372230db130d2000ef234699399af90b08	2010-07-22	2.3.0	
+fc6651c4d8c6abf6c8f89fdfe56b36dd8377bca5	2010-07-23	2.3.0	
+107c2b08a531c8f371da32d5804f16db31fbcb08	2010-07-23	2.3.0	
+c256146bd8e82d1f75f134324a414327e4aaa95a	2010-07-23	2.3.0	
+d27c098443097cdf4a1d8f8a5ae8cc99a1d30035	2010-07-26	2.3.0	
+e2a625dfeb1d1af78c709f9cd37287139af0c698	2010-07-27	2.3.0	
+abe92ddf82f9cb6082387d6030ff8b3408134b05	2010-07-27	2.3.0	Client rework almost done. Also, geodata.
+d6090e10e47119d27088f7cdbe1c2ed7dabb1a4d	2010-07-27	2.3.0	oops
+d5351c9fc8d17a765e2d2c881d6b56f0d8719074	2010-07-28	2.4.0	tower defence
+65db390d45cbca88e88cfe5a4fbd7744e14ecace	2010-07-29	2.4.0	
+f79543bbd87c88c967293e9680ea388fa0fc263c	2010-07-29	2.4.0	
+43b4c586de04c14f34fe6c973059117ebe2a25c3	2010-07-30	2.4.0	
+41724c19b0f512f8a5ef8a98c31d04cd45b6f957	2010-08-02	2.4.0	
+531145143d68ad11642ed2784b734e7b3ed17e17	2010-08-02	2.4.0	
+96e02add4f0ed105882ca95a8c834b2af52c42f1	2010-08-02	2.4.0	
+e9a43f6ac853f5b2aee359e9a5d6de5afb727d55	2010-08-03	2.4.0	
+594eb1d8246ac9d17a1e27f5cdb10d888737ecd7	2010-08-03	2.4.0	
+f2596bc167ebae7829bb15eac17b3a069b7b5b06	2010-08-04	2.4.0	
+dc02ffae4d9b9e37f260164217d2fc686f74ae84	2010-08-04	2.4.0	Новая анимация выстрела башни. Переработаны классы нюка и анимации нюка. Начато добавление анимации смерти.
+128a71d380b4db7107ddb5d754bb7ad34c067855	2010-08-04	2.4.0	
+41248b7005873b142fb6c56511d2a5065b1c8eba	2010-08-05	2.4.0	Анимация смерти, удара.
+89fe71bf2df16126114f67c96a213d3d005456a8	2010-08-06	2.4.0	Исправлен баг при добавлении башни. Новая карта и геодата.
+1bf365cc0f5085af65ccc818319157a3514e5eef	2010-08-06	2.4.0	
+11ee7a4995542668945047b30e35c3e48ffc2da0	2010-08-09	2.4.0	
+1804ba9d06f0d39bd42276c09ab47eff368db44d	2010-08-10	2.4.0	
+c5ff13b4023d4bb61da618a813eca1929acdcd8d	2010-08-11	2.4.0	Animation first steps.
+82a9d383d7e616e8e1fa690967241988dfd98b94	2010-08-11	2.4.0	
+f99d410fa28d08181c4e16849e291909267ee28b	2010-08-11	2.4.0	
+38b7ba5caf6c20890b08fb198b235062a274d42c	2010-08-11	2.4.0	Small bug on my local copy
+b67013fe8c133de604429e0de8e440ba36b7aef4	2010-08-11	2.5.0	PVP. Attack and death animation. Server supports geodata.
+a6f80a185b0f405bc078142dfaf95530916b1979	2010-08-12	2.5.0	Map shift fix.
+628f3c96d66e08fbb0be3b9dcd8fb88b03a7f71f	2010-08-12	2.5.0	
+2b708aa71d39ff2f5a4676605dcc7a8e4f324bb9	2010-10-28	2.5.0	Delmonster method added.
+118a09b72ee5f9745523e4a0cc2a0d295c7255e6	2010-11-20	2.5.0	Hackday 1
+7880e9eb46b34d69469aea85f452b79f786eaceb	2010-11-20	2.6.0	Random maps draft 1.
+d8b1d9e99296dd9a6753d66314966a7cb969ab9c	2010-11-20	2.6.0	oops
+7552dab6253812c28d7a1b2893708948b2c9620f	2010-11-21	2.6.0	
+c6ec78895732d25fa051e1eff6cc2c2083c9c306	2010-11-21	2.6.0	New map fragments cut-n-draw alg.
+ce0239f8f940eb1d0b6fab7a2a200c6b8b9f02c5	2010-11-22	2.6.0	
+2a3aabfc7071a2df6e21f54730619c215ddca600	2010-11-22	2.6.0	
+5c944fb7c95289d020eb016e88e0b6ce4d1e8ac6	2010-11-23	2.6.0	JPanel already use a double buffering (default in Swing).
+ded120e7962b5747734c0967ede22008bcbb7367	2010-11-26	2.6.0	Started work to create new common package what will be shared between client and server to provide common classes.
+389de2c27172d69df57ff9f0da4d5a61cdd06e09	2010-11-27	2.6.0	
+c024b1a861f25af00031cd055b999db8789c89a9	2010-11-29	2.6.0	
+52f24270e164b6cb689283005c78193ecd2041bf	2010-11-29	2.6.0	I going crazy =\
+7a08515bd7a21efd4a3e65277edce79ccefb459b	2010-11-30	2.6.0	Now we use common + sprcific Unit classes at Client and Server.
+3a28dc44ce4fbfa595e26dfc627d69865122cd3d	2010-11-30	3.0.0	Pff. New async things. No more locks! New messages format.
+41fad111d628a653076eaad5c4ccc82f39c6c781	2010-12-01	3.0.0	Some old files removed. New sync issues. Map fragments draw alg. improved.
+c79aee619428d79ec1a6dfa01e02b2ae577509df	2010-12-02	3.0.0	
+b9154691b7815287ba61b837ae3f2c2443c86a4b	2010-12-02	3.0.0	
+cc554c39a26dbee1aefe1f688d05b46ae6132dc0	2010-12-03	3.0.0	I move script what creates client jar file and change it so looks like it works again. Also I start work to create new class hierarchy what will me more flexible and extendeble, include items and entities conception, new movement conception etc.
+0c27ec77929a0f0babe7ce03f01c8bcb2809db93	2010-12-06	3.0.0	
+a66f6ab348e09b9aaa655ef8b6514fbf01508825	2010-12-06	3.0.0	Now items are pickupable, but not complete yet. There is new drawing conception and z-buffer instead array sorting (brrrr). Interfaces is ugly anyway.
+334d08fa62bf3813b690390bf9bc8ceca36e415d	2010-12-07	3.0.0	
+d2cfc06312873288cbfaaebfc46771f16448a1ca	2010-12-07	3.1.0	Pickup. Inventory
+0a12f2c9af03f9d34591bb5fffa5ffaaa19d97f6	2010-12-08	3.1.0	nbproject moved to separate folder and use relevant pathes.
+dd28ad143a5a2ce21e1ef3c2faec308a267c056b	2010-12-08	3.1.0	New scripts.
+708db69d20d11549b1e877e39b60520fa7078507	2010-12-08	3.1.0	
+54c3af798f38585903c11bfe9ea57105bb670a1a	2010-12-09	3.1.0	
+71b0f1b410840eb84627b5dde9090edbea113f35	2010-12-12	3.1.0	
+abc142453051ef88a189a6b3b97830db0b12614d	2010-12-13	3.1.0	Wand startable again, but drawing things under construction.
+240235e801d318d86d05bbd6ebf50d2301b5a2ab	2010-12-14	3.1.0	New items works logic. New zbuffer class. New sprite creation conception draft.
+0e15b5c45cbc6a4dbef6b048ccc1e9ae6c26f122	2010-12-15	3.1.0	
+0bc73e92f9bebee7fad9439e7d2e7a80260db51c	2010-12-20	3.1.0	
+7ab4355ec8798f5e2e0517e66fa72460998c1202	2010-12-20	3.1.0	Some epic changes comes.
+0962dd67207429ac2411895c50cb66541834c518	2010-12-21	3.1.0	Oh my
+6425041a6c2b45bc88bc67d5b0a91f64e6447a2d	2010-12-22	3.1.0	Oh noes
+30a8613c0884e6d8aa7ad3ba029f82d46f08f023	2010-12-24	4.0.0	Game broken :\)
+6d684cbfe31fc21268a717cbcf6c12457e29b3bd	2010-12-24	4.0.0	
+af3bd6ab30cfea9076e3553a2780ffcebab1f7e7	2010-12-27	4.0.0	
+2023c2fbf4701d45fcf04ea2d31877cdcb1fc736	2010-12-28	4.0.0	
+16c3c9d2c8f243e79d2c766f5364e860c65dd46f	2010-12-29	4.1.0	
+ca4f2828410ff1fb5aa7c273f45796ac9233ecdb	2010-12-30	4.1.0	Happy new year\!
+b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa	2011-01-03	4.1.0	
+476cd8573ceca34b1b91a29f30fe1d6e86f5360d	2026-11-01	4.1.0	Document archive recovery results and ignore local recovered assets
