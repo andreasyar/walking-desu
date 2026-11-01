@@ -231,6 +231,9 @@ class MessageReceiver implements Runnable {
         } else if (message.getType() == MessageType.MAPFRAGMENTREQEST) {
 
             MapFragmentRequestMessage m = (MapFragmentRequestMessage) message;
+            if (m.getIdX() < 0 || m.getIdY() < 0
+                    || m.getIdX() > wand6.common.MapFragment.maxIdX
+                    || m.getIdY() > wand6.common.MapFragment.maxIdY) return;
             try {
                 messageManager.sendMapFragment(client.getSelfPlayerId(), mapManager.getMapFragment(m.getIdX(), m.getIdY()));
             } catch (MessageManagerException ex) {
@@ -245,7 +248,7 @@ class MessageReceiver implements Runnable {
 
             MoveRequestMessage m = (MoveRequestMessage) message;
             try {
-                playerManager.movePlayer(client.getSelfPlayerId(), m.getX(), m.getY());
+                playerManager.movePlayer(client.getSelfPlayerId(), m.getX(), m.getY(), m.isStop());
             } catch (PlayerManagerException ex) {
                 if (debugLevel > 0) {
                     ex.printStackTrace();

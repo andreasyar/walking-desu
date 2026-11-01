@@ -29,6 +29,11 @@ class MessageManager {
         inter.sendMessage(new MapFragmentRequestMessage(idX, idY));
     }
 
+    static void sendStopRequest() throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(MoveRequestMessage.stop());
+    }
+
     static void sendMoveRequest(int x, int y) throws MessageManagerException {
         checkInteraction();
         inter.sendMessage(new MoveRequestMessage(x, y));

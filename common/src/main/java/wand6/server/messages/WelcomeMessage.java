@@ -7,6 +7,8 @@ import java.io.Serializable;
 public class WelcomeMessage implements Message, Serializable {
 
     private final MessageType type = MessageType.WELCOME;
+    private static final long serialVersionUID = 8L;
+    private final long serverTime;
     private long id;
     private String name;
     private String spriteSetName;
@@ -14,6 +16,7 @@ public class WelcomeMessage implements Message, Serializable {
     private int y;
 
     public WelcomeMessage(long id, String name, String spriteSetName, int x, int y) {
+        serverTime = wand6.common.ServerTime.getInstance().getTimeSinceStart();
         this.id = id;
         this.name = name;
         this.spriteSetName = spriteSetName;
@@ -25,6 +28,8 @@ public class WelcomeMessage implements Message, Serializable {
     public MessageType getType() {
         return type;
     }
+
+    public long getServerTime() { return serverTime; }
 
     public long getId() {
         return id;

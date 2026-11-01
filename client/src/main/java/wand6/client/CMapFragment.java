@@ -15,7 +15,7 @@ import wand6.common.MapFragment;
 
 class CMapFragment extends MapFragment {
 
-    private static int debugLevel = 2;
+    private static int debugLevel = Boolean.getBoolean("wand6.debugMap") ? 2 : 0;
 
     private static final HashMap<String, BufferedImage> tiles = new HashMap<String, BufferedImage>();
     private static final HashMap<String, BufferedImage> summerTiles = new HashMap<String, BufferedImage>();
@@ -85,6 +85,7 @@ class CMapFragment extends MapFragment {
             summerTiles.put("water_29", summerImage.getSubimage(256, 640, 32, 32));
             summerTiles.put("water_30", summerImage.getSubimage(288, 640, 32, 32));
             summerTiles.put("water_31", summerImage.getSubimage(320, 640, 32, 32));
+            summerTiles.put("rock_01", summerImage.getSubimage(256, 288, 32, 32));
             summerTiles.put("dirt_01", summerImage.getSubimage(448, 640, 32, 32));
         }
 
@@ -101,6 +102,7 @@ class CMapFragment extends MapFragment {
                                 null);
                 }
             }
+            tmpG.dispose();
         }
 
         g.drawImage(img, x, y, null);
@@ -138,9 +140,7 @@ class CMapFragment extends MapFragment {
             g.setColor(savedColor);
         }
 
-        for (int i = 0; i < summerTiles.size(); i++) {
-            g.drawImage(summerTiles.get(i), x + i * 32, y, null);
-        }
+
     }
 
     private void loadTile(String name, String path) {
@@ -186,9 +186,10 @@ class CMapFragment extends MapFragment {
         int n = hmap[0].length; // hmap always n x n
 
         if (i >= 0 && j >= 0 && i < n && j < n) {
-            return hmap[i][j] <= seaLevel;
+            return hmap[j][i] <= seaLevel;
         } else {
-            return true;
+            return wand6.common.Terrain.height((long) getIdX() * 32 + i,
+                    (long) getIdY() * 32 + j) <= seaLevel;
         }
     }
 
@@ -198,7 +199,7 @@ class CMapFragment extends MapFragment {
         int n = hmap[0].length; // hmap always n x n
 
         if (i >= 0 && j >= 0 && i < n && j < n) {
-            return hmap[i][j] >= mountLevel;
+            return hmap[j][i] >= mountLevel;
         } else {
             return false;
         }
@@ -214,13 +215,14 @@ class CMapFragment extends MapFragment {
         int n = hmap[0].length; // hmap always n x n
 
         if (i >= 0 && j >= 0 && i < n && j < n) {
-            return hmap[i][j] > seaLevel && hmap[i][j] < mountLevel;
+            return hmap[j][i] > seaLevel && hmap[i][j] < mountLevel;
         } else {
             return true;
         }
     }
 
     private String getTileKey(int i, int j) {
+        if (isMountian(i, j)) return "rock_01";
         //WL
         //LL
         // <editor-fold defaultstate="collapsed" desc="comment">

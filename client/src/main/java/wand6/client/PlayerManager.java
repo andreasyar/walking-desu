@@ -12,6 +12,10 @@ class PlayerManager {
     private static PlayerManager self = null;
 
     private volatile Player selfPlayer = null;
+    private MovementAnimation walking;
+    private StandAnimation standing;
+    private Direction direction = Direction.SOUTH;
+    Player selfPlayer() { return selfPlayer; }
     private final ArrayList<Player> players = new ArrayList<Player>();
 
     static PlayerManager getInstance() {
@@ -34,6 +38,9 @@ class PlayerManager {
 
     long createSelfPlayer(long id, String name, String spriteSetName) {
         selfPlayer = new Player(id, name, spriteSetName);
+        walking = new MovementAnimation(spriteSetName);
+        standing = new StandAnimation(spriteSetName);
+        standing.run(direction, 0);
         synchronized (players) {
             players.add(selfPlayer);
         }
@@ -56,27 +63,34 @@ class PlayerManager {
         return selfPlayer.getCurY();
     }
 
-    void drawPlayers(Graphics g, Dimension panelDim) {
-        if (selfPlayer != null) {
-            Color savedColor = g.getColor();
-            g.setColor(Color.RED);
-            g.drawLine(panelDim.width / 2,
-                       panelDim.height / 2,
-                       panelDim.width / 2,
-                       panelDim.height / 2);
-            g.setColor(savedColor);
-        }
+    void drawPlayers(Graphics g, Camera camera, long time) {
+        if (selfPlayer == null) return;
+        var movement = selfPlayer.getMovement();
+        var position = movement.position(time);
+        var point = new java.awt.Point(position.x(), position.y());
+        Sprite sprite = movement.isMovingAt(time)
+                ? walking.getSprite(point) : standing.getSprite(time, point);
+        g.drawImage(sprite.image, sprite.x - camera.x(), sprite.y - camera.y(), null);
+        g.setColor(Color.WHITE);
+        String name = selfPlayer.getName();
+        g.drawString(name, point.x - camera.x() - g.getFontMetrics().stringWidth(name) / 2,
+                sprite.y - camera.y() - 4);
     }
 
     String getSelfPlayerText() throws NullPointerException {
         return selfPlayer.getText();
     }
 
-    void movePlayer(long playerId, int x, int y, long begTime) throws PlayerManagerException {
+    void movePlayer(long playerId, int bx, int by, int x, int y, long begTime) throws PlayerManagerException {
         synchronized(players) {
             for (Player player : players) {
                 if (player.getId() == playerId) {
-                    player.move(x, y, begTime);
+                    player.getMovement().start(bx, by, x, y, begTime);
+                    if (bx != x || by != y) {
+                        walking.run(bx, by, x, y, 10.0);
+                        direction = walking.getDirection();
+                    }
+                    standing.run(direction, player.getMovement().getEndTime());
                     return;
                 }
             }

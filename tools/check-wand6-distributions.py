@@ -55,7 +55,7 @@ def run_logged(command, cwd, env, log, timeout=35):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--assets', type=Path, required=True, help='Directory containing img/summer.png')
+    parser.add_argument('--assets', type=Path, required=True, help='Directory containing images listed in client/required-assets.txt')
     parser.add_argument('--output', type=Path, default=ROOT / 'client/build/distribution-check')
     parser.add_argument('--version', default='4.2.0-dev')
     args = parser.parse_args()
@@ -80,7 +80,16 @@ def main():
     code, log = run_logged([client_script, 'localhost', '1'], run, env, run / 'missing-assets.log')
     require(code == 1 and 'Missing wand6 asset img/summer.png' in log, 'Missing asset diagnostic failed')
     (client / 'assets/img').mkdir(parents=True)
-    shutil.copyfile(args.assets.resolve() / 'img/summer.png', client / 'assets/img/summer.png')
+    for asset in (ROOT / 'client/required-assets.txt').read_text().splitlines():
+        destination = client / 'assets' / asset
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(args.assets.resolve() / asset, destination)
+    missing_sprite = client / 'assets/img/peasant_walk/e_01.png'
+    sprite_bytes = missing_sprite.read_bytes()
+    missing_sprite.unlink()
+    code, log = run_logged([client_script, 'localhost', '1'], run, env, run / 'missing-sprite.log')
+    require(code == 1 and 'Missing wand6 asset img/peasant_walk/e_01.png' in log, 'Missing sprite diagnostic failed')
+    missing_sprite.write_bytes(sprite_bytes)
     headless = dict(env, JAVA_OPTS='-Djava.awt.headless=true')
     code, log = run_logged([client_script, 'localhost', '1'], run, headless, run / 'headless.log')
     require(code == 1 and 'needs a graphical desktop' in log, 'Headless diagnostic failed')
@@ -112,11 +121,11 @@ def main():
             require(port, 'Server startup timeout')
             agent = ROOT / 'client/build/libs' / f'client-{args.version}-gui-check-agent.jar'
             require(agent.is_file(), f'Build :client:guiCheckAgent first: {agent}')
-            gui_env = dict(env, JAVA_OPTS=f'-Dwalkingdesu.testMode=true -Dwalkingdesu.testNick=stage7-gui "-javaagent:{agent}={run}"')
-            code, log = run_logged([client_script, 'localhost', str(port)], run, gui_env, run / 'gui-client.log')
+            gui_env = dict(env, JAVA_OPTS=f'-Dwalkingdesu.testMode=true -Dwalkingdesu.testNick=stage8-gui "-javaagent:{agent}={run}"')
+            code, log = run_logged([client_script, 'localhost', str(port)], run, gui_env, run / 'gui-client.log', timeout=60)
             require(code == 0 and 'PASS: distribution GUI' in log, log)
             require('Exception' not in log and 'Error' not in log, log)
-            require((run / '01-login-map.png').is_file() and (run / '02-map-resize.png').is_file(), 'Missing live-window PNGs')
+            require((run / '01-login-map.png').is_file() and (run / '04-map-resize.png').is_file(), 'Missing live-window PNGs')
             print(f'PASS: production client script, GUI login/map/resize, port={port}, exit={code}.', flush=True)
         finally:
             process.terminate()

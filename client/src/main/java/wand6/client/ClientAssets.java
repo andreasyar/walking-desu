@@ -9,6 +9,17 @@ import javax.imageio.ImageIO;
 final class ClientAssets {
     private static BufferedImage summer;
 
+    static BufferedImage image(String path) {
+        URL resource = ClientAssets.class.getClassLoader().getResource(path);
+        if (resource == null) throw new IllegalStateException("Missing wand6 asset " + path
+                + ". Supply external assets; see CLIENT-ASSETS.md.");
+        try {
+            BufferedImage image = ImageIO.read(resource);
+            if (image == null) throw new IOException("Unsupported image format");
+            return image;
+        } catch (IOException ex) { throw new IllegalStateException("Cannot read " + path, ex); }
+    }
+
     static synchronized BufferedImage summer() {
         if (summer == null) {
             URL resource = ClientAssets.class.getClassLoader().getResource("img/summer.png");

@@ -41,7 +41,7 @@ val checks = sourceSets.create("checks") {
 }
 val networkSmoke = tasks.register<JavaExec>("networkSmoke") {
     group = "verification"
-    description = "Check HELLO/NAME, map and the historical movement reply on an isolated server."
+    description = "Check HELLO/NAME, map and the authoritative movement on an isolated server."
     dependsOn(executableJar)
     classpath = checks.runtimeClasspath
     mainClass = "wand6.server.NetworkSmokeCheck"
@@ -49,3 +49,10 @@ val networkSmoke = tasks.register<JavaExec>("networkSmoke") {
     timeout = Duration.ofSeconds(45)
 }
 tasks.check { dependsOn(networkSmoke) }
+
+val mapCheck = tasks.register<JavaExec>("mapCheck") {
+    group = "verification"
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.server.MapCheck"
+}
+tasks.check { dependsOn(mapCheck) }

@@ -47,20 +47,49 @@ public final class NetworkSmokeCheck {
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                 send(out, new HelloMessage());
-                send(out, new NameMessage("stage7-net"));
+                send(out, new NameMessage("stage8-net"));
                 WelcomeMessage welcome = (WelcomeMessage) receive(in, MessageType.WELCOME);
-                require(welcome.getId() > 0 && welcome.getName().equals("stage7-net"), "WELCOME identity");
+                require(welcome.getId() > 0 && welcome.getName().equals("stage8-net"), "WELCOME identity");
                 send(out, new MapFragmentRequestMessage(0, 0));
                 MapFragmentMessage map = (MapFragmentMessage) receive(in, MessageType.MAPFRAGMENT);
                 require(map.getIdX() == 0 && map.getIdY() == 0 && map.getHmap().length == 32, "Map identity/height");
                 for (int[] row : map.getHmap()) { require(row.length == 32, "Map width"); }
-                send(out, new MoveRequestMessage(300, 400));
+                require(welcome.getX() == 512 && welcome.getY() == 512 && welcome.getServerTime() >= 0, "initial position/time");
+                require(welcome.getSpriteSetName().equals("peasant"), "sprite name");
+                send(out, new MoveRequestMessage(900, 512));
                 MoveMessage move = (MoveMessage) receive(in, MessageType.MOVE);
-                require(move.getId() == welcome.getId() && move.getEndX() == 300 && move.getEndY() == 400,
-                        "Historical Dummy movement response");
+                require(move.getId() == welcome.getId() && move.getBegX() == 512 && move.getBegY() == 512
+                        && move.getEndX() == 900 && move.getEndY() == 512, "authoritative segment");
+                Thread.sleep(200);
+                send(out, new MoveRequestMessage(900, 600));
+                MoveMessage retarget = (MoveMessage) receive(in, MessageType.MOVE);
+                require(retarget.getBegX() >= 525 && retarget.getBegX() < 600 && retarget.getBegY() == 512, "retarget interpolated start");
+                send(out, MoveRequestMessage.stop());
+                MoveMessage stop = (MoveMessage) receive(in, MessageType.MOVE);
+                require(stop.getBegX() == stop.getEndX() && stop.getBegY() == stop.getEndY(), "explicit stop");
+                for (int[] invalid : new int[][]{{-1,0},{Integer.MAX_VALUE,Integer.MAX_VALUE},{9000,512}}) {
+                    send(out, new MoveRequestMessage(invalid[0],invalid[1]));
+                    MoveMessage rejected = (MoveMessage) receive(in, MessageType.MOVE);
+                    require(rejected.getEndX() == stop.getEndX() && rejected.getEndY() == stop.getEndY(), "invalid/too distant request stops safely");
+                }
+                // A long eastward segment meets a mountain: every accepted pixel must be land.
+                send(out, new MoveRequestMessage(2048, 512));
+                MoveMessage clipped = (MoveMessage) receive(in, MessageType.MOVE);
+                require(clipped.getEndX() < 2048, "mountain clips destination");
+                int steps = Math.max(Math.abs(clipped.getEndX()-clipped.getBegX()),Math.abs(clipped.getEndY()-clipped.getBegY()));
+                for(int i=0;i<=steps;i++) {
+                    double t = steps == 0 ? 0 : (double)i/steps;
+                    int x=(int)Math.round(clipped.getBegX()+(clipped.getEndX()-clipped.getBegX())*t);
+                    int y=(int)Math.round(clipped.getBegY()+(clipped.getEndY()-clipped.getBegY())*t);
+                    require(wand6.common.Terrain.passable(x,y), "accepted path on land");
+                }
+                send(out, new MapFragmentRequestMessage(-1, 0));
+                send(out, new MapFragmentRequestMessage(wand6.common.MapFragment.maxIdX, wand6.common.MapFragment.maxIdY));
+                MapFragmentMessage edge = (MapFragmentMessage) receive(in, MessageType.MAPFRAGMENT);
+                require(edge.getIdX() == wand6.common.MapFragment.maxIdX, "server survives invalid ID and serves world edge");
             }
             System.out.println("PASS: production server " + artifact + "; port=" + port
-                    + "; HELLO/NAME/WELCOME; 32x32 map; Dummy MOVE (unfinished).");
+                    + "; HELLO/NAME/WELCOME; 32x32 map; authoritative MOVE/retarget/stop; bounds; passability.");
         } finally {
             server.destroy();
             if (!server.waitFor(5, TimeUnit.SECONDS)) { server.destroyForcibly().waitFor(); }

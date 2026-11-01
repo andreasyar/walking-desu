@@ -40,7 +40,7 @@ final class GUI {
         JPanel controls = new JPanel();
         controls.add(message);
         controls.add(send);
-        frame.add(new JLabel("wand6 prototype: red point and Dummy movement are unfinished"), BorderLayout.NORTH);
+        frame.add(new JLabel("ЛКМ — идти, ПКМ — остановиться. Вода и горы непроходимы."), BorderLayout.NORTH);
         frame.add(panel, BorderLayout.CENTER);
         frame.add(controls, BorderLayout.SOUTH);
         frame.setSize(800, 600);

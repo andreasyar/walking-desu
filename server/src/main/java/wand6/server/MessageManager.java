@@ -70,10 +70,7 @@ class MessageManager {
         }
 
         try {
-            server.sendMessage(new MoveMessage(playerId,
-                                               playerManager.getPlayerEndX(playerId),
-                                               playerManager.getPlayerEndY(playerId),
-                                               playerManager.getPlayerMovementBegTime(playerId)),
+            server.sendMessage(playerManager.movementMessage(playerId),
                                clientId);
         } catch (JavaServerException ex) {
             ex.printStackTrace();

@@ -99,9 +99,11 @@ final class MessageReceiver {
         if (message.getType() == MessageType.WELCOME) {
 
             WelcomeMessage m = (WelcomeMessage) message;
+            ServerTime.getInstance().adjust(m.getServerTime());
             PlayerManager.getInstance().createSelfPlayer(m.getId(),
                                                          m.getName(),
                                                          m.getSpriteSetName());
+            PlayerManager.getInstance().selfPlayer().place(m.getX(), m.getY());
 
         } else if (message.getType() == MessageType.TIMESYNC) {
 
@@ -117,7 +119,7 @@ final class MessageReceiver {
 
             MoveMessage m = (MoveMessage) message;
             try {
-                PlayerManager.getInstance().movePlayer(m.getId(), m.getEndX(), m.getEndY(), m.getBegTime());
+                PlayerManager.getInstance().movePlayer(m.getId(), m.getBegX(), m.getBegY(), m.getEndX(), m.getEndY(), m.getBegTime());
             } catch (PlayerManagerException ex) {
                 ex.printStackTrace();
                 System.exit(1);

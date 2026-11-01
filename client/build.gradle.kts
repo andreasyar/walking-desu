@@ -118,3 +118,12 @@ tasks.named<JavaExec>("run") {
     dependsOn(verifyClientAssets)
     classpath += files(clientAssets)
 }
+
+// Local asset-dependent verification; public packaging remains asset-free.
+tasks.register<JavaExec>("visualCheck") {
+    group = "verification"
+    dependsOn(verifyClientAssets)
+    classpath = checks.runtimeClasspath + files(clientAssets)
+    mainClass = "wand6.client.VisualCheck"
+    jvmArgs("-Djava.awt.headless=true")
+}

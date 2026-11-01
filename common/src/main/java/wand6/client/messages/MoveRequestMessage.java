@@ -7,6 +7,8 @@ import wand6.common.messages.Message;
 public class MoveRequestMessage implements Message, Serializable {
 
     private final MessageType type = MessageType.MOVEREQUEST;
+    private static final long serialVersionUID = 8L;
+    private boolean stop;
     private int x;
     private int y;
 
@@ -14,6 +16,13 @@ public class MoveRequestMessage implements Message, Serializable {
         this.x = x;
         this.y = y;
     }
+
+    public static MoveRequestMessage stop() {
+        MoveRequestMessage request = new MoveRequestMessage(0, 0);
+        request.stop = true;
+        return request;
+    }
+    public boolean isStop() { return stop; }
 
     @Override
     public MessageType getType() {

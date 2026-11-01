@@ -14,6 +14,8 @@ public class Wand {
             }
             // Validate assets before opening sockets or windows.
             ClientAssets.summer();
+            DirectionalSpriteSet.load("peasant_walk");
+            DirectionalSpriteSet.load("peasant_stand");
             if (GraphicsEnvironment.isHeadless()) {
                 throw new IllegalStateException("wand6-client needs a graphical desktop (DISPLAY/Wayland).");
             }

@@ -22,6 +22,8 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
     private int repaintCount;
     private long lastUpdateFPSTime;
     private int fps;
+    private Camera camera = new Camera(0, 0);
+    Camera camera() { return camera; }
 
     public WandJPanel() {}
 
@@ -40,42 +42,31 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
             lastUpdateFPSTime = System.currentTimeMillis();
         }
 
-        MapManager.getInstance().drawMap(g, panelDim);
-        PlayerManager.getInstance().drawPlayers(g, panelDim);
+        var player = PlayerManager.getInstance().selfPlayer();
+        if (player == null) return;
+        long time = wand6.common.ServerTime.getInstance().getTimeSinceStart();
+        var position = player.getMovement().position(time);
+        panelDim = getSize();
+        camera = Camera.follow(position.x(), position.y(), panelDim.width, panelDim.height);
+        MapManager.getInstance().drawMap(g, panelDim, camera);
+        PlayerManager.getInstance().drawPlayers(g, camera, time);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         this.requestFocus();
-        int selfPlayerX, selfPlayerY;
-
-        try {
-            selfPlayerX = PlayerManager.getInstance().getSelfPlayerX();
-        } catch (NullPointerException ex) {
-            if (debugLevel > 0) {
-                System.err.println("Self player X-axis cannot be calculated.");
-            }
+        if (PlayerManager.getInstance().selfPlayer() == null) return;
+        if (javax.swing.SwingUtilities.isRightMouseButton(e)) {
+            try { MessageManager.sendStopRequest(); }
+            catch (MessageManagerException ex) { System.err.println(ex.getMessage()); }
             return;
         }
-        try {
-            selfPlayerY = PlayerManager.getInstance().getSelfPlayerY();
-        } catch (NullPointerException ex) {
-            if (debugLevel > 0) {
-                System.err.println("Self player Y-axis cannot be calculated.");
-            }
-            return;
-        }
-
-        // Upper left corner of drawing panel on world map.
-        int panelX = selfPlayerX - panelDim.width / 2;
-        int panelY = selfPlayerY - panelDim.height / 2;
-
-        int clickX = panelX + e.getX();
-        int clickY = panelY + e.getY();
-
-        if (clickX >= 0 && clickY >= 0) {
+        long clickX = (long) camera.x() + e.getX();
+        long clickY = (long) camera.y() + e.getY();
+        if (clickX >= 0 && clickY >= 0 && clickX <= wand6.common.MapFragment.maxX
+                && clickY <= wand6.common.MapFragment.maxY) {
             try {
-                MessageManager.sendMoveRequest(clickX, clickY);
+                MessageManager.sendMoveRequest((int) clickX, (int) clickY);
             } catch (MessageManagerException ex) {
                 ex.printStackTrace();
                 System.exit(1);

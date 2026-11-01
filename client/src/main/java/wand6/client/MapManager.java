@@ -2,233 +2,46 @@ package wand6.client;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.util.HashMap;
-import wand6.common.exceptions.MessageManagerException;
+import java.util.Map;
 import wand6.common.MapFragment;
+import wand6.common.exceptions.MessageManagerException;
 
 class MapManager {
-
-    private final static int debugLevel = 1;
-
-    private static MapManager self = null;
-
-    private final HashMap<Integer, HashMap<Integer, CMapFragment>> fragments = new HashMap<Integer, HashMap<Integer, CMapFragment>>();
-
-    static MapManager getInstance() {
-        if (self == null) {
-            self = new MapManager();
-        }
-
-        return self;
+    private static final MapManager INSTANCE = new MapManager();
+    private final Map<Long, CMapFragment> fragments = new HashMap<>();
+    static MapManager getInstance() { return INSTANCE; }
+    private static long key(int x, int y) { return ((long) y << 32) | x; }
+    synchronized boolean isLoaded(int x, int y) {
+        var fragment = fragments.get(key(x, y));
+        return fragment != null && fragment.isLoaded();
     }
-
-    private MapManager() {}
-
-    void drawMap(Graphics g, Dimension panelDim) {
-        synchronized (fragments) { drawMapLocked(g, panelDim); }
-    }
-
-    boolean isLoaded(int x, int y) {
-        synchronized (fragments) {
-            return fragments.containsKey(y) && fragments.get(y).containsKey(x)
-                    && fragments.get(y).get(x).isLoaded();
-        }
-    }
-
-    private void drawMapLocked(Graphics g, Dimension panelDim) {
-        int selfPlayerX, selfPlayerY;
-        
-        try {
-            selfPlayerX = PlayerManager.getInstance().getSelfPlayerX();
-        } catch (NullPointerException e) {
-            if (debugLevel > 0) {
-                System.err.println("Self player X-axis cannot be calculated.");
-            }
-            return;
-        }
-        try {
-            selfPlayerY = PlayerManager.getInstance().getSelfPlayerY();
-        } catch (NullPointerException e) {
-            if (debugLevel > 0) {
-                System.err.println("Self player Y-axis cannot be calculated.");
-            }
-            return;
-        }
-
-        // Upper left corner of drawing panel on world map.
-        int panelX = selfPlayerX - panelDim.width / 2;
-        int panelY = selfPlayerY - panelDim.height / 2;
-
-        int leftFragmIdX, leftFragmIdY, rightFragmIdX, rightFragmIdY;
-
-        if (panelX < 0) {
-            leftFragmIdX = 0;
-        } else {
-            leftFragmIdX = panelX / CMapFragment.width;
-        }
-        if (panelY < 0) {
-            leftFragmIdY = 0;
-        } else {
-            leftFragmIdY = panelY / CMapFragment.height;
-        }
-        if (panelDim.width > MapFragment.maxIdX * MapFragment.width - (panelX < 0 ? 0 : panelX)) {
-            rightFragmIdX = MapFragment.maxIdX;
-        } else {
-            rightFragmIdX = (panelX + panelDim.width) / MapFragment.width + 1;
-        }
-        if (panelDim.height > MapFragment.maxIdY * MapFragment.height - (panelY < 0 ? 0 : panelY)) {
-            rightFragmIdY = MapFragment.maxIdY;
-        } else {
-            rightFragmIdY = (panelY + panelDim.height) / MapFragment.height + 1;
-        }
-
-        for (int x = leftFragmIdX; x <= rightFragmIdX; x++) {
-            for (int y = leftFragmIdY; y <= rightFragmIdY; y++) {
-                if (fragmentVisible(x, y, panelX, panelY, panelDim)) {
-                    drawFragment(g,
-                                 x,
-                                 y,
-                                 x * CMapFragment.width - panelX,
-                                 y * CMapFragment.height - panelY,
-                                 "",
-                                 panelDim);
-                }
-            }
-        }
-    }
-
-    private boolean fragmentVisible(int idX, int idY, int panelX, int panelY, Dimension panelDim) {
-        if (idX * MapFragment.width >= panelX + panelDim.width) {
-            if (debugLevel > 0) {
-                //System.out.println("Фрагмент справа за границей панели");
-            }
-            return false;   // справа за границей панели
-        }
-
-        if (idY * MapFragment.height >= panelY + panelDim.height) {
-            if (debugLevel > 0) {
-                //System.out.println("Фрагмент idX=" + idX + " idY=" + idY + " снизу за границей панели: " + (idY * MapFragment.height) + " >= " + (panelY + panelDim.height) + ".");
-            }
-            return false;   // снизу за границей панели
-        }
-
-        if (idX * MapFragment.width + MapFragment.width <= panelX) {
-            if (debugLevel > 0) {
-                //System.out.println("Фрагмент слева за границей панели");
-            }
-            return false;   // слева за границей панели
-        }
-
-        if (idY * MapFragment.height + MapFragment.height <= panelY) {
-            if (debugLevel > 0) {
-                //System.out.println("Фрагмент сверху за границей панели");
-            }
-            return false;   // сверху за границей панели
-        }
-
-        if (debugLevel > 0) {
-            //System.out.println("Фрагмент idX=" + idX + " idY=" + idY + " виден.");
-        }
-        return true;
-    }
-
-    private void drawFragment(Graphics g, int idX, int idY, int x, int y, String suffix, Dimension panelDim) {
-        Color savedColor = g.getColor();
-        String lable;
-        FontMetrics metrics = g.getFontMetrics();
-        int renderedLableWidth;
-
-        if (fragments.containsKey(idY)) {
-            HashMap<Integer, CMapFragment> row = fragments.get(idY);
-            if (row.containsKey(idX)) {
-                CMapFragment fragment = row.get(idX);
-                if (fragment.isLoaded()) {
-                    fragment.draw(g, x, y, panelDim);
-                    /*lable = idX + "," + idY + " " + suffix;
-                    renderedLableWidth = metrics.stringWidth(lable);
-                    g.drawString(lable,
-                                 x + CMapFragment.width / 2 - renderedLableWidth / 2,
-                                 y + CMapFragment.height / 2);*/
+    synchronized void drawMap(Graphics g, Dimension size, Camera camera) {
+        int right = (int) Math.min(MapFragment.maxIdX, ((long) camera.x() + size.width - 1) / MapFragment.width);
+        int bottom = (int) Math.min(MapFragment.maxIdY, ((long) camera.y() + size.height - 1) / MapFragment.height);
+        for (int y = camera.y() / MapFragment.height; y <= bottom; y++) {
+            for (int x = camera.x() / MapFragment.width; x <= right; x++) {
+                CMapFragment fragment = fragments.get(key(x, y));
+                if (fragment == null) {
+                    try {
+                        MessageManager.sendMapFragmentRequest(x, y);
+                        fragments.put(key(x, y), new CMapFragment());
+                    } catch (MessageManagerException ex) { System.err.println(ex.getMessage()); }
+                } else if (fragment.isLoaded()) {
+                    fragment.draw(g, x * MapFragment.width - camera.x(),
+                            y * MapFragment.height - camera.y(), size);
                 } else {
-                    g.setColor(Color.RED);
-                    g.drawRect(x + 1,
-                               y + 1,
-                               CMapFragment.width - 1,
-                               CMapFragment.height - 1);
-                    lable = idX + "," + idY + " " + suffix + "loading... ";
-                    renderedLableWidth = metrics.stringWidth(lable);
-                    g.drawString(lable,
-                                 x + CMapFragment.width / 2 - renderedLableWidth / 2,
-                                 y + CMapFragment.height / 2);
-                    g.setColor(savedColor);
+                    g.setColor(Color.DARK_GRAY);
+                    g.fillRect(x * MapFragment.width - camera.x(), y * MapFragment.height - camera.y(),
+                            MapFragment.width, MapFragment.height);
                 }
-            } else {
-                try {
-                    fragments.get(idY).put(idX, new CMapFragment());
-                    MessageManager.sendMapFragmentRequest(idX, idY);
-                } catch (MessageManagerException e) {
-                    System.err.println(e.getMessage());
-                }
-                g.setColor(Color.RED);
-                g.drawRect(x + 1,
-                           y + 1,
-                           CMapFragment.width - 1,
-                           CMapFragment.height - 1);
-                lable = idX + "," + idY + " " + suffix + "request... ";
-                renderedLableWidth = metrics.stringWidth(lable);
-                g.drawString(lable,
-                             x + CMapFragment.width / 2 - renderedLableWidth / 2,
-                             y + CMapFragment.height / 2);
-                g.setColor(savedColor);
             }
-        } else {
-            try {
-                fragments.put(idY, new HashMap<Integer, CMapFragment>());
-                fragments.get(idY).put(idX, new CMapFragment());
-                MessageManager.sendMapFragmentRequest(idX, idY);
-            } catch (MessageManagerException e) {
-                System.err.println(e.getMessage());
-            }
-            g.setColor(Color.RED);
-            g.drawRect(x,
-                       y,
-                       CMapFragment.width,
-                       CMapFragment.height);
-            lable = idX + "," + idY + " " + suffix + "request... ";
-            renderedLableWidth = metrics.stringWidth(lable);
-            g.drawString(lable,
-                         x + CMapFragment.width / 2 - renderedLableWidth / 2,
-                         y + CMapFragment.height / 2);
-            g.setColor(savedColor);
         }
     }
-
-    void addMapFragment(int idX, int idY, int[][] hmap) {
-        synchronized (fragments) {
-            if (!fragments.containsKey(idY)) {
-                fragments.put(idY, new HashMap<Integer, CMapFragment>());
-            }
-
-            CMapFragment fragment;
-            if (fragments.get(idY).containsKey(idX)) {
-                fragment = fragments.get(idY).get(idX);
-                fragment.setIdX(idX);
-                fragment.setIdY(idY);
-                fragment.setHmap(hmap);
-                fragment.setLoaded(true);
-                if (debugLevel > 0) {
-                    System.out.println("Fragment idX=" + idX + " idY=" + idY + " already exist. Set params.");
-                }
-            } else {
-                fragment = new CMapFragment(hmap, idX, idY);
-                fragment.setLoaded(true);
-                fragments.get(idY).put(idX, fragment);
-                if (debugLevel > 0) {
-                    System.out.println("Create new fragment idX=" + idX + " idY=" + idY + ".");
-                }
-            }
-        }
+    synchronized void addMapFragment(int x, int y, int[][] heights) {
+        CMapFragment fragment = new CMapFragment(heights, x, y);
+        fragment.setLoaded(true);
+        fragments.put(key(x, y), fragment);
     }
 }

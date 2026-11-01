@@ -15,6 +15,10 @@ public class Player {
         movement = new CurveMovement();
     }
 
+    public CurveMovement getMovement() { return movement; }
+
+    public void place(int x, int y) { movement.place(x, y); }
+
     public long getId() {
         return id;
     }
