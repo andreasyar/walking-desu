@@ -55,12 +55,14 @@ Wrapper загружает Gradle с проверкой SHA-256. Отдельн�
 Первому запуску требуется сеть. Локальные изображения ожидаются в
 `.devcontainer/assets/client/img/` либо в каталоге, переданном через
 `-PclientAssetsDir=...`. Они не включены в Git. При отсутствии требуемых
-файлов сборка клиента завершается с диагностикой.
+файлов визуальные проверки и publishDev завершаются с диагностикой.
+Публичные JAR/ZIP/TAR собираются без изображений; для assemble графика не нужна.
 Подготовка ресурсов, происхождение исходников и команды запуска описаны
 в [README проекта](../README.md).
 
 `prepareDev` публикует клиентский дистрибутив с библиотеками и скриптами
-запуска в `.devcontainer/artifacts/client/`, а самостоятельный серверный JAR —
+запуска в `.devcontainer/artifacts/client/`, локальную графику отдельно в
+`.devcontainer/artifacts/client/assets/img/`, а самостоятельный серверный JAR —
 в `.devcontainer/artifacts/server/server.jar`. Отдельные задачи:
 `:client:publishDev` и `:server:publishDev`.
 
