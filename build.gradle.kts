@@ -4,7 +4,7 @@ plugins {
 
 subprojects {
     group = "walkingdesu"
-    version = "3.1.0-dev"
+    version = "3.2.0"
 
     pluginManager.withPlugin("java") {
         extensions.configure<JavaPluginExtension> {

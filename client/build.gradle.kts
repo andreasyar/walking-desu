@@ -11,6 +11,10 @@ application {
     applicationName = "walking-desu-client"
 }
 
+tasks.jar {
+    manifest.attributes["Implementation-Version"] = project.version.toString()
+}
+
 val clientAssets = rootProject.layout.projectDirectory.dir(
     providers.gradleProperty("clientAssetsDir").getOrElse(".devcontainer/assets/client")
 )

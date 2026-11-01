@@ -23,7 +23,8 @@ public class WanderingGUI implements Runnable {
         panel.addMouseListener(panel);
         panel.addComponentListener(panel);
         panel.addKeyListener(panel);
-        frame = new JFrame("Walking Desu 5");
+        String version = WanderingGUI.class.getPackage().getImplementationVersion();
+        frame = new JFrame("Walking Desu" + (version == null ? "" : " " + version));
         dialog = new LoginDialog(frame);
         msgField = new JTextField(50);
         sendBtn = new JButton("Send");
