@@ -180,15 +180,7 @@ public class GameField implements AutoCloseable {
 
             removeDrawable(p);
 
-            // Finally remove player from units list.
-            for (WUnit curUnit : units) {
-                if (curUnit.equals(p)) {
-                    units.remove(curUnit);
-                    return;
-                }
-            }
-
-            // Now we can safely remove him.
+            units.remove(p);
             players.remove(p);
         }
     }

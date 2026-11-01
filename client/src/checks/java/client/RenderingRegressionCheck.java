@@ -138,6 +138,7 @@ final class RenderingRegressionCheck {
             } finally { graphics.dispose(); }
             field.delPlayer(player.getID());
             require(player.getSprite() == null && player.getSelectedUnit() == null, "Removed player visual state");
+            require(!field.getPlayers().contains(player) && !field.getUnits().contains(player), "Removed player leaves every owner collection");
             field.removeDrawable(gold);
 
             // Projectiles and effects stay in the very same Drawable pass.
