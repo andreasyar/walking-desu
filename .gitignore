@@ -6,9 +6,12 @@
 *.py[cod]
 /.devcontainer/cache/
 /.devcontainer/assets/
+# Legacy 3.x trees (not updated by wand6 publishDev).
 /.devcontainer/artifacts/client/*
 !/.devcontainer/artifacts/client/.gitkeep
 /.devcontainer/artifacts/server/*
 !/.devcontainer/artifacts/server/.gitkeep
 
+# wand6 local run trees produced by :client:publishDev / :server:publishDev.
 /.devcontainer/artifacts/wand6-client/
+/.devcontainer/artifacts/wand6-server/

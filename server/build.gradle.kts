@@ -35,6 +35,17 @@ tasks.assemble {
     dependsOn(executableJar)
 }
 
+tasks.register<Sync>("publishDev") {
+    group = "distribution"
+    description = "Prepare local standalone server JAR for Compose runtime."
+    dependsOn(executableJar)
+    from(executableJar.map { it.archiveFile }) {
+        rename { "wand6-server.jar" }
+    }
+    into(rootProject.layout.projectDirectory.dir(".devcontainer/artifacts/wand6-server"))
+    preserve { include(".gitkeep") }
+}
+
 val checks = sourceSets.create("checks") {
     compileClasspath += sourceSets.main.get().runtimeClasspath
     runtimeClasspath += sourceSets.main.get().runtimeClasspath

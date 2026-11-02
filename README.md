@@ -35,6 +35,23 @@
 нужно брать из одного комплекта wand6. Сообщения этапа 12 расширяют протокол
 этапов 7–11: обновляйте обе стороны вместе.
 
+### Канонические пути сборки
+
+| Назначение | Путь |
+| --- | --- |
+| Thin JAR модулей | `{common,client,server}/build/libs/{common,client,server}-4.2.0.jar` |
+| Standalone сервер | `server/build/libs/wand6-server-4.2.0-standalone.jar` |
+| Runnable install (скрипты в `bin/`) | `{client,server}/build/install/wand6-{client,server}/` |
+| Релизные ZIP/TAR | `{client,server}/build/distributions/wand6-{client,server}-4.2.0.{zip,tar}` |
+| Dev-клиент с картинками | `.devcontainer/artifacts/wand6-client/` ← `:client:publishDev` |
+| Dev-сервер для Compose | `.devcontainer/artifacts/wand6-server/` ← `:server:publishDev` |
+| GUI agent JARs | `client/build/libs/client-4.2.0-*-gui-check-agent.jar` |
+
+Картинки для клиента: вход `.devcontainer/assets/wand6/` (или `-PclientAssetsDir`);
+в публичные архивы не входят. Каталоги `.devcontainer/artifacts/client/` и
+`server/` — **legacy 3.x**, wand6 их не обновляет; см.
+[.devcontainer/artifacts/README.md](.devcontainer/artifacts/README.md).
+
 ## Запуск дистрибутивов
 
 Распакуйте ZIP или TAR из `client/build/distributions/` и
@@ -107,8 +124,13 @@ Windows: соответствующие `.bat`. По умолчанию испо
 
 По умолчанию локальный атлас находится в `.devcontainer/assets/wand6/img/`.
 Другой каталог: `-PclientAssetsDir=/absolute/path/to/assets`.
-`:client:publishDev` готовит отдельный `.devcontainer/artifacts/wand6-client/`;
-сервер и клиент 3.x в `.devcontainer/artifacts/server/` и `client/` не заменяются.
+Локальный прогон:
+
+```sh
+./gradlew :client:publishDev :server:publishDev
+.devcontainer/artifacts/wand6-client/bin/wand6-client localhost 45000
+# Compose-профиль runtime монтирует artifacts/wand6-server/
+```
 
 ## Проверки и ограничения
 

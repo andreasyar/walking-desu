@@ -1,9 +1,9 @@
 #!/bin/sh
 set -eu
 
-if [ ! -r /app/server.jar ]; then
-    echo 'Missing /app/server.jar. Build and publish .devcontainer/artifacts/server/server.jar first.' >&2
+if [ ! -r /app/wand6-server.jar ]; then
+    echo 'Missing /app/wand6-server.jar. Run ./gradlew :server:publishDev first.' >&2
     exit 1
 fi
 
-exec java -jar /app/server.jar "$@"
+exec java -jar /app/wand6-server.jar "$@"
