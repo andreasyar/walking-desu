@@ -1,5 +1,6 @@
 package wand6.client;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ComponentEvent;
@@ -36,7 +37,6 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         if (lastUpdateFPSTime == 0L) {
             lastUpdateFPSTime = System.currentTimeMillis() - 1;
         }
-        g.drawString(fps + " fps", 10, 60);
         if (System.currentTimeMillis() - lastUpdateFPSTime > 1000L) {
             fps = repaintCount;
             repaintCount = 0;
@@ -46,6 +46,7 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         var player = PlayerManager.getInstance().selfPlayer();
         if (player == null) {
             g.drawString(PlayerManager.getInstance().status(), 20, 90);
+            drawFps(g);
             return;
         }
         long time = wand6.common.ServerTime.getInstance().getTimeSinceStart();
@@ -59,6 +60,12 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         PlayerManager.getInstance().drawDefenceStatus(g);
         ItemManager.getInstance().drawInventory(g, getWidth());
         if (building) g.drawString("Укажите место для башни (Esc — отмена)", 12, 80);
+        drawFps(g);
+    }
+
+    private void drawFps(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.drawString(fps + " fps", 10, 60);
     }
 
     @Override
