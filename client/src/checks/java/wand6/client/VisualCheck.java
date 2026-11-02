@@ -35,6 +35,27 @@ public final class VisualCheck {
             require(!dying.isDone(549) && dying.isDone(550), "death ends at 450ms");
             require(dying.getSprite(10000,new Point(80,90)).image == death.getSprite(direction,2).image, "death holds final frame");
         }
+        for (var direction : Direction.values()) {
+            require(DirectionalSpriteSet.load("poring_walk").getSpriteCount(direction) == 4
+                    && DirectionalSpriteSet.load("poring_death").getSpriteCount(direction) == 5
+                    && DirectionalSpriteSet.load("tower_stand").getSpriteCount(direction) == 1
+                    && DirectionalSpriteSet.load("canon_bolt").getSpriteCount(direction) == 3, "NPC directions and frames");
+            var dying = new DeathAnimation("poring"); dying.run(direction,100);
+            require(!dying.isDone(849) && dying.isDone(850), "poring death 750ms");
+        }
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+            var manager = PlayerManager.getInstance();
+            manager.createSelfPlayer(1,"check","peasant");
+            manager.defenceStatus(new wand6.server.messages.TowerDefenceStatusMessage(0,1,0,100,1));
+            manager.appearEntity(new wand6.server.messages.AppearEntityMessage(2,wand6.common.Unit.Kind.MONSTER,
+                    "Monster","poring",new wand6.server.messages.MoveMessage(2,700,100,705,755,0),.08,20,20,null));
+            manager.die(new wand6.server.messages.DeathMessage(2,0,700,300,100));
+            manager.removeEntity(2,true);
+            require(manager.corpseCount() == 1,"killed NPC keeps death animation after removal");
+            manager.defenceStatus(new wand6.server.messages.TowerDefenceStatusMessage(1,1,0,100,1));
+            require(manager.corpseCount() == 0 && manager.size() == 1,"reset clears NPC corpse and preserves player");
+            manager.disconnected();
+        });
         try { DirectionalSpriteSet.load("missing_walk"); throw new AssertionError("unknown set accepted"); }
         catch(IllegalArgumentException expected) { }
         var camera=Camera.follow(Integer.MAX_VALUE,Integer.MAX_VALUE,1000,720);

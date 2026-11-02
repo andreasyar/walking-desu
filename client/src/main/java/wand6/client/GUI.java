@@ -42,7 +42,7 @@ final class GUI {
         JPanel controls = new JPanel();
         controls.add(message);
         controls.add(send);
-        frame.add(new JLabel("ЛКМ — идти/выбрать игрока, F3 — атака, Esc — снять цель, ПКМ — стоп."), BorderLayout.NORTH);
+        frame.add(new JLabel("B + клик — башня · ЛКМ — цель/движение · F3 — атака · Esc — отмена · ПКМ — стоп."), BorderLayout.NORTH);
         frame.add(panel, BorderLayout.CENTER);
         frame.add(controls, BorderLayout.SOUTH);
         frame.setSize(800, 600);

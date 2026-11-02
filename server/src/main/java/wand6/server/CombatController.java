@@ -20,20 +20,24 @@ final class CombatController {
     private long now() { return ServerTime.getInstance().getTimeSinceStart(); }
     void attack(long attackerId, long targetId) {
         synchronized (world) {
-            Player a = world.find(attackerId), b = world.find(targetId);
+            Unit a = world.unit(attackerId), b = world.unit(targetId);
             if (a == null || b == null || a == b || a.getHp() <= 0 || b.getHp() <= 0) return;
+            if (a.getKind() == Unit.Kind.MONSTER
+                    || (a.getKind() == Unit.Kind.TOWER && b.getKind() != Unit.Kind.MONSTER)) return;
             long time = now();
+            boolean tower = a.getKind() == Unit.Kind.TOWER;
             var origin = a.getMovement().position(time);
             var destination = b.getMovement().position(time);
             double distance = Math.hypot((double) origin.x() - destination.x(), (double) origin.y() - destination.y());
-            if (distance > CombatRules.RANGE || time - a.getLastAttack() < CombatRules.REUSE) return;
+            if (distance > (tower ? TowerDefenceRules.TOWER_RANGE : CombatRules.RANGE)
+                    || time - a.getLastAttack() < (tower ? TowerDefenceRules.TOWER_REUSE : CombatRules.REUSE)) return;
             a.setLastAttack(time);
             visibility.update();
             var event = new AttackMessage(IdManager.nextId(), attackerId, targetId, time,
-                    origin.x(), origin.y(), destination.x(), destination.y());
+                    origin.x(), origin.y(), destination.x(), destination.y(), tower ? 0 : CombatRules.WINDUP);
             casts.put(attackerId, event);
             Set<Long> recipients = visibility.recipients(attackerId, targetId);
-            shots.put(event.shotId(), new Shot(event, time + CombatRules.WINDUP
+            shots.put(event.shotId(), new Shot(event, time + event.windup()
                     + (long) Math.ceil(distance / CombatRules.PROJECTILE_SPEED), recipients));
             recipients.forEach(id -> messages.send(id, event));
         }
@@ -56,16 +60,21 @@ final class CombatController {
             for (Shot shot : List.copyOf(shots.values())) {
                 if (!shots.containsKey(shot.event.shotId()) || time < shot.impact) continue;
                 visibility.update();
-                Player a = world.find(shot.event.attackerId()), b = world.find(shot.event.targetId());
+                Unit a = world.unit(shot.event.attackerId()), b = world.unit(shot.event.targetId());
                 finish(shot);
                 if (a == null || b == null || a.getHp() <= 0 || b.getHp() <= 0) continue;
-                b.setHp(Math.max(0, b.getHp() - CombatRules.DAMAGE));
+                int damage = a.getKind() == Unit.Kind.TOWER ? TowerDefenceRules.TOWER_DAMAGE : CombatRules.DAMAGE;
+                b.setHp(Math.max(0, b.getHp() - damage));
                 visibility.deliver(b.getId(), new HitMessage(shot.event.shotId(), a.getId(), b.getId(),
-                        CombatRules.DAMAGE, b.getHp(), b.getLife(), time));
+                        damage, b.getHp(), b.getLife(), time));
                 if (b.getHp() == 0) {
                     var position = b.getMovement().position(time);
                     visibility.deliver(b.getId(), new DeathMessage(b.getId(), b.getLife(), position.x(), position.y(), time));
                     cancelFor(b.getId());
+                    if (b.getKind() != Unit.Kind.PLAYER) {
+                        world.defence.remove(b.getId(), true);
+                        continue;
+                    }
                     b.setLife(b.getLife() + 1);
                     b.setHp(CombatRules.MAX_HP);
                     // 3.2 restores immediately; use wand6's passable login spawn instead of (0,0).

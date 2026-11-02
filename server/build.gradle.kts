@@ -74,3 +74,12 @@ val combatCheck = tasks.register<JavaExec>("combatCheck") {
     timeout = Duration.ofSeconds(45)
 }
 tasks.check { dependsOn(combatCheck) }
+
+val towerDefenceCheck = tasks.register<JavaExec>("towerDefenceCheck") {
+    group = "verification"
+    description = "Check tower building, waves, combat, losses, reset and NPC network visibility."
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.server.TowerDefenceCheck"
+    timeout = Duration.ofSeconds(45)
+}
+tasks.check { dependsOn(towerDefenceCheck) }

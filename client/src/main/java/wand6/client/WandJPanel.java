@@ -18,6 +18,7 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
 
     private static int debugLevel = 1;
     private boolean wasShown;
+    private boolean building;
     private Dimension panelDim = new Dimension(640, 420);
     private int repaintCount;
     private long lastUpdateFPSTime;
@@ -54,6 +55,8 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         MapManager.getInstance().drawMap(g, panelDim, camera);
         PlayerManager.getInstance().drawPlayers(g, camera, time);
         PlayerManager.getInstance().drawEffects(g, camera, time);
+        PlayerManager.getInstance().drawDefenceStatus(g);
+        if (building) g.drawString("Укажите место для башни (Esc — отмена)", 12, 80);
     }
 
     @Override
@@ -71,6 +74,9 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
                 && clickY <= wand6.common.MapFragment.maxY) {
             try {
                 var players = PlayerManager.getInstance();
+                if (building) {
+                    MessageManager.sendBuildTower((int) clickX, (int) clickY); building = false; repaint(); return;
+                }
                 players.selectAt((int) clickX, (int) clickY);
                 if (players.selected() == 0) MessageManager.sendMoveRequest((int) clickX, (int) clickY);
             } catch (MessageManagerException ex) {
@@ -132,6 +138,8 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
 
     @Override
     public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_B) { building = true; repaint(); }
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) { building = false; repaint(); }
         if (e.getKeyCode() == KeyEvent.VK_F3) {
             try {
                 long target = PlayerManager.getInstance().selected();

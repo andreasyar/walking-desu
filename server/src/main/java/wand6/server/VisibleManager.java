@@ -23,24 +23,28 @@ final class VisibleManager {
             for (Player observer : players) {
                 Set<Long> seen = visible.computeIfAbsent(observer.getId(), id -> new HashSet<>());
                 var origin = observer.getMovement().position(now);
-                for (Player target : players) {
+                for (var target : world.units()) {
                     if (observer == target) continue;
                     var position = target.getMovement().position(now);
                     boolean inRange = Math.hypot((double) origin.x() - position.x(),
                             (double) origin.y() - position.y()) <= RANGE;
                     if (inRange && seen.add(target.getId())) {
-                        messages.send(observer.getId(), new AppearPlayerMessage(target.getId(), target.getName(),
+                        if (target.getKind() != wand6.common.Unit.Kind.PLAYER) {
+                            messages.send(observer.getId(), new AppearEntityMessage(target.getId(), target.getKind(),
+                                    target.getName(), target.getSpriteSetName(), segment(target), target.getMovement().getSpeed(),
+                                    target.getHp(), target.getMaxHp(), world.combat.currentAttack(target.getId())));
+                        } else messages.send(observer.getId(), new AppearPlayerMessage(target.getId(), target.getName(),
                                 target.getSpriteSetName(), segment(target), target.getText(), target.getHp(), target.getLife(),
                                 world.combat == null ? null : world.combat.currentAttack(target.getId())));
                         if (world.combat != null) world.combat.appeared(observer.getId(), target.getId());
                     } else if (!inRange && seen.remove(target.getId())) {
-                        messages.send(observer.getId(), new DisappearPlayerMessage(target.getId()));
+                        messages.send(observer.getId(), target.getKind() == wand6.common.Unit.Kind.PLAYER ? new DisappearPlayerMessage(target.getId()) : new RemoveEntityMessage(target.getId(), false));
                     }
                 }
             }
         }
     }
-    private MoveMessage segment(Player player) {
+    private MoveMessage segment(wand6.common.Unit player) {
         var move = player.getMovement();
         return new MoveMessage(player.getId(), move.getBegX(), move.getBegY(), move.getEndX(), move.getEndY(), move.getBegTime());
     }
@@ -68,6 +72,13 @@ final class VisibleManager {
             visible.forEach((observer, seen) -> { if (seen.contains(id)) result.add(observer); });
         }
         return result;
+    }
+    void removeEntity(long id, boolean killed) {
+        synchronized (world) {
+            visible.forEach((observer, seen) -> {
+                if (seen.remove(id)) messages.send(observer, new RemoveEntityMessage(id, killed));
+            });
+        }
     }
     void remove(long id) {
         synchronized (world) {

@@ -142,3 +142,10 @@ tasks.register<Jar>("combatGuiCheckAgent") {
     manifest.attributes["Premain-Class"] = "wand6.client.CombatGraphicalAgent"
     manifest.attributes["Implementation-Version"] = project.version.toString()
 }
+
+tasks.register<Jar>("towerDefenceGuiCheckAgent") {
+    archiveClassifier = "tower-defence-gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.TowerDefenceGraphicalAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
+}

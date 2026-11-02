@@ -8,13 +8,20 @@ import java.util.function.LongSupplier;
 public final class CurveMovement {
     public static final double SPEED = 0.07;
     private final LongSupplier clock;
+    private final double speed;
+    public double getSpeed() { return speed; }
     private int begX, begY, endX, endY;
     private long begTime;
     private double duration;
 
     public record Position(int x, int y) { }
-    public CurveMovement() { this(() -> ServerTime.getInstance().getTimeSinceStart()); }
-    public CurveMovement(LongSupplier clock) { this.clock = clock; }
+    public CurveMovement() { this(SPEED); }
+    public CurveMovement(double speed) { this(speed, () -> ServerTime.getInstance().getTimeSinceStart()); }
+    public CurveMovement(LongSupplier clock) { this(SPEED, clock); }
+    public CurveMovement(double speed, LongSupplier clock) {
+        if (!Double.isFinite(speed) || speed <= 0) throw new IllegalArgumentException("Invalid speed");
+        this.speed = speed; this.clock = clock;
+    }
 
     public synchronized Position position(long time) {
         double fraction = duration == 0 ? 1 : Math.clamp((time - begTime) / duration, 0, 1);
@@ -33,7 +40,7 @@ public final class CurveMovement {
     }
     public synchronized void start(int bx, int by, int ex, int ey, long time) {
         begX = bx; begY = by; endX = ex; endY = ey; begTime = time;
-        duration = Math.hypot((double) ex - bx, (double) ey - by) / SPEED;
+        duration = Math.hypot((double) ex - bx, (double) ey - by) / speed;
     }
     public synchronized void stop() {
         Position current = position();

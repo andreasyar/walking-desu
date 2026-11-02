@@ -120,6 +120,12 @@ final class MessageReceiver {
             MapFragmentMessage m = (MapFragmentMessage) message;
             MapManager.getInstance().addMapFragment(m.getIdX(), m.getIdY(), m.getHmap());
 
+        } else if (message instanceof wand6.server.messages.AppearEntityMessage entity) {
+            PlayerManager.getInstance().appearEntity(entity);
+        } else if (message instanceof wand6.server.messages.RemoveEntityMessage entity) {
+            PlayerManager.getInstance().removeEntity(entity.id(), entity.killed());
+        } else if (message instanceof wand6.server.messages.TowerDefenceStatusMessage state) {
+            PlayerManager.getInstance().defenceStatus(state);
         } else if (message instanceof wand6.server.messages.AppearPlayerMessage appear) {
             PlayerManager.getInstance().appear(appear);
         } else if (message instanceof wand6.server.messages.DisappearPlayerMessage disappear) {

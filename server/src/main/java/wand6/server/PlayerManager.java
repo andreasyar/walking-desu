@@ -11,6 +11,12 @@ class PlayerManager {
 
     private VisibleManager visibleManager;
     CombatController combat;
+    TowerDefenceController defence;
+    final java.util.Map<Long, wand6.common.Unit> npcs = new java.util.LinkedHashMap<>();
+    wand6.common.Unit unit(long id) { Player player = find(id); return player == null ? npcs.get(id) : player; }
+    java.util.List<wand6.common.Unit> units() {
+        var result = new java.util.ArrayList<wand6.common.Unit>(snapshot()); result.addAll(npcs.values()); return result;
+    }
     Player find(long id) { return players.stream().filter(p -> p.getId() == id).findFirst().orElse(null); }
 
     private final ArrayList<Player> players = new ArrayList<Player>();
@@ -29,6 +35,7 @@ class PlayerManager {
     void removePlayer(long id) {
         synchronized (this) {
             if (combat != null) combat.cancelFor(id);
+            if (defence != null) defence.disconnected(id);
             players.removeIf(player -> player.getId() == id);
             visibleManager.remove(id);
         }

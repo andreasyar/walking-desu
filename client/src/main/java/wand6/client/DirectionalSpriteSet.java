@@ -14,6 +14,9 @@ public final class DirectionalSpriteSet {
         return CACHE.computeIfAbsent(name, DirectionalSpriteSet::new);
     }
     private DirectionalSpriteSet(String name) {
+        if (name.startsWith("poring_") || name.equals("tower_walk") || name.equals("tower_stand") || name.equals("canon_bolt") || name.equals("canon_hit")) {
+            loadNpc(name); return;
+        }
         if (!java.util.Set.of("peasant_walk", "peasant_stand", "peasant_attack", "peasant_death", "peasant_bolt").contains(name)) {
             throw new IllegalArgumentException("Unsupported wand6 sprite set: " + name);
         }
@@ -35,6 +38,23 @@ public final class DirectionalSpriteSet {
                     throw new IllegalArgumentException("Sprite must be at least 64x64: " + path);
                 }
                 frames.add(name.endsWith("_walk") || name.endsWith("_stand") ? image.getSubimage(8, 8, 56, 56) : image);
+            }
+            sprites.put(direction, frames);
+        }
+    }
+    private void loadNpc(String name) {
+        for (Direction direction : Direction.values()) {
+            boolean east = direction == Direction.EAST || direction == Direction.NORTH_EAST
+                    || direction == Direction.NORTH || direction == Direction.SOUTH_EAST;
+            int count = name.equals("poring_death") ? 5 : name.startsWith("poring_") ? 4 : name.equals("canon_bolt") ? 3 : name.equals("canon_hit") ? 4 : 1;
+            var frames = new ArrayList<BufferedImage>();
+            for (int frame = 1; frame <= count; frame++) {
+                String path = name.startsWith("tower_") ? "img/" + name + "/tower.png"
+                        : name.equals("canon_bolt") ? "img/canon_bolt/" + new String[]{"e", "ne", "n", "nw", "w", "sw", "s", "se"}[direction.ordinal()] + "_0" + frame + ".png"
+                        : name.equals("canon_hit") ? "img/canon_hit/e_0" + frame + ".png"
+                        : "img/" + name + "/" + (name.endsWith("death") ? (east ? "e" : "w")
+                        : (east ? "poring_east" : "poring_west")) + "_0" + frame + ".png";
+                frames.add(ClientAssets.image(path));
             }
             sprites.put(direction, frames);
         }
