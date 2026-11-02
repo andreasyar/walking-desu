@@ -1,6 +1,7 @@
 # Walking Desu — экспериментальная линия wand6 / 4.x
 
-Основная ветка содержит завершённую линию wand6 **4.2.0** (этапы 7–14),
+Основная ветка содержит завершённую линию wand6 **4.2.1** (этапы 7–14,
+патч плавности клиента),
 продолженную от исторического снимка
 `b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa`. Восстановлены независимая сборка,
 карта/движение, мультиплеер, PvP, tower defence, предметы и инвентарь.
@@ -40,13 +41,13 @@
 
 | Назначение | Путь |
 | --- | --- |
-| Thin JAR модулей | `{common,client,server}/build/libs/{common,client,server}-4.2.0.jar` |
-| Standalone сервер | `server/build/libs/wand6-server-4.2.0-standalone.jar` |
+| Thin JAR модулей | `{common,client,server}/build/libs/{common,client,server}-4.2.1.jar` |
+| Standalone сервер | `server/build/libs/wand6-server-4.2.1-standalone.jar` |
 | Runnable install (скрипты в `bin/`) | `{client,server}/build/install/wand6-{client,server}/` |
-| Релизные ZIP/TAR | `{client,server}/build/distributions/wand6-{client,server}-4.2.0.{zip,tar}` |
+| Релизные ZIP/TAR | `{client,server}/build/distributions/wand6-{client,server}-4.2.1.{zip,tar}` |
 | Dev-клиент с картинками | `.devcontainer/artifacts/wand6-client/` ← `:client:publishDev` |
 | Dev-сервер для Compose | `.devcontainer/artifacts/wand6-server/` ← `:server:publishDev` |
-| GUI agent JARs | `client/build/libs/client-4.2.0-*-gui-check-agent.jar` |
+| GUI agent JARs | `client/build/libs/client-4.2.1-*-gui-check-agent.jar` |
 
 Картинки для клиента: вход `.devcontainer/assets/wand6/` (или `-PclientAssetsDir`);
 в публичные архивы не входят. Каталоги `.devcontainer/artifacts/client/` и
@@ -60,8 +61,8 @@
 [CLIENT-ASSETS.md](docs/CLIENT-ASSETS.md). Дистрибутивы изображений не содержат.
 
 ```sh
-/path/to/wand6-server-4.2.0/bin/wand6-server 45001
-/path/to/wand6-client-4.2.0/bin/wand6-client localhost 45001
+/path/to/wand6-server-4.2.1/bin/wand6-server 45001
+/path/to/wand6-client-4.2.1/bin/wand6-client localhost 45001
 ```
 
 Windows: соответствующие `.bat`. По умолчанию используется порт 45000;
@@ -73,7 +74,7 @@ Windows: соответствующие `.bat`. По умолчанию испо
 После отключения закройте окно и запустите клиент снова: новый вход создаёт
 нового персонажа в начальной точке, автоматического reconnect нет.
 
-Также доступен `java -jar server/build/libs/wand6-server-4.2.0-standalone.jar 45001`.
+Также доступен `java -jar server/build/libs/wand6-server-4.2.1-standalone.jar 45001`.
 Управление: ЛКМ — движение к точке, ПКМ — остановка. Сервер задаёт скорость
 70 пикселей/секунду; вода (высота ≤50) и горы (высота ≥200) непроходимы.
 Движение прямое: у препятствия персонаж останавливается, обход не строится.
@@ -220,7 +221,8 @@ Check-only серверная фикстура задаёт две стопки 
 
 С локальными изображениями отдельно выполните `./gradlew :client:visualCheck`.
 Протоколы 3.x и 4.x несовместимы: клиент и сервер берите из одного комплекта.
-Инструкция выпуска: [RELEASE-4.2.0.md](docs/RELEASE-4.2.0.md). Откат на 3.2 —
+Инструкция выпуска: [RELEASE-4.2.1.md](docs/RELEASE-4.2.1.md)
+([4.2.0](docs/RELEASE-4.2.0.md)). Откат на 3.2 —
 [v3.2.0](https://github.com/andreasyar/walking-desu/releases/tag/v3.2.0) и ветка
 `codex/game-3.x`. Сервер не предназначен для публичного размещения.
 Проверки Windows/macOS не проводились.

@@ -14,7 +14,8 @@ import javax.swing.SwingUtilities;
 import wand6.common.exceptions.MessageManagerException;
 
 final class GUI {
-    private static final long FRAME_NS = 40_000_000L;
+    /** ~60 Hz — closer to typical display refresh than the old 25 fps Timer. */
+    private static final long FRAME_NS = 16_666_667L;
     final WandJPanel panel = new WandJPanel();
     final JFrame frame;
     private final AtomicBoolean running = new AtomicBoolean();
@@ -77,14 +78,7 @@ final class GUI {
         long next = System.nanoTime();
         while (running.get()) {
             if (framePending.compareAndSet(false, true)) {
-                SwingUtilities.invokeLater(() -> {
-                    try {
-                        ItemManager.getInstance().tick();
-                        panel.repaint();
-                    } finally {
-                        framePending.set(false);
-                    }
-                });
+                SwingUtilities.invokeLater(this::drawFrame);
             }
             next += FRAME_NS;
             long sleep = next - System.nanoTime();
@@ -93,6 +87,19 @@ final class GUI {
             } else {
                 next = System.nanoTime();
             }
+        }
+    }
+
+    private void drawFrame() {
+        try {
+            if (!running.get() || !panel.isShowing()) return;
+            ItemManager.getInstance().tick();
+            // paintImmediately runs paint now; repaint() would clear framePending before paint.
+            panel.paintImmediately(0, 0, panel.getWidth(), panel.getHeight());
+            // On X11/XWayland, flush the back buffer so the compositor actually presents the frame.
+            panel.getToolkit().sync();
+        } finally {
+            framePending.set(false);
         }
     }
 }
