@@ -12,14 +12,14 @@ dependencies {
 }
 
 application {
-    mainClass = "server.javatestserver.JavaTestServer"
-    applicationName = "walking-desu-server"
+    mainClass = "wand6.server.JavaServer"
+    applicationName = "wand6-server"
 }
 
 val executableJar = tasks.register<Jar>("executableJar") {
     group = "build"
     description = "Build a standalone server JAR, including its runtime dependencies."
-    archiveBaseName = "walking-desu-server"
+    archiveBaseName = "wand6-server"
     archiveClassifier = "standalone"
     manifest.attributes["Main-Class"] = application.mainClass.get()
     from(sourceSets.main.get().output)
@@ -35,58 +35,60 @@ tasks.assemble {
     dependsOn(executableJar)
 }
 
-tasks.register("publishDev") {
-    group = "distribution"
-    description = "Atomically publish server.jar; stop the running server before this task."
-    dependsOn(executableJar)
-    val source = executableJar.flatMap { it.archiveFile }
-    val destination = rootProject.layout.projectDirectory.file(".devcontainer/artifacts/server/server.jar")
-    inputs.file(source)
-    outputs.file(destination)
-    doLast {
-        val target = destination.asFile.toPath()
-        Files.createDirectories(target.parent)
-        val staging = Files.createTempFile(target.parent, "server-", ".jar.tmp")
-        try {
-            Files.copy(source.get().asFile.toPath(), staging, REPLACE_EXISTING)
-            Files.move(staging, target, ATOMIC_MOVE, REPLACE_EXISTING)
-        } finally {
-            Files.deleteIfExists(staging)
-        }
-    }
-}
-
 val checks = sourceSets.create("checks") {
     compileClasspath += sourceSets.main.get().runtimeClasspath
     runtimeClasspath += sourceSets.main.get().runtimeClasspath
 }
-
 val networkSmoke = tasks.register<JavaExec>("networkSmoke") {
     group = "verification"
-    description = "Run protocol checks against an isolated server on an OS-assigned port."
+    description = "Check HELLO/NAME, map and the authoritative movement on an isolated server."
+    dependsOn(executableJar)
     classpath = checks.runtimeClasspath
-    mainClass = "server.javatestserver.NetworkSmokeCheck"
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
-    timeout = Duration.ofSeconds(90)
+    mainClass = "wand6.server.NetworkSmokeCheck"
+    args(executableJar.get().archiveFile.get().asFile.absolutePath)
+    timeout = Duration.ofSeconds(45)
 }
 tasks.check { dependsOn(networkSmoke) }
 
-val itemNetworkCheck = tasks.register<JavaExec>("itemNetworkCheck") {
+val mapCheck = tasks.register<JavaExec>("mapCheck") {
     group = "verification"
-    description = "Check atomic item transfers and visibility with real sockets on an isolated port."
     classpath = checks.runtimeClasspath
-    mainClass = "server.javatestserver.ItemNetworkCheck"
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
-    timeout = Duration.ofSeconds(90)
+    mainClass = "wand6.server.MapCheck"
 }
-tasks.check { dependsOn(itemNetworkCheck) }
+tasks.check { dependsOn(mapCheck) }
+
+val multiplayerCheck = tasks.register<JavaExec>("multiplayerCheck") {
+    group = "verification"
+    description = "Check visibility, delivery and connection cleanup with real network peers."
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.server.MultiplayerCheck"
+    timeout = Duration.ofSeconds(45)
+}
+tasks.check { dependsOn(multiplayerCheck) }
 
 val combatCheck = tasks.register<JavaExec>("combatCheck") {
     group = "verification"
-    description = "Check server ownership, projectile cancellation, deaths, tower waves and message ordering."
+    description = "Check authoritative PvP, flights, death/respawn and cancellation over real streams."
     classpath = checks.runtimeClasspath
-    mainClass = "server.javatestserver.ServerCombatCheck"
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
-    timeout = Duration.ofSeconds(90)
+    mainClass = "wand6.server.CombatCheck"
+    timeout = Duration.ofSeconds(45)
 }
 tasks.check { dependsOn(combatCheck) }
+
+val towerDefenceCheck = tasks.register<JavaExec>("towerDefenceCheck") {
+    group = "verification"
+    description = "Check tower building, waves, combat, losses, reset and NPC network visibility."
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.server.TowerDefenceCheck"
+    timeout = Duration.ofSeconds(45)
+}
+tasks.check { dependsOn(towerDefenceCheck) }
+
+val itemCheck = tasks.register<JavaExec>("itemCheck") {
+    group = "verification"
+    description = "Check item transfer, races, death/drop and visibility over real streams."
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.server.ItemCheck"
+    timeout = Duration.ofSeconds(60)
+}
+tasks.check { dependsOn(itemCheck) }

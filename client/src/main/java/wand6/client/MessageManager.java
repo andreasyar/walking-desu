@@ -1,0 +1,53 @@
+package wand6.client;
+
+import wand6.common.exceptions.MessageManagerException;
+import wand6.client.messages.TextCloudMessage;
+import wand6.client.messages.MapFragmentRequestMessage;
+import wand6.client.messages.MoveRequestMessage;
+
+class MessageManager {
+
+    private static ServerInteraction inter = null;
+
+    private static void checkInteraction() throws MessageManagerException {
+        if (inter == null) {
+            throw new MessageManagerException("Server interaction not set!");
+        }
+    }
+
+    static boolean isCurrent(ServerInteraction interaction) { return inter == interaction; }
+
+    static void init(ServerInteraction inter) {
+        MessageManager.inter = inter;
+    }
+
+    static void sendTextCloudMessage() throws NullPointerException, MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new TextCloudMessage(PlayerManager.getInstance().getSelfPlayerText()));
+    }
+
+    static void sendMapFragmentRequest(int idX, int idY) throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new MapFragmentRequestMessage(idX, idY));
+    }
+
+    static void sendPickup(long id) throws MessageManagerException {
+        checkInteraction(); inter.sendMessage(new wand6.client.messages.PickupItemMessage(id));
+    }
+    static void sendBuildTower(int x, int y) throws MessageManagerException {
+        checkInteraction(); inter.sendMessage(new wand6.client.messages.BuildTowerMessage(x, y));
+    }
+    static void sendAttackRequest(long target) throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new wand6.client.messages.AttackRequestMessage(target));
+    }
+    static void sendStopRequest() throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(MoveRequestMessage.stop());
+    }
+
+    static void sendMoveRequest(int x, int y) throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new MoveRequestMessage(x, y));
+    }
+}
