@@ -1,5 +1,0 @@
-// Сервер Дес
-class DesuServer
-{
-
-};
