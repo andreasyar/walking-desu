@@ -57,7 +57,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--assets', type=Path, required=True, help='Directory containing images listed in client/required-assets.txt')
     parser.add_argument('--output', type=Path, default=ROOT / 'client/build/distribution-check')
-    parser.add_argument('--version', default='4.2.0-dev')
+    parser.add_argument('--version', default='4.2.0-rc1')
     args = parser.parse_args()
     require(os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY'), 'A real graphical session is required')
     output = args.output.resolve()

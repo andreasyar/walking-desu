@@ -26,6 +26,7 @@ def await_condition(condition, description, processes=(), timeout=20):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--assets', type=Path, required=True)
+    parser.add_argument('--version', default='4.2.0-rc1')
     parser.add_argument('--first', choices=('one', 'two'), default='one', help='Which named client logs in first')
     args = parser.parse_args()
     if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
@@ -38,14 +39,14 @@ def main():
     for key in ('CLASSPATH', 'JAVA_OPTS', 'JAVA_TOOL_OPTIONS', 'JDK_JAVA_OPTIONS'):
         env.pop(key, None)
     for module in ('client', 'server'):
-        with tarfile.open(ROOT / module / 'build/distributions' / f'wand6-{module}-4.2.0-dev.tar') as archive:
+        with tarfile.open(ROOT / module / 'build/distributions' / f'wand6-{module}-{args.version}.tar') as archive:
             archive.extractall(run, filter='data')
-    client = run / 'wand6-client-4.2.0-dev'
+    client = run / f'wand6-client-{args.version}'
     for line in (ROOT / 'client/required-assets.txt').read_text().splitlines():
         destination = client / 'assets' / line
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(args.assets.resolve() / line, destination)
-    agent = ROOT / 'client/build/libs/client-4.2.0-dev-multiplayer-gui-check-agent.jar'
+    agent = ROOT / f'client/build/libs/client-{args.version}-multiplayer-gui-check-agent.jar'
     processes, streams = [], []
 
     def launch(command, name, environment):
@@ -66,7 +67,7 @@ def main():
             raise AssertionError(f'{role} exit={code}\n{log}')
 
     try:
-        server = launch([str(run / 'wand6-server-4.2.0-dev/bin/wand6-server'), '0'], 'server', env)
+        server = launch([str(run / f'wand6-server-{args.version}/bin/wand6-server'), '0'], 'server', env)
         def get_port():
             for line in (run / 'server.log').read_text().splitlines():
                 if line.startswith('WAND6_SERVER_PORT='):

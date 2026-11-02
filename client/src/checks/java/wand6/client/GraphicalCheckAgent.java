@@ -42,7 +42,7 @@ public final class GraphicalCheckAgent {
                     && PlayerManager.getInstance().getSelfPlayerId() > 0;
         }), "WELCOME and rendered initial map");
         edt(() -> {
-            if (!frame[0].getTitle().contains("4.2.0-dev")) {
+            if (!frame[0].getTitle().contains("4.2.0-rc1")) {
                 throw new AssertionError("Distribution version absent from window title: " + frame[0].getTitle());
             }
             capture(frame[0], panel[0], output.resolve("01-login-map.png"));

@@ -1,9 +1,11 @@
 # Walking Desu — экспериментальная линия wand6 / 4.x
 
 Ветка `codex/game-4.x` продолжает исторический снимок
-`b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa`. Этапы 7–12 восстановили независимую
+`b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa`. Этапы 7–13 восстановили независимую
 сборку wand6, адаптировали движение и анимации проверенной 3.2, согласовали
-карту/камеру, вернули видимость игроков, текст, корректное отключение, PvP, цикл tower defence, предметы и инвентарь. Текущая версия — **4.2.0-dev**, это незавершённый прототип.
+карту/камеру, вернули видимость игроков, текст, корректное отключение, PvP,
+цикл tower defence, предметы и инвентарь и прошли общую релизную матрицу.
+Текущая версия — **4.2.0-rc1** (release candidate перед этапом 14).
 Стабильная игра **3.2.0** доступна в `master` и в
 [релизе v3.2.0](https://github.com/andreasyar/walking-desu/releases/tag/v3.2.0).
 
@@ -40,8 +42,8 @@
 [CLIENT-ASSETS.md](docs/CLIENT-ASSETS.md). Дистрибутивы изображений не содержат.
 
 ```sh
-/path/to/wand6-server-4.2.0-dev/bin/wand6-server 45001
-/path/to/wand6-client-4.2.0-dev/bin/wand6-client localhost 45001
+/path/to/wand6-server-4.2.0-rc1/bin/wand6-server 45001
+/path/to/wand6-client-4.2.0-rc1/bin/wand6-client localhost 45001
 ```
 
 Windows: соответствующие `.bat`. По умолчанию используется порт 45000;
@@ -53,7 +55,7 @@ Windows: соответствующие `.bat`. По умолчанию испо
 После отключения закройте окно и запустите клиент снова: новый вход создаёт
 нового персонажа в начальной точке, автоматического reconnect нет.
 
-Также доступен `java -jar server/build/libs/wand6-server-4.2.0-dev-standalone.jar 45001`.
+Также доступен `java -jar server/build/libs/wand6-server-4.2.0-rc1-standalone.jar 45001`.
 Управление: ЛКМ — движение к точке, ПКМ — остановка. Сервер задаёт скорость
 70 пикселей/секунду; вода (высота ≤50) и горы (высота ≥200) непроходимы.
 Движение прямое: у препятствия персонаж останавливается, обход не строится.
@@ -194,16 +196,19 @@ Check-only серверная фикстура задаёт две стопки 
 включить JVM-свойством `-Dwand6.debugMap=true`.
 
 С локальными изображениями отдельно выполните `./gradlew :client:visualCheck`.
-Следующий этап — общая релизная матрица и RC (этап 13). Сервер экспериментальный,
-не предназначен для публичного размещения: аутентификация и ограничения
-нагрузки не вводились. Проверки Windows/macOS не проводились.
+Протоколы 3.x и 4.x несовместимы: клиент и сервер берите из одного комплекта.
+Откат на 3.2 — комплект [v3.2.0](https://github.com/andreasyar/walking-desu/releases/tag/v3.2.0).
+Следующий этап — выпуск 4.2 и перевод `master` (этап 14). Сервер не предназначен
+для публичного размещения: аутентификация и ограничения нагрузки не вводились.
+Проверки Windows/macOS не проводились.
 
-[Отчёт этапа 12 и источники переноса](docs/RECOVERY-STAGE-12.md),
+[Отчёт этапа 13 / RC](docs/RECOVERY-STAGE-13.md),
+[отчёт этапа 12](docs/RECOVERY-STAGE-12.md),
 [отчёт этапа 11](docs/RECOVERY-STAGE-11.md),
 [отчёт этапа 10](docs/RECOVERY-STAGE-10.md),
 [отчёт этапа 9](docs/RECOVERY-STAGE-9.md),
 [отчёт этапа 8](docs/RECOVERY-STAGE-8.md),
 [отчёт этапа 7](docs/RECOVERY-STAGE-7.md),
 [эпик #2](https://github.com/andreasyar/walking-desu/issues/2),
-[задача #17](https://github.com/andreasyar/walking-desu/issues/17),
+[задача #19](https://github.com/andreasyar/walking-desu/issues/19),
 [план](docs/RECOVERY-EPIC.md), [исторический аудит](docs/HISTORICAL-CODE-RECOVERY.md).
