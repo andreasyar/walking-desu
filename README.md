@@ -1,10 +1,15 @@
-# Walking Desu — экспериментальная линия wand6 / 4.x
+# Walking Desu — wand6 / 4.x
 
-Основная ветка содержит завершённую линию wand6 **4.2.1** (этапы 7–14,
-патч плавности клиента),
-продолженную от исторического снимка
-`b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa`. Восстановлены независимая сборка,
-карта/движение, мультиплеер, PvP, tower defence, предметы и инвентарь.
+Текущий стабильный выпуск: **[4.2.1](https://github.com/andreasyar/walking-desu/releases/tag/v4.2.1)**
+([инструкция](docs/RELEASE-4.2.1.md)). Основная ветка `master` — завершённая
+линия wand6 (этапы восстановления 7–14 плюс патч плавности клиента), от
+исторического снимка `b9d8a8043b0d2f19f42770f4f3a7eceb849c8bfa`.
+
+В игре: независимая сборка, карта/движение, мультиплеер, PvP, tower defence,
+предметы и инвентарь. В **4.2.1** убрано периодическое дёрганье движения на
+Linux/Wayland (`paintImmediately` + `Toolkit.sync()`, цель ~60 fps) —
+см. [CLIENT-SMOOTHNESS.md](docs/CLIENT-SMOOTHNESS.md).
+
 Стабильная **3.2.0** сохранена в ветке `codex/game-3.x` и в
 [релизе v3.2.0](https://github.com/andreasyar/walking-desu/releases/tag/v3.2.0).
 Клиентские дистрибутивы **не содержат спрайтов**: положите локальный `assets/`
@@ -114,6 +119,9 @@ Windows: соответствующие `.bat`. По умолчанию испо
 Счётчик волны, пропусков и силы виден в окне; игроки, их инвентарь и
 уже выпавшие предметы при сбросе сохраняются.
 
+В углу окна клиент показывает `fps`, максимальный интервал кадра (`max`) и
+последнее расхождение `TIMESYNC` (`sync`). Ожидайте около **60 fps**.
+
 Клиент требует настоящую графическую сессию и предлагает выбрать ник длиной
 3–10 символов. Выход — закрытие окна. Сервер останавливается Ctrl+C.
 
@@ -220,16 +228,20 @@ Check-only серверная фикстура задаёт две стопки 
 включить JVM-свойством `-Dwand6.debugMap=true`.
 
 С локальными изображениями отдельно выполните `./gradlew :client:visualCheck`.
-Протоколы 3.x и 4.x несовместимы: клиент и сервер берите из одного комплекта.
-Инструкция выпуска: [RELEASE-4.2.1.md](docs/RELEASE-4.2.1.md)
-([4.2.0](docs/RELEASE-4.2.0.md)). Откат на 3.2 —
-[v3.2.0](https://github.com/andreasyar/walking-desu/releases/tag/v3.2.0) и ветка
-`codex/game-3.x`. Сервер не предназначен для публичного размещения.
+Протоколы 3.x и 4.x несовместимы. Клиент и сервер 4.2.0/4.2.1 совместимы по
+сети; для исправления дёрганья нужен **клиент 4.2.1**. Релиз:
+[v4.2.1](https://github.com/andreasyar/walking-desu/releases/tag/v4.2.1)
+([инструкция](docs/RELEASE-4.2.1.md), базовый [4.2.0](docs/RELEASE-4.2.0.md)).
+Откат на 3.2 — [v3.2.0](https://github.com/andreasyar/walking-desu/releases/tag/v3.2.0)
+и ветка `codex/game-3.x`. Сервер не предназначен для публичного размещения.
 Проверки Windows/macOS не проводились.
 
-[Отчёт этапа 14](docs/RECOVERY-STAGE-14.md),
-[отчёт этапа 13 / RC](docs/RECOVERY-STAGE-13.md),
-[отчёт этапа 12](docs/RECOVERY-STAGE-12.md),
+Документация: [плавность клиента](docs/CLIENT-SMOOTHNESS.md),
+[версии](docs/VERSIONING.md), [changelog](CHANGELOG.md),
+[отчёт этапа 14](docs/RECOVERY-STAGE-14.md),
+[этап 13 / RC](docs/RECOVERY-STAGE-13.md),
+[этап 12](docs/RECOVERY-STAGE-12.md),
 [эпик #2](https://github.com/andreasyar/walking-desu/issues/2),
 [задача #20](https://github.com/andreasyar/walking-desu/issues/20),
 [план](docs/RECOVERY-EPIC.md), [исторический аудит](docs/HISTORICAL-CODE-RECOVERY.md).
+
