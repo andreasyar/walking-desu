@@ -2,6 +2,8 @@
 /.devcontainer/.env
 /.gradle/
 **/build/
+**/__pycache__/
+*.py[cod]
 /.devcontainer/cache/
 /.devcontainer/assets/
 /.devcontainer/artifacts/client/*
