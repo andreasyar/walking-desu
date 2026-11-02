@@ -4,7 +4,7 @@ plugins {
 
 subprojects {
     group = "walkingdesu"
-    version = "3.2.0"
+    version = "4.2.0"
 
     pluginManager.withPlugin("java") {
         extensions.configure<JavaPluginExtension> {
@@ -30,12 +30,6 @@ tasks.check {
 }
 tasks.clean {
     dependsOn(":common:clean", ":client:clean", ":server:clean")
-}
-
-tasks.register("prepareDev") {
-    group = "distribution"
-    description = "Prepare the local client distribution and publish the server JAR."
-    dependsOn(":client:publishDev", ":server:publishDev")
 }
 
 tasks.wrapper {

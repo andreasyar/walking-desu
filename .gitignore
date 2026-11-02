@@ -2,9 +2,13 @@
 /.devcontainer/.env
 /.gradle/
 **/build/
+**/__pycache__/
+*.py[cod]
 /.devcontainer/cache/
 /.devcontainer/assets/
 /.devcontainer/artifacts/client/*
 !/.devcontainer/artifacts/client/.gitkeep
 /.devcontainer/artifacts/server/*
 !/.devcontainer/artifacts/server/.gitkeep
+
+/.devcontainer/artifacts/wand6-client/

@@ -7,8 +7,8 @@ dependencies {
 }
 
 application {
-    mainClass = "client.WalkingDesu"
-    applicationName = "walking-desu-client"
+    mainClass = "wand6.client.Wand"
+    applicationName = "wand6-client"
 }
 
 tasks.jar {
@@ -16,7 +16,7 @@ tasks.jar {
 }
 
 val clientAssets = rootProject.layout.projectDirectory.dir(
-    providers.gradleProperty("clientAssetsDir").getOrElse(".devcontainer/assets/client")
+    providers.gradleProperty("clientAssetsDir").getOrElse(".devcontainer/assets/wand6")
 )
 val requiredAssets = layout.projectDirectory.file("required-assets.txt")
 
@@ -98,7 +98,7 @@ tasks.register<Sync>("publishDev") {
         include("img/**")
         exclude("img/peasant.png", "img/peon.png")
     }
-    into(rootProject.layout.projectDirectory.dir(".devcontainer/artifacts/client"))
+    into(rootProject.layout.projectDirectory.dir(".devcontainer/artifacts/wand6-client"))
     preserve { include(".gitkeep") }
 }
 
@@ -107,18 +107,52 @@ val checks = sourceSets.create("checks") {
     runtimeClasspath += sourceSets.main.get().runtimeClasspath
 }
 
-val regressionCheck = tasks.register<JavaExec>("regressionCheck") {
-    group = "verification"
-    description = "Check animations, rendering, drawable queues and gold hit bounds with real client images."
-    dependsOn(verifyClientAssets)
-    classpath = checks.runtimeClasspath + files(clientAssets)
-    mainClass = "client.ClientRegressionCheck"
-    jvmArgs("-Djava.awt.headless=true")
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+tasks.register<Jar>("guiCheckAgent") {
+    archiveClassifier = "gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.GraphicalCheckAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
 }
-tasks.check { dependsOn(regressionCheck) }
 
 tasks.named<JavaExec>("run") {
     dependsOn(verifyClientAssets)
     classpath += files(clientAssets)
+}
+
+// Local asset-dependent verification; public packaging remains asset-free.
+tasks.register<JavaExec>("visualCheck") {
+    group = "verification"
+    dependsOn(verifyClientAssets)
+    classpath = checks.runtimeClasspath + files(clientAssets)
+    mainClass = "wand6.client.VisualCheck"
+    jvmArgs("-Djava.awt.headless=true")
+}
+
+tasks.register<Jar>("multiplayerGuiCheckAgent") {
+    archiveClassifier = "multiplayer-gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.MultiplayerGraphicalAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
+}
+
+
+tasks.register<Jar>("combatGuiCheckAgent") {
+    archiveClassifier = "combat-gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.CombatGraphicalAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
+}
+
+tasks.register<Jar>("towerDefenceGuiCheckAgent") {
+    archiveClassifier = "tower-defence-gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.TowerDefenceGraphicalAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
+}
+
+tasks.register<Jar>("itemGuiCheckAgent") {
+    archiveClassifier = "item-gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.ItemGraphicalAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
 }
