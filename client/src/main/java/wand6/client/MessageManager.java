@@ -31,6 +31,10 @@ class MessageManager {
         inter.sendMessage(new MapFragmentRequestMessage(idX, idY));
     }
 
+    static void sendAttackRequest(long target) throws MessageManagerException {
+        checkInteraction();
+        inter.sendMessage(new wand6.client.messages.AttackRequestMessage(target));
+    }
     static void sendStopRequest() throws MessageManagerException {
         checkInteraction();
         inter.sendMessage(MoveRequestMessage.stop());

@@ -6,7 +6,7 @@ import wand6.common.messages.MessageType;
 
 /** Atomic identity and current segment, adapted from 3.2 newplayer + MOVE + text. */
 public record AppearPlayerMessage(long id, String name, String spriteSetName,
-        MoveMessage movement, String text) implements Message, Serializable {
-    private static final long serialVersionUID = 9L;
+        MoveMessage movement, String text, int hp, long life, AttackMessage attackAnimation) implements Message, Serializable {
+    private static final long serialVersionUID = 10L;
     @Override public MessageType getType() { return MessageType.APPEARPLAYER; }
 }

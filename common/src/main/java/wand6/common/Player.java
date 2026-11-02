@@ -2,6 +2,15 @@ package wand6.common;
 
 public class Player {
 
+    private int hp = CombatRules.MAX_HP;
+    private long life;
+    private long lastAttack = -CombatRules.REUSE;
+    public int getHp() { return hp; }
+    public void setHp(int hp) { this.hp = hp; }
+    public long getLife() { return life; }
+    public void setLife(long life) { this.life = life; }
+    public long getLastAttack() { return lastAttack; }
+    public void setLastAttack(long time) { lastAttack = time; }
     private final long id;
     private String name;
     private String spriteSetName;

@@ -66,6 +66,8 @@ final class ClientInteraction implements AutoCloseable {
                         socket.setSoTimeout(0);
                     } else if (message instanceof MoveRequestMessage move) {
                         players.movePlayer(id, move.getX(), move.getY(), move.isStop());
+                    } else if (message instanceof AttackRequestMessage attack) {
+                        server.combat.attack(id, attack.targetId());
                     } else if (message instanceof TextCloudMessage text) {
                         players.setPlayerText(id, text.getText());
                     } else if (message instanceof MapFragmentRequestMessage map) {

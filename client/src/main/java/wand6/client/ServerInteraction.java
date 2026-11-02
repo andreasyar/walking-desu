@@ -126,6 +126,16 @@ final class MessageReceiver {
             PlayerManager.getInstance().remove(disappear.id());
         } else if (message instanceof wand6.server.messages.PlayerTextMessage text) {
             PlayerManager.getInstance().setText(text.id(), text.text());
+        } else if (message instanceof wand6.server.messages.AttackMessage attack) {
+            PlayerManager.getInstance().attack(attack);
+        } else if (message instanceof wand6.server.messages.EndProjectileMessage end) {
+            PlayerManager.getInstance().endShot(end.shotId());
+        } else if (message instanceof wand6.server.messages.HitMessage hit) {
+            PlayerManager.getInstance().hit(hit);
+        } else if (message instanceof wand6.server.messages.DeathMessage death) {
+            PlayerManager.getInstance().die(death);
+        } else if (message instanceof wand6.server.messages.RespawnMessage respawn) {
+            PlayerManager.getInstance().respawn(respawn);
         } else if (message.getType() == MessageType.MOVE) {
 
             MoveMessage m = (MoveMessage) message;

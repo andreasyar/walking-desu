@@ -19,6 +19,22 @@ public final class VisualCheck {
             require(first.image != next.image,"walking frame progresses");
             require(first.image.getWidth()==56 && first.x==72 && first.y==44,"same 3.2 crop and foot anchor");
         }
+        var attack = DirectionalSpriteSet.load("peasant_attack");
+        var death = DirectionalSpriteSet.load("peasant_death");
+        var bolt = DirectionalSpriteSet.load("peasant_bolt");
+        for (var direction : Direction.values()) {
+            require(attack.getSpriteCount(direction) == 5 && death.getSpriteCount(direction) == 3
+                    && bolt.getSpriteCount(direction) == 1, "combat directional frames");
+            var cast = new UseSkillAnimation("peasant");
+            cast.run(direction,100);
+            require(cast.isPlaying(849) && !cast.isPlaying(850) && cast.getNukeAnimationDelay() == 375, "3.2 attack timeline");
+            require(cast.getSprite(100,new Point(80,90)).image != cast.getSprite(400,new Point(80,90)).image, "attack progresses");
+            cast.stop(); require(!cast.isPlaying(200), "attack cancelled");
+            var dying = new DeathAnimation("peasant");
+            dying.run(direction,100);
+            require(!dying.isDone(549) && dying.isDone(550), "death ends at 450ms");
+            require(dying.getSprite(10000,new Point(80,90)).image == death.getSprite(direction,2).image, "death holds final frame");
+        }
         try { DirectionalSpriteSet.load("missing_walk"); throw new AssertionError("unknown set accepted"); }
         catch(IllegalArgumentException expected) { }
         var camera=Camera.follow(Integer.MAX_VALUE,Integer.MAX_VALUE,1000,720);
@@ -44,7 +60,7 @@ public final class VisualCheck {
         var image = new java.awt.image.BufferedImage(1024,1024,java.awt.image.BufferedImage.TYPE_INT_RGB);
         var graphics=image.createGraphics();
         try { fragment.draw(graphics,0,0,new java.awt.Dimension(1024,1024)); } finally { graphics.dispose(); }
-        System.out.println("PASS: eight sprite directions, walking frames, standing sets, crop/anchor, unknown set, boundary camera, contiguous/chunk shoreline equivalence, atlas rendering.");
+        System.out.println("PASS: combat sets, attack/death timing and cancellation, eight sprite directions, walking frames, standing sets, crop/anchor, unknown set, boundary camera, contiguous/chunk shoreline equivalence, atlas rendering.");
     }
     private static void require(boolean condition,String label) { if(!condition)throw new AssertionError(label); }
 }

@@ -10,6 +10,8 @@ import wand6.server.exceptions.PlayerManagerException;
 class PlayerManager {
 
     private VisibleManager visibleManager;
+    CombatController combat;
+    Player find(long id) { return players.stream().filter(p -> p.getId() == id).findFirst().orElse(null); }
 
     private final ArrayList<Player> players = new ArrayList<Player>();
 
@@ -26,6 +28,7 @@ class PlayerManager {
     void joined() { synchronized (this) { visibleManager.update(); } }
     void removePlayer(long id) {
         synchronized (this) {
+            if (combat != null) combat.cancelFor(id);
             players.removeIf(player -> player.getId() == id);
             visibleManager.remove(id);
         }

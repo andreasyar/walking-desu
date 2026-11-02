@@ -53,6 +53,7 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         camera = Camera.follow(position.x(), position.y(), panelDim.width, panelDim.height);
         MapManager.getInstance().drawMap(g, panelDim, camera);
         PlayerManager.getInstance().drawPlayers(g, camera, time);
+        PlayerManager.getInstance().drawEffects(g, camera, time);
     }
 
     @Override
@@ -69,7 +70,9 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         if (clickX >= 0 && clickY >= 0 && clickX <= wand6.common.MapFragment.maxX
                 && clickY <= wand6.common.MapFragment.maxY) {
             try {
-                MessageManager.sendMoveRequest((int) clickX, (int) clickY);
+                var players = PlayerManager.getInstance();
+                players.selectAt((int) clickX, (int) clickY);
+                if (players.selected() == 0) MessageManager.sendMoveRequest((int) clickX, (int) clickY);
             } catch (MessageManagerException ex) {
                 ex.printStackTrace();
                 System.exit(1);
@@ -129,8 +132,15 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
 
     @Override
     public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_F3) {
+            try {
+                long target = PlayerManager.getInstance().selected();
+                if (target != 0) MessageManager.sendAttackRequest(target);
+            } catch (MessageManagerException ex) { System.err.println(ex.getMessage()); }
+        }
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) PlayerManager.getInstance().unselect();
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-            // Reserved for selection in a later stage.
+            PlayerManager.getInstance().unselect();
         }
     }
 }

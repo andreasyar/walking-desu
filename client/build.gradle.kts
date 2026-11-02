@@ -134,3 +134,11 @@ tasks.register<Jar>("multiplayerGuiCheckAgent") {
     manifest.attributes["Premain-Class"] = "wand6.client.MultiplayerGraphicalAgent"
     manifest.attributes["Implementation-Version"] = project.version.toString()
 }
+
+
+tasks.register<Jar>("combatGuiCheckAgent") {
+    archiveClassifier = "combat-gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.CombatGraphicalAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
+}

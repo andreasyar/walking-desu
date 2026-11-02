@@ -16,6 +16,7 @@ public class Wand {
             ClientAssets.summer();
             DirectionalSpriteSet.load("peasant_walk");
             DirectionalSpriteSet.load("peasant_stand");
+            for (String state : new String[]{"attack", "death", "bolt"}) DirectionalSpriteSet.load("peasant_" + state);
             if (GraphicsEnvironment.isHeadless()) {
                 throw new IllegalStateException("wand6-client needs a graphical desktop (DISPLAY/Wayland).");
             }

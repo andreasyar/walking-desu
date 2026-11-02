@@ -65,3 +65,12 @@ val multiplayerCheck = tasks.register<JavaExec>("multiplayerCheck") {
     timeout = Duration.ofSeconds(45)
 }
 tasks.check { dependsOn(multiplayerCheck) }
+
+val combatCheck = tasks.register<JavaExec>("combatCheck") {
+    group = "verification"
+    description = "Check authoritative PvP, flights, death/respawn and cancellation over real streams."
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.server.CombatCheck"
+    timeout = Duration.ofSeconds(45)
+}
+tasks.check { dependsOn(combatCheck) }

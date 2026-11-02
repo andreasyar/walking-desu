@@ -30,7 +30,9 @@ final class VisibleManager {
                             (double) origin.y() - position.y()) <= RANGE;
                     if (inRange && seen.add(target.getId())) {
                         messages.send(observer.getId(), new AppearPlayerMessage(target.getId(), target.getName(),
-                                target.getSpriteSetName(), segment(target), target.getText()));
+                                target.getSpriteSetName(), segment(target), target.getText(), target.getHp(), target.getLife(),
+                                world.combat == null ? null : world.combat.currentAttack(target.getId())));
+                        if (world.combat != null) world.combat.appeared(observer.getId(), target.getId());
                     } else if (!inRange && seen.remove(target.getId())) {
                         messages.send(observer.getId(), new DisappearPlayerMessage(target.getId()));
                     }
@@ -55,9 +57,17 @@ final class VisibleManager {
             deliver(player.getId(), new PlayerTextMessage(player.getId(), player.getText()));
         }
     }
-    private void deliver(long id, Message message) {
+    void deliver(long id, Message message) {
         messages.send(id, message);
         visible.forEach((observer, seen) -> { if (seen.contains(id)) messages.send(observer, message); });
+    }
+    Set<Long> recipients(long... ids) {
+        Set<Long> result = new HashSet<>();
+        for (long id : ids) {
+            if (world.find(id) != null) result.add(id);
+            visible.forEach((observer, seen) -> { if (seen.contains(id)) result.add(observer); });
+        }
+        return result;
     }
     void remove(long id) {
         synchronized (world) {

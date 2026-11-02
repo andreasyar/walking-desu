@@ -19,6 +19,7 @@ public final class JavaServer implements AutoCloseable {
     final PlayerManager players = new PlayerManager();
     final VisibleManager visibility = new VisibleManager();
     private final MessageManager messages = new MessageManager();
+    final CombatController combat = new CombatController(players, visibility, messages);
     private final MapManager maps = new MapManager();
     private final ScheduledExecutorService clock = Executors.newSingleThreadScheduledExecutor(r ->
             new Thread(r, "wand6-world-clock"));
@@ -37,6 +38,7 @@ public final class JavaServer implements AutoCloseable {
         messages.init(this, players);
         visibility.init(messages, players);
         players.init(visibility);
+        players.combat = combat;
         System.out.println("WAND6_SERVER_PORT=" + port());
     }
 
@@ -46,6 +48,7 @@ public final class JavaServer implements AutoCloseable {
 
     void run() throws IOException {
         clock.scheduleAtFixedRate(visibility::update, 0, 50, TimeUnit.MILLISECONDS);
+        clock.scheduleAtFixedRate(combat::tick, 0, 10, TimeUnit.MILLISECONDS);
         clock.scheduleAtFixedRate(() -> sendMessage(new TimeSyncMessage(
                 ServerTime.getInstance().getTimeSinceStart())), 0, 10, TimeUnit.SECONDS);
         try {
@@ -84,6 +87,7 @@ public final class JavaServer implements AutoCloseable {
             closed = true;
             try { socket.close(); } catch (IOException ignored) { }
             for (ClientInteraction client : clients) client.close();
+            combat.clear();
             clock.shutdownNow();
         }
     }
