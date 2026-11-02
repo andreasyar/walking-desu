@@ -1,107 +1,90 @@
 package wand6.server;
 
-import wand6.server.exceptions.JavaServerException;
-import wand6.common.messages.Message;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.ListIterator;
+import java.net.SocketException;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import wand6.common.ServerTime;
+import wand6.common.messages.Message;
+import wand6.server.exceptions.JavaServerException;
+import wand6.server.messages.TimeSyncMessage;
 
-public class JavaServer {
+/** PlayerManager is the world monitor; connection I/O never runs under it. */
+public final class JavaServer implements AutoCloseable {
+    private final ServerSocket socket;
+    private final CopyOnWriteArrayList<ClientInteraction> clients = new CopyOnWriteArrayList<>();
+    final PlayerManager players = new PlayerManager();
+    final VisibleManager visibility = new VisibleManager();
+    private final MessageManager messages = new MessageManager();
+    private final MapManager maps = new MapManager();
+    private final ScheduledExecutorService clock = Executors.newSingleThreadScheduledExecutor(r ->
+            new Thread(r, "wand6-world-clock"));
+    private volatile boolean closed;
 
-    private static int debugLevel = 2;
-
-    private ServerSocket socket;
-    private final ArrayList<ClientInteraction> clients = new ArrayList<ClientInteraction>();
-
-    public static void main(String[] args) {
-        try {
-            JavaServer server = new JavaServer(args.length == 0 ? 45000 : Integer.parseInt(args[0]));
+    public static void main(String[] args) throws IOException {
+        try (JavaServer server = new JavaServer(args.length == 0 ? 45000 : Integer.parseInt(args[0]))) {
+            Runtime.getRuntime().addShutdownHook(new Thread(server::close, "wand6-shutdown"));
             server.run();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
         }
     }
 
-    private JavaServer(int port) throws IOException {
+    JavaServer(int port) throws IOException {
         socket = new ServerSocket(port);
-        System.out.println("WAND6_SERVER_PORT=" + socket.getLocalPort());
+        ServerTime.getInstance();
+        messages.init(this, players);
+        visibility.init(messages, players);
+        players.init(visibility);
+        System.out.println("WAND6_SERVER_PORT=" + port());
     }
 
-    private void run() throws IOException {
-        Socket clientSocket;
-        ClientInteraction clientInteraction;
+    int port() { return socket.getLocalPort(); }
+    int connectionCount() { return clients.size(); }
+    void remove(ClientInteraction client) { clients.remove(client); }
 
-        // Initialize server start time.
-        ServerTime.getInstance();
-        TimeSyncTask tst = new TimeSyncTask(this);
-        tst.schedule(10000L);
-        MessageManager mm = new MessageManager();
-        VisibleManager vm = new VisibleManager();
-        PlayerManager pm = new PlayerManager();
-        MapManager mapm = new MapManager();
-
-        mm.init(this, pm);
-        vm.init(mm);
-        pm.init(vm);
-
-        while (true) {
-            clientSocket = socket.accept();
-
-            if (clientSocket != null) {
-                clientInteraction = new ClientInteraction(clientSocket, pm, mm, mapm);
-                synchronized(clients) {
-                    clients.add(clientInteraction);
+    void run() throws IOException {
+        clock.scheduleAtFixedRate(visibility::update, 0, 50, TimeUnit.MILLISECONDS);
+        clock.scheduleAtFixedRate(() -> sendMessage(new TimeSyncMessage(
+                ServerTime.getInstance().getTimeSinceStart())), 0, 10, TimeUnit.SECONDS);
+        try {
+            while (!closed) {
+                var accepted = socket.accept();
+                synchronized (players) {
+                    if (closed) { accepted.close(); break; }
+                    ClientInteraction client = new ClientInteraction(accepted, this, players, messages, maps);
+                    clients.add(client);
+                    client.run(); // Starts workers; stream handshake is performed by the reader.
                 }
-                clientInteraction.run();
             }
-        }
+        } catch (SocketException ex) {
+            if (!closed) throw ex;
+        } finally { close(); }
     }
 
     public boolean sendMessage(Message message, long clientId) throws JavaServerException {
-        synchronized(clients) {
-            ClientInteraction client;
-
-            for (ListIterator<ClientInteraction> i = clients.listIterator(); i.hasNext();) {
-                client = i.next();
-                if (debugLevel > 1) {
-                    System.out.println("Client id: " + client.getSelfPlayerId());
-                }
-                if (client.getSelfPlayerId() == clientId) {
-                    if (client.isReady()) {
-                        client.sendMessage(message);
-                        return true;
-                    } else {
-                        i.remove();
-                        throw new JavaServerException("Client with id=" + clientId + " not ready.");
-                    }
-                }
+        for (ClientInteraction client : clients) {
+            if (client.getSelfPlayerId() == clientId && client.isReady()) {
+                return client.sendMessage(message);
             }
-
-            throw new JavaServerException("Client with id=" + clientId + " not exists.");
         }
+        return false; // A disconnected recipient must not terminate the world or other deliveries.
     }
 
     public void sendMessage(Message message) {
-        synchronized(clients) {
-            ClientInteraction client;
+        synchronized (players) {
+            for (ClientInteraction client : clients) if (client.isReady()) client.sendMessage(message);
+        }
+    }
 
-            for (ListIterator<ClientInteraction> i = clients.listIterator(); i.hasNext();) {
-                client = i.next();
-                if (client.isReady()) {
-                    client.sendMessage(message);
-                } else {
-                    if (client.getSelfPlayerId() > 0) {
-                        i.remove();
-                        if (debugLevel > 0) {
-                            System.err.println("Client id=" + client.getSelfPlayerId() + " was not ready and removed.");
-                        }
-                    }
-                }
-            }
+    @Override public void close() {
+        synchronized (players) {
+            if (closed) return;
+            closed = true;
+            try { socket.close(); } catch (IOException ignored) { }
+            for (ClientInteraction client : clients) client.close();
+            clock.shutdownNow();
         }
     }
 }

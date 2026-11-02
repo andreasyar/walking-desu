@@ -15,6 +15,8 @@ class MessageManager {
         }
     }
 
+    static boolean isCurrent(ServerInteraction interaction) { return inter == interaction; }
+
     static void init(ServerInteraction inter) {
         MessageManager.inter = inter;
     }

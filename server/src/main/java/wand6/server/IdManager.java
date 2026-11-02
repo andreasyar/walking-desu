@@ -4,7 +4,7 @@ class IdManager {
 
     private static long id = 1L;
 
-    static long nextId() {
+    static synchronized long nextId() {
         return id++;
     }
 }

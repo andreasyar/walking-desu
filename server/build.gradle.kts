@@ -56,3 +56,12 @@ val mapCheck = tasks.register<JavaExec>("mapCheck") {
     mainClass = "wand6.server.MapCheck"
 }
 tasks.check { dependsOn(mapCheck) }
+
+val multiplayerCheck = tasks.register<JavaExec>("multiplayerCheck") {
+    group = "verification"
+    description = "Check visibility, delivery and connection cleanup with real network peers."
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.server.MultiplayerCheck"
+    timeout = Duration.ofSeconds(45)
+}
+tasks.check { dependsOn(multiplayerCheck) }

@@ -65,7 +65,7 @@ final class ServerInteraction implements AutoCloseable {
                     Message message = (Message) input.readObject();
                     if (message.getType() == MessageType.WELCOME) { welcome = true; }
                     if (welcome) {
-                        SwingUtilities.invokeAndWait(() -> handler.commandHandler(message));
+                        SwingUtilities.invokeAndWait(() -> { if (!closed) handler.commandHandler(message); });
                     }
                 }
             } catch (EOFException ex) {
@@ -80,10 +80,15 @@ final class ServerInteraction implements AutoCloseable {
         receiver.start();
     }
 
-    void sendMessage(Message message) { messages.add(message); }
+    synchronized void sendMessage(Message message) { if (!closed) messages.add(message); }
 
-    @Override public void close() {
+    @Override public synchronized void close() {
+        if (closed) return;
         closed = true;
+        messages.clear();
+        SwingUtilities.invokeLater(() -> {
+            if (MessageManager.isCurrent(this)) PlayerManager.getInstance().disconnected();
+        });
         if (sender != null) { sender.interrupt(); }
         try { socket.close(); } catch (IOException ignored) { }
     }
@@ -115,6 +120,12 @@ final class MessageReceiver {
             MapFragmentMessage m = (MapFragmentMessage) message;
             MapManager.getInstance().addMapFragment(m.getIdX(), m.getIdY(), m.getHmap());
 
+        } else if (message instanceof wand6.server.messages.AppearPlayerMessage appear) {
+            PlayerManager.getInstance().appear(appear);
+        } else if (message instanceof wand6.server.messages.DisappearPlayerMessage disappear) {
+            PlayerManager.getInstance().remove(disappear.id());
+        } else if (message instanceof wand6.server.messages.PlayerTextMessage text) {
+            PlayerManager.getInstance().setText(text.id(), text.text());
         } else if (message.getType() == MessageType.MOVE) {
 
             MoveMessage m = (MoveMessage) message;
@@ -122,7 +133,7 @@ final class MessageReceiver {
                 PlayerManager.getInstance().movePlayer(m.getId(), m.getBegX(), m.getBegY(), m.getEndX(), m.getEndY(), m.getBegTime());
             } catch (PlayerManagerException ex) {
                 ex.printStackTrace();
-                System.exit(1);
+                throw new IllegalStateException(ex);
             }
 
         }

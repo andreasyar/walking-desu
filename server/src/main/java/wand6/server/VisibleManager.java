@@ -1,47 +1,71 @@
 package wand6.server;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import wand6.common.exceptions.MessageManagerException;
-import wand6.server.exceptions.VisibleManagerException;
+import java.util.*;
+import wand6.common.Player;
+import wand6.common.ServerTime;
+import wand6.common.messages.Message;
+import wand6.server.messages.*;
 
-class VisibleManager {
+/** Adapted from 3.2 VisibleManager/Player/MessageService, player scope only.
+ * All visibility and queue insertions use the PlayerManager world monitor.
+ */
+final class VisibleManager {
+    static final double RANGE = 500.0;
+    private MessageManager messages;
+    private PlayerManager world;
+    private final Map<Long, Set<Long>> visible = new HashMap<>();
+    void init(MessageManager messages, PlayerManager world) { this.messages = messages; this.world = world; }
 
-    private static int debugLevel = 1;
-
-    private MessageManager messageManager;
-
-    private final HashMap<Long, ArrayList<Long>> visiblePlayersMap = new HashMap<Long, ArrayList<Long>>();
-    private final HashMap<Long, ArrayList<Long>> visibleMonstersMap = new HashMap<Long, ArrayList<Long>>();
-
-    private boolean initialized = false;
-
-    void init(MessageManager messageManager) {
-        this.messageManager = messageManager;
-        initialized = true;
-    }
-
-    void movementStartNotify(long playerId) throws VisibleManagerException {
-        if (!initialized) {
-            throw new VisibleManagerException(this + " not initialized yet and cannot be used.");
-        }
-
-        try {
-            messageManager.sendMoveMessage(playerId, playerId);
-
-            synchronized (visiblePlayersMap) {
-                if (visiblePlayersMap.containsKey(playerId)) {
-                    for (long visiblePlayerId : visiblePlayersMap.get(playerId)) {
-                        messageManager.sendMoveMessage(visiblePlayerId, playerId);
+    void update() {
+        synchronized (world) {
+            long now = ServerTime.getInstance().getTimeSinceStart();
+            var players = world.snapshot();
+            for (Player observer : players) {
+                Set<Long> seen = visible.computeIfAbsent(observer.getId(), id -> new HashSet<>());
+                var origin = observer.getMovement().position(now);
+                for (Player target : players) {
+                    if (observer == target) continue;
+                    var position = target.getMovement().position(now);
+                    boolean inRange = Math.hypot((double) origin.x() - position.x(),
+                            (double) origin.y() - position.y()) <= RANGE;
+                    if (inRange && seen.add(target.getId())) {
+                        messages.send(observer.getId(), new AppearPlayerMessage(target.getId(), target.getName(),
+                                target.getSpriteSetName(), segment(target), target.getText()));
+                    } else if (!inRange && seen.remove(target.getId())) {
+                        messages.send(observer.getId(), new DisappearPlayerMessage(target.getId()));
                     }
                 }
             }
-        } catch (MessageManagerException ex) {
-            ex.printStackTrace();
-            if (debugLevel > 0) {
-                System.exit(1);
-            }
-            return;
         }
     }
+    private MoveMessage segment(Player player) {
+        var move = player.getMovement();
+        return new MoveMessage(player.getId(), move.getBegX(), move.getBegY(), move.getEndX(), move.getEndY(), move.getBegTime());
+    }
+    void movementStartNotify(long id) {
+        synchronized (world) {
+            update();
+            Player player = world.snapshot().stream().filter(p -> p.getId() == id).findFirst().orElseThrow();
+            deliver(id, segment(player));
+        }
+    }
+    void textChanged(Player player) {
+        synchronized (world) {
+            update();
+            deliver(player.getId(), new PlayerTextMessage(player.getId(), player.getText()));
+        }
+    }
+    private void deliver(long id, Message message) {
+        messages.send(id, message);
+        visible.forEach((observer, seen) -> { if (seen.contains(id)) messages.send(observer, message); });
+    }
+    void remove(long id) {
+        synchronized (world) {
+            visible.remove(id);
+            visible.forEach((observer, seen) -> {
+                if (seen.remove(id)) messages.send(observer, new DisappearPlayerMessage(id));
+            });
+        }
+    }
+    int trackedPlayers() { synchronized (world) { return visible.size(); } }
 }

@@ -110,7 +110,7 @@ public final class GraphicalCheckAgent {
                 System.currentTimeMillis(),0,worldX-panel.camera().x(),worldY-panel.camera().y(),1,false,button));
     }
 
-    private static WandJPanel findPanel(Container parent) {
+    static WandJPanel findPanel(Container parent) {
         for (Component child : parent.getComponents()) {
             if (child instanceof WandJPanel panel) { return panel; }
             if (child instanceof Container nested) {
@@ -121,7 +121,7 @@ public final class GraphicalCheckAgent {
         return null;
     }
 
-    private static void capture(JFrame frame, WandJPanel panel, Path path) throws Exception {
+    static void capture(JFrame frame, WandJPanel panel, Path path) throws Exception {
         panel.paintImmediately(0, 0, panel.getWidth(), panel.getHeight());
         BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
@@ -129,12 +129,12 @@ public final class GraphicalCheckAgent {
         if (!ImageIO.write(image, "png", path.toFile())) { throw new AssertionError("No PNG encoder"); }
     }
 
-    private static <T> T edt(Callable<T> task) throws Exception {
+    static <T> T edt(Callable<T> task) throws Exception {
         FutureTask<T> future = new FutureTask<>(task);
         SwingUtilities.invokeAndWait(future);
         return future.get();
     }
-    private static void await(Callable<Boolean> condition, String message) throws Exception {
+    static void await(Callable<Boolean> condition, String message) throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
         while (System.nanoTime() < deadline) {
             if (condition.call()) { return; }

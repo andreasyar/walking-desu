@@ -26,6 +26,8 @@ final class GUI {
         panel.setFocusable(true);
         JTextField message = new JTextField(35);
         JButton send = new JButton("Send");
+        message.setName("chat-input");
+        send.setName("chat-send");
         Runnable sendText = () -> {
             try {
                 String text = message.getText();

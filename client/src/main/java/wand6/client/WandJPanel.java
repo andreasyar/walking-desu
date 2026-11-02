@@ -43,7 +43,10 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         }
 
         var player = PlayerManager.getInstance().selfPlayer();
-        if (player == null) return;
+        if (player == null) {
+            g.drawString(PlayerManager.getInstance().status(), 20, 90);
+            return;
+        }
         long time = wand6.common.ServerTime.getInstance().getTimeSinceStart();
         var position = player.getMovement().position(time);
         panelDim = getSize();

@@ -1,87 +1,25 @@
 package wand6.server;
 
+import wand6.common.messages.Message;
 import wand6.common.exceptions.MessageManagerException;
 import wand6.server.exceptions.JavaServerException;
-import wand6.server.exceptions.PlayerManagerException;
-import wand6.server.messages.MapFragmentMessage;
-import wand6.server.messages.MoveMessage;
-import wand6.server.messages.WelcomeMessage;
+import wand6.server.messages.*;
 
-class MessageManager {
-
-    private static int debugLevel = 1;
-
+final class MessageManager {
     private JavaServer server;
-    private PlayerManager playerManager;
-    private boolean initialized = false;
-
-    void init(JavaServer server, PlayerManager playerManager) {
-        this.server = server;
-        this.playerManager = playerManager;
-        initialized = true;
+    private PlayerManager players;
+    void init(JavaServer server, PlayerManager players) { this.server = server; this.players = players; }
+    void send(long recipient, Message message) {
+        try { server.sendMessage(message, recipient); }
+        catch (JavaServerException ex) { throw new IllegalStateException(ex); }
     }
-
-    void sendWelcome(long clientId) throws MessageManagerException {
-        if (!initialized) {
-            throw new MessageManagerException(this + " not initialized yet and cannot be used.");
-        }
-
+    void sendWelcome(long id) throws MessageManagerException {
         try {
-            server.sendMessage(new WelcomeMessage(clientId,
-                                                  playerManager.getPlayerName(clientId),
-                                                  playerManager.getPlayerSpriteSetName(clientId),
-                                                  playerManager.getPlayerCurX(clientId),
-                                                  playerManager.getPlayerCurY(clientId)),
-                               clientId);
-        } catch (PlayerManagerException e) {
-            e.printStackTrace();
-            if (debugLevel > 0) {
-                System.exit(1);
-            }
-        } catch (JavaServerException e) {
-            e.printStackTrace();
-            if (debugLevel > 0) {
-                System.exit(1);
-            }
-        }
+            send(id, new WelcomeMessage(id, players.getPlayerName(id), players.getPlayerSpriteSetName(id),
+                    players.getPlayerCurX(id), players.getPlayerCurY(id)));
+        } catch (wand6.server.exceptions.PlayerManagerException ex) { throw new IllegalStateException(ex); }
     }
-
-    void sendMapFragment(long clientId, SMapFragment fragment) throws MessageManagerException {
-        if (!initialized) {
-            throw new MessageManagerException(this + " not initialized yet and cannot be used.");
-        }
-
-        try {
-            server.sendMessage(new MapFragmentMessage(fragment.getIdX(),
-                                                      fragment.getIdY(),
-                                                      fragment.getHmap()),
-                               clientId);
-        } catch (JavaServerException e) {
-            e.printStackTrace();
-            if (debugLevel > 0) {
-                System.exit(1);
-            }
-        }
-    }
-
-    void sendMoveMessage(long clientId, long playerId) throws MessageManagerException {
-        if (!initialized) {
-            throw new MessageManagerException(this + " not initialized yet and cannot be used.");
-        }
-
-        try {
-            server.sendMessage(playerManager.movementMessage(playerId),
-                               clientId);
-        } catch (JavaServerException ex) {
-            ex.printStackTrace();
-            if (debugLevel > 0) {
-                System.exit(1);
-            }
-        }catch (PlayerManagerException ex) {
-            ex.printStackTrace();
-            if (debugLevel > 0) {
-                System.exit(1);
-            }
-        }
+    void sendMapFragment(long id, SMapFragment fragment) throws MessageManagerException {
+        send(id, new MapFragmentMessage(fragment.getIdX(), fragment.getIdY(), fragment.getHmap()));
     }
 }

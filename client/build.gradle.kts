@@ -127,3 +127,10 @@ tasks.register<JavaExec>("visualCheck") {
     mainClass = "wand6.client.VisualCheck"
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<Jar>("multiplayerGuiCheckAgent") {
+    archiveClassifier = "multiplayer-gui-check-agent"
+    from(checks.output)
+    manifest.attributes["Premain-Class"] = "wand6.client.MultiplayerGraphicalAgent"
+    manifest.attributes["Implementation-Version"] = project.version.toString()
+}

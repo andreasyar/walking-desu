@@ -1,262 +1,113 @@
 package wand6.server;
 
-import java.io.EOFException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import wand6.common.messages.Message;
-import wand6.client.messages.NameMessage;
-import wand6.common.messages.MessageType;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
-import wand6.common.exceptions.MessageManagerException;
-import wand6.client.messages.MapFragmentRequestMessage;
-import wand6.client.messages.MoveRequestMessage;
-import wand6.client.messages.TextCloudMessage;
-import wand6.server.exceptions.PlayerManagerException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import wand6.common.messages.Message;
+import wand6.client.messages.*;
 
-class ClientInteraction {
+/** Queues are owned by the connection; login/world/close serialize on PlayerManager. */
+final class ClientInteraction implements AutoCloseable {
+    private final Socket socket;
+    private final JavaServer server;
+    private final PlayerManager players;
+    private final MessageManager messages;
+    private final MapManager maps;
+    private final LinkedBlockingQueue<Message> outbound = new LinkedBlockingQueue<>();
+    private final AtomicBoolean closing = new AtomicBoolean();
+    private volatile long id;
+    private volatile boolean ready;
+    private Thread sender, receiver;
 
-    private static int debugLevel = 1;
-
-    private long selfPlayerId = 0;
-    private PlayerManager playerManager;
-    private MessageManager messageManager;
-    private MapManager mapManager;
-
-    private Socket socket;
-    private MessageSender sender;
-    private MessageReceiver receiver;
-    private boolean ready = false;
-
-    ClientInteraction(Socket socket, PlayerManager playerManager, MessageManager messageManager, MapManager mapManager) {
-        this.socket = socket;
-        this.playerManager = playerManager;
-        this.messageManager = messageManager;
-        this.mapManager = mapManager;
+    ClientInteraction(Socket socket, JavaServer server, PlayerManager players, MessageManager messages, MapManager maps) {
+        this.socket = socket; this.server = server; this.players = players;
+        this.messages = messages; this.maps = maps;
     }
-
-    public void run() {
+    void run() {
+        receiver = new Thread(this::receive, "wand6-reader-" + socket.getPort());
+        receiver.start();
+    }
+    long getSelfPlayerId() { return id; }
+    boolean isReady() { return ready && !closing.get(); }
+    boolean sendMessage(Message message) {
+        if (closing.get()) return false;
+        outbound.offer(message);
+        return true;
+    }
+    private void receive() {
         try {
-            sender = new MessageSender(this, new ObjectOutputStream(socket.getOutputStream()));
-            receiver = new MessageReceiver(this,
-                                           new ObjectInputStream(socket.getInputStream()),
-                                                                 playerManager,
-                                                                 messageManager,
-                                                                 mapManager);
-            new Thread(sender).start();
-            new Thread(receiver).start();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    void sendMessage(Message message) {
-        sender.sendMessage(message);
-    }
-
-    long getSelfPlayerId() {
-        return selfPlayerId;
-    }
-
-    void setSelfPlayerId(long id) throws IllegalArgumentException {
-        if (id < 1) {
-            throw new IllegalArgumentException("id must be 1 or greater.");
-        }
-
-        selfPlayerId = id;
-    }
-
-    boolean isReady() {
-        return ready;
-    }
-
-    void setReady(boolean ready) {
-        this.ready = ready;
-    }
-}
-
-class MessageSender implements Runnable {
-
-    private static int debugLevel = 1;
-
-    private ClientInteraction client;
-    private ObjectOutputStream outStream;
-    private final LinkedBlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
-
-    MessageSender(ClientInteraction client, ObjectOutputStream outStream) {
-        this.client = client;
-        this.outStream = outStream;
-    }
-
-    public void run() {
-        try {
-            Message message;
-
-            while (!Thread.currentThread().isInterrupted()) {
-                message = messages.take();
-                outStream.writeObject(message);
-                outStream.reset();
-                outStream.flush();
-                if (debugLevel > 0) {
-                    System.out.println(message + " --> [" + client.getSelfPlayerId() + "]");
+            // An incomplete stream header cannot stall accept or hold the world monitor.
+            socket.setSoTimeout(10000);
+            ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+            output.flush();
+            ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+            synchronized (players) {
+                if (closing.get()) return;
+                sender = new Thread(() -> send(output), "wand6-writer-" + socket.getPort());
+                sender.start();
+            }
+            boolean hello = false;
+            while (!closing.get()) {
+                Object object = input.readObject();
+                if (!(object instanceof Message message)) throw new IOException("Expected a message");
+                synchronized (players) {
+                    if (closing.get()) break;
+                    if (!hello) {
+                        if (!(message instanceof HelloMessage)) throw new IOException("Expected HELLO");
+                        hello = true;
+                    } else if (!ready) {
+                        if (!(message instanceof NameMessage name)) throw new IOException("Expected NAME");
+                        validateName(name.getName());
+                        id = players.createPlayer(name.getName());
+                        ready = true;
+                        messages.sendWelcome(id);
+                        players.joined();
+                        socket.setSoTimeout(0);
+                    } else if (message instanceof MoveRequestMessage move) {
+                        players.movePlayer(id, move.getX(), move.getY(), move.isStop());
+                    } else if (message instanceof TextCloudMessage text) {
+                        players.setPlayerText(id, text.getText());
+                    } else if (message instanceof MapFragmentRequestMessage map) {
+                        if (map.getIdX() >= 0 && map.getIdY() >= 0
+                                && map.getIdX() <= wand6.common.MapFragment.maxIdX
+                                && map.getIdY() <= wand6.common.MapFragment.maxIdY) {
+                            messages.sendMapFragment(id, maps.getMapFragment(map.getIdX(), map.getIdY()));
+                        }
+                    } else throw new IOException("Unexpected message: " + message.getType());
                 }
+            }
+        } catch (EOFException ignored) {
+        } catch (Exception ex) {
+            if (!closing.get()) System.err.println("Client " + id + " disconnected: " + ex.getMessage());
+        } finally { close(); }
+    }
+    private static void validateName(String name) {
+        if (name == null || name.length() < 3 || name.length() > 10 || name.contains("\n")
+                || name.contains("\r") || name.contains("\"")) throw new IllegalArgumentException("Invalid name");
+    }
+    private void send(ObjectOutputStream output) {
+        try {
+            while (!closing.get()) {
+                Message message = outbound.take();
+                output.writeObject(message); output.reset(); output.flush();
             }
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-        } catch (SocketException ex) {
-            System.out.println(ex.getMessage());
-            client.setReady(false);
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        } catch (IOException ex) {
+            if (!closing.get()) System.err.println("Client " + id + " send failed: " + ex.getMessage());
+        } finally { close(); }
     }
-
-    void sendMessage(Message message) {
-        messages.add(message);
-
-    }
-}
-
-class MessageReceiver implements Runnable {
-
-    private static int debugLevel = 1;
-
-    private ClientInteraction client;
-    private ObjectInputStream inStream;
-
-    private PlayerManager playerManager;
-    private MessageManager messageManager;
-    private MapManager mapManager;
-
-    private boolean helloReceived = false;
-
-    MessageReceiver(ClientInteraction client,
-                    ObjectInputStream inStream,
-                    PlayerManager playerManager,
-                    MessageManager messageManager,
-                    MapManager mapManager) {
-
-        this.client = client;
-        this.inStream = inStream;
-        this.playerManager = playerManager;
-        this.messageManager = messageManager;
-        this.mapManager = mapManager;
-    }
-
-    public void run() {
-        Message message;
-
-        try {
-            while (true) {
-                message = (Message) inStream.readObject();
-
-                if (helloReceived) {
-                    if (client.isReady()) {
-
-                        commandHandler(message);
-
-                    } else {
-                        if (message.getType() == MessageType.NAME) {
-                            if (debugLevel > 0) {
-                                System.out.println("Name received.");
-                            }
-                            client.setSelfPlayerId(playerManager.createPlayer(((NameMessage) message).getName()));
-                            client.setReady(true);
-                            messageManager.sendWelcome(client.getSelfPlayerId());
-                        }
-                    }
-                } else {
-                    if (message.getType() == MessageType.HELLO) {
-                        if (debugLevel > 0) {
-                            System.out.println("Hello received.");
-                        }
-                        helloReceived = true;
-                    }
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (EOFException e) {
-            if (debugLevel > 0) {
-                System.out.println("Client id=" + client.getSelfPlayerId() + " disconnected.");
-            }
-            client.setReady(false);
-            return;
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (SocketException ex) {
-            System.out.println(ex.getMessage());
-            client.setReady(false);
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (MessageManagerException e) {
-            e.printStackTrace();
-            if (debugLevel > 0) {
-                System.exit(1);
-            }
-            return;
-        }
-    }
-
-    void commandHandler(Message message) {
-        if (debugLevel > 0) {
-            System.out.println("[" + client.getSelfPlayerId() + "] --> " + message);
-        }
-
-        if (message.getType() == MessageType.TEXTCLOUD) {
-
-            TextCloudMessage m = (TextCloudMessage) message;
-            try {
-                playerManager.setPlayerText(client.getSelfPlayerId(), m.getText());
-            } catch (PlayerManagerException ex) {
-                if (debugLevel > 0) {
-                    ex.printStackTrace();
-                    System.exit(1);
-                } else {
-                    System.err.println(ex.getMessage());
-                }
-            }
-
-        } else if (message.getType() == MessageType.MAPFRAGMENTREQEST) {
-
-            MapFragmentRequestMessage m = (MapFragmentRequestMessage) message;
-            if (m.getIdX() < 0 || m.getIdY() < 0
-                    || m.getIdX() > wand6.common.MapFragment.maxIdX
-                    || m.getIdY() > wand6.common.MapFragment.maxIdY) return;
-            try {
-                messageManager.sendMapFragment(client.getSelfPlayerId(), mapManager.getMapFragment(m.getIdX(), m.getIdY()));
-            } catch (MessageManagerException ex) {
-                ex.printStackTrace();
-                if (debugLevel > 0) {
-                    System.exit(1);
-                }
-                return;
-            }
-
-        } else if (message.getType() == MessageType.MOVEREQUEST) {
-
-            MoveRequestMessage m = (MoveRequestMessage) message;
-            try {
-                playerManager.movePlayer(client.getSelfPlayerId(), m.getX(), m.getY(), m.isStop());
-            } catch (PlayerManagerException ex) {
-                if (debugLevel > 0) {
-                    ex.printStackTrace();
-                    System.exit(1);
-                } else {
-                    System.err.println(ex.getMessage());
-                }
-            }
+    @Override public void close() {
+        if (!closing.compareAndSet(false, true)) return;
+        // Close the socket before taking the monitor, unblocking a concurrent write/read.
+        try { socket.close(); } catch (IOException ignored) { }
+        synchronized (players) {
+            ready = false;
+            server.remove(this);
+            if (id != 0) players.removePlayer(id);
+            if (sender != null) sender.interrupt();
+            outbound.clear();
         }
     }
 }

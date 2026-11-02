@@ -1,101 +1,94 @@
 package wand6.client;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
-import java.util.ArrayList;
+import java.util.*;
 import wand6.client.exceptions.PlayerManagerException;
 import wand6.common.Player;
+import wand6.server.messages.AppearPlayerMessage;
 
-class PlayerManager {
-
-    private static PlayerManager self = null;
-
-    private volatile Player selfPlayer = null;
-    private MovementAnimation walking;
-    private StandAnimation standing;
-    private Direction direction = Direction.SOUTH;
+/** EDT-owned model and one animation owner per visible player, as in 3.2. */
+final class PlayerManager {
+    private static final PlayerManager INSTANCE = new PlayerManager();
+    private Player selfPlayer;
+    private final Map<Long, VisualPlayer> players = new LinkedHashMap<>();
+    private String status = "Connecting…";
+    private static final class VisualPlayer {
+        final Player player;
+        final MovementAnimation walking;
+        final StandAnimation standing;
+        Direction direction = Direction.SOUTH;
+        VisualPlayer(Player player) {
+            this.player = player;
+            walking = new MovementAnimation(player.getSpriteSetName());
+            standing = new StandAnimation(player.getSpriteSetName());
+            standing.run(direction, 0);
+        }
+    }
+    static PlayerManager getInstance() { return INSTANCE; }
+    private PlayerManager() { }
     Player selfPlayer() { return selfPlayer; }
-    private final ArrayList<Player> players = new ArrayList<Player>();
-
-    static PlayerManager getInstance() {
-        if (self == null) {
-            self = new PlayerManager();
-        }
-
-        return self;
-    }
-
-    private PlayerManager() {}
-
+    Player player(long id) { var entry = players.get(id); return entry == null ? null : entry.player; }
+    int size() { return players.size(); }
+    String status() { return status; }
+    void disconnected() { players.clear(); selfPlayer = null; status = "Соединение закрыто. Закройте окно и подключитесь снова."; }
     long createPlayer(long id, String name, String spriteSetName) {
-        Player player = new Player(id, name, spriteSetName);
-        synchronized (players) {
-            players.add(player);
-        }
-        return player.getId();
+        players.put(id, new VisualPlayer(new Player(id, name, spriteSetName)));
+        return id;
     }
-
     long createSelfPlayer(long id, String name, String spriteSetName) {
-        selfPlayer = new Player(id, name, spriteSetName);
-        walking = new MovementAnimation(spriteSetName);
-        standing = new StandAnimation(spriteSetName);
-        standing.run(direction, 0);
-        synchronized (players) {
-            players.add(selfPlayer);
-        }
-        return selfPlayer.getId();
+        players.clear();
+        createPlayer(id, name, spriteSetName);
+        selfPlayer = player(id);
+        status = "";
+        return id;
     }
-
-    long getSelfPlayerId() throws NullPointerException {
-        return selfPlayer.getId();
+    void appear(AppearPlayerMessage message) {
+        if (selfPlayer != null && selfPlayer.getId() == message.id()) return;
+        createPlayer(message.id(), message.name(), message.spriteSetName());
+        var move = message.movement();
+        try { movePlayer(message.id(), move.getBegX(), move.getBegY(), move.getEndX(), move.getEndY(), move.getBegTime()); }
+        catch (PlayerManagerException ex) { throw new IllegalStateException(ex); }
+        setText(message.id(), message.text());
     }
-
-    void setSelfPlayerText(String string) throws NullPointerException {
-        selfPlayer.setText(string);
-    }
-
-    int getSelfPlayerX() throws NullPointerException {
-        return selfPlayer.getCurX();
-    }
-
-    int getSelfPlayerY() throws NullPointerException {
-        return selfPlayer.getCurY();
-    }
+    void remove(long id) { if (selfPlayer == null || selfPlayer.getId() != id) players.remove(id); }
+    void setText(long id, String text) { Player player = player(id); if (player != null) player.setText(text); }
+    long getSelfPlayerId() { return selfPlayer.getId(); }
+    void setSelfPlayerText(String text) { selfPlayer.setText(text); }
+    int getSelfPlayerX() { return selfPlayer.getCurX(); }
+    int getSelfPlayerY() { return selfPlayer.getCurY(); }
+    String getSelfPlayerText() { return selfPlayer.getText(); }
 
     void drawPlayers(Graphics g, Camera camera, long time) {
-        if (selfPlayer == null) return;
-        var movement = selfPlayer.getMovement();
-        var position = movement.position(time);
-        var point = new java.awt.Point(position.x(), position.y());
-        Sprite sprite = movement.isMovingAt(time)
-                ? walking.getSprite(point) : standing.getSprite(time, point);
-        g.drawImage(sprite.image, sprite.x - camera.x(), sprite.y - camera.y(), null);
-        g.setColor(Color.WHITE);
-        String name = selfPlayer.getName();
-        g.drawString(name, point.x - camera.x() - g.getFontMetrics().stringWidth(name) / 2,
-                sprite.y - camera.y() - 4);
-    }
-
-    String getSelfPlayerText() throws NullPointerException {
-        return selfPlayer.getText();
-    }
-
-    void movePlayer(long playerId, int bx, int by, int x, int y, long begTime) throws PlayerManagerException {
-        synchronized(players) {
-            for (Player player : players) {
-                if (player.getId() == playerId) {
-                    player.getMovement().start(bx, by, x, y, begTime);
-                    if (bx != x || by != y) {
-                        walking.run(bx, by, x, y, 10.0);
-                        direction = walking.getDirection();
-                    }
-                    standing.run(direction, player.getMovement().getEndTime());
-                    return;
-                }
+        // Feet determine ordering; overlapping players keep independent animation state.
+        var ordered = new ArrayList<>(players.values());
+        ordered.sort(Comparator.comparingInt(v -> v.player.getMovement().position(time).y()));
+        for (VisualPlayer visual : ordered) {
+            var player = visual.player;
+            var movement = player.getMovement();
+            var position = movement.position(time);
+            var point = new java.awt.Point(position.x(), position.y());
+            Sprite sprite = movement.isMovingAt(time)
+                    ? visual.walking.getSprite(point) : visual.standing.getSprite(time, point);
+            g.drawImage(sprite.image, sprite.x - camera.x(), sprite.y - camera.y(), null);
+            g.setColor(Color.WHITE);
+            int nameY = sprite.y - camera.y() - 4;
+            g.drawString(player.getName(), point.x - camera.x() - g.getFontMetrics().stringWidth(player.getName()) / 2, nameY);
+            if (player.getText() != null && !player.getText().isEmpty()) {
+                g.setColor(Color.YELLOW);
+                g.drawString(player.getText(), point.x - camera.x() - g.getFontMetrics().stringWidth(player.getText()) / 2,
+                        nameY - g.getFontMetrics().getHeight());
             }
-
-            throw new PlayerManagerException("Player id=" + playerId + " not found.");
         }
+    }
+    void movePlayer(long id, int bx, int by, int x, int y, long time) throws PlayerManagerException {
+        VisualPlayer visual = players.get(id);
+        if (visual == null) return; // Safe for an obsolete update after removal.
+        visual.player.getMovement().start(bx, by, x, y, time);
+        if (bx != x || by != y) {
+            visual.walking.run(bx, by, x, y, 10.0);
+            visual.direction = visual.walking.getDirection();
+        }
+        visual.standing.run(visual.direction, visual.player.getMovement().getEndTime());
     }
 }
