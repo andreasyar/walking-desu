@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingUtilities;
 import wand6.client.exceptions.PlayerManagerException;
 import wand6.common.ServerTime;
@@ -22,6 +23,8 @@ final class ServerInteraction implements AutoCloseable {
     private final ObjectOutputStream output;
     private final ObjectInputStream input;
     private final LinkedBlockingQueue<Message> messages = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<Message> inbound = new LinkedBlockingQueue<>();
+    private final AtomicBoolean flushScheduled = new AtomicBoolean();
     private volatile boolean closed;
     private Thread sender;
     private Thread receiver;
@@ -42,6 +45,7 @@ final class ServerInteraction implements AutoCloseable {
     }
 
     void run() {
+        MessageReceiver handler = new MessageReceiver();
         sender = new Thread(() -> {
             try {
                 while (!closed) {
@@ -60,12 +64,12 @@ final class ServerInteraction implements AutoCloseable {
         receiver = new Thread(() -> {
             boolean welcome = false;
             try {
-                MessageReceiver handler = new MessageReceiver();
                 while (!closed) {
                     Message message = (Message) input.readObject();
                     if (message.getType() == MessageType.WELCOME) { welcome = true; }
                     if (welcome) {
-                        SwingUtilities.invokeAndWait(() -> { if (!closed) handler.commandHandler(message); });
+                        inbound.add(message);
+                        scheduleFlush(handler);
                     }
                 }
             } catch (EOFException ex) {
@@ -80,12 +84,28 @@ final class ServerInteraction implements AutoCloseable {
         receiver.start();
     }
 
+    private void scheduleFlush(MessageReceiver handler) {
+        if (!flushScheduled.compareAndSet(false, true)) return;
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Message message;
+                while (!closed && (message = inbound.poll()) != null) {
+                    handler.commandHandler(message);
+                }
+            } finally {
+                flushScheduled.set(false);
+                if (!closed && !inbound.isEmpty()) scheduleFlush(handler);
+            }
+        });
+    }
+
     synchronized void sendMessage(Message message) { if (!closed) messages.add(message); }
 
     @Override public synchronized void close() {
         if (closed) return;
         closed = true;
         messages.clear();
+        inbound.clear();
         SwingUtilities.invokeLater(() -> {
             if (MessageManager.isCurrent(this)) PlayerManager.getInstance().disconnected();
         });
@@ -113,7 +133,10 @@ final class MessageReceiver {
         } else if (message.getType() == MessageType.TIMESYNC) {
 
             TimeSyncMessage m = (TimeSyncMessage) message;
-            ServerTime.getInstance().adjust(m.getTime());
+            long error = ServerTime.getInstance().reconcile(m.getTime());
+            if (Math.abs(error) >= ServerTime.IGNORE_MS) {
+                System.out.println("TIMESYNC resync errorMs=" + error);
+            }
 
         } else if (message.getType() == MessageType.MAPFRAGMENT) {
 

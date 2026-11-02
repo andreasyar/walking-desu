@@ -1,6 +1,7 @@
 /recovered
 /.devcontainer/.env
 /.gradle/
+/.gradle-home/
 **/build/
 **/__pycache__/
 *.py[cod]

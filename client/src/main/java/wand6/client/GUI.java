@@ -3,18 +3,23 @@ package wand6.client;
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.Timer;
+import javax.swing.SwingUtilities;
 import wand6.common.exceptions.MessageManagerException;
 
 final class GUI {
+    private static final long FRAME_NS = 40_000_000L;
     final WandJPanel panel = new WandJPanel();
     final JFrame frame;
-    final Timer redraw;
+    private final AtomicBoolean running = new AtomicBoolean();
+    private final AtomicBoolean framePending = new AtomicBoolean();
+    private Thread redraw;
 
     GUI(ServerInteraction inter) {
         String version = Wand.class.getPackage().getImplementationVersion();
@@ -47,12 +52,47 @@ final class GUI {
         frame.add(controls, BorderLayout.SOUTH);
         frame.setSize(800, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        redraw = new Timer(40, e -> { ItemManager.getInstance().tick(); panel.repaint(); });
         frame.addWindowListener(new WindowAdapter() {
             @Override public void windowClosing(WindowEvent e) {
-                redraw.stop();
+                stopRedraw();
                 inter.close();
             }
         });
+    }
+
+    void startRedraw() {
+        if (!running.compareAndSet(false, true)) return;
+        redraw = new Thread(this::redrawLoop, "wand6-redraw");
+        redraw.setDaemon(true);
+        redraw.start();
+    }
+
+    void stopRedraw() {
+        running.set(false);
+        Thread thread = redraw;
+        if (thread != null) thread.interrupt();
+    }
+
+    private void redrawLoop() {
+        long next = System.nanoTime();
+        while (running.get()) {
+            if (framePending.compareAndSet(false, true)) {
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        ItemManager.getInstance().tick();
+                        panel.repaint();
+                    } finally {
+                        framePending.set(false);
+                    }
+                });
+            }
+            next += FRAME_NS;
+            long sleep = next - System.nanoTime();
+            if (sleep > 0) {
+                LockSupport.parkNanos(sleep);
+            } else {
+                next = System.nanoTime();
+            }
+        }
     }
 }

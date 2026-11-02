@@ -8,7 +8,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 import wand6.common.MapFragment;
@@ -44,67 +43,75 @@ class CMapFragment extends MapFragment {
         this.loaded = loaded;
     }
 
-    public void draw(Graphics g, int x, int y, Dimension panelDim) {
-        // Test
-        if (summerTiles.size() <= 0) {
-            BufferedImage summerImage = ClientAssets.summer();
-
-            summerTiles.put("water_dirt_01", summerImage.getSubimage(448, 384, 32, 32));
-            summerTiles.put("water_dirt_02", summerImage.getSubimage(480, 384, 32, 32));
-            summerTiles.put("water_dirt_03", summerImage.getSubimage(0, 416, 32, 32));
-            summerTiles.put("water_dirt_04", summerImage.getSubimage(32, 416, 32, 32));
-            summerTiles.put("water_dirt_05", summerImage.getSubimage(64, 416, 32, 32));
-            summerTiles.put("water_dirt_06", summerImage.getSubimage(96, 416, 32, 32));
-            summerTiles.put("water_dirt_07", summerImage.getSubimage(128, 416, 32, 32));
-            summerTiles.put("water_dirt_08", summerImage.getSubimage(160, 416, 32, 32));
-            summerTiles.put("water_dirt_09", summerImage.getSubimage(192, 416, 32, 32));
-            summerTiles.put("water_dirt_10", summerImage.getSubimage(224, 416, 32, 32));
-            summerTiles.put("water_dirt_11", summerImage.getSubimage(256, 416, 32, 32));
-            summerTiles.put("water_dirt_12", summerImage.getSubimage(288, 416, 32, 32));
-            summerTiles.put("water_dirt_13", summerImage.getSubimage(320, 416, 32, 32));
-            summerTiles.put("water_dirt_14", summerImage.getSubimage(352, 416, 32, 32));
-            summerTiles.put("water_dirt_15", summerImage.getSubimage(384, 416, 32, 32));
-            summerTiles.put("water_dirt_16", summerImage.getSubimage(416, 416, 32, 32));
-            summerTiles.put("water_dirt_17", summerImage.getSubimage(448, 416, 32, 32));
-            summerTiles.put("water_dirt_18", summerImage.getSubimage(480, 416, 32, 32));
-            summerTiles.put("water_dirt_19", summerImage.getSubimage(0, 448, 32, 32));
-            summerTiles.put("water_dirt_20", summerImage.getSubimage(32, 448, 32, 32));
-            summerTiles.put("water_dirt_21", summerImage.getSubimage(64, 448, 32, 32));
-            summerTiles.put("water_dirt_22", summerImage.getSubimage(96, 448, 32, 32));
-            summerTiles.put("water_dirt_23", summerImage.getSubimage(128, 448, 32, 32));
-            summerTiles.put("water_dirt_24", summerImage.getSubimage(160, 448, 32, 32));
-            summerTiles.put("water_dirt_25", summerImage.getSubimage(192, 448, 32, 32));
-            summerTiles.put("water_dirt_26", summerImage.getSubimage(224, 448, 32, 32));
-            summerTiles.put("water_dirt_27", summerImage.getSubimage(256, 448, 32, 32));
-            summerTiles.put("water_dirt_28", summerImage.getSubimage(288, 448, 32, 32));
-            summerTiles.put("water_dirt_29", summerImage.getSubimage(320, 448, 32, 32));
-            summerTiles.put("water_dirt_30", summerImage.getSubimage(352, 448, 32, 32));
-            summerTiles.put("water_dirt_31", summerImage.getSubimage(384, 448, 32, 32));
-            summerTiles.put("water_dirt_32", summerImage.getSubimage(416, 448, 32, 32));
-
-            summerTiles.put("water_29", summerImage.getSubimage(256, 640, 32, 32));
-            summerTiles.put("water_30", summerImage.getSubimage(288, 640, 32, 32));
-            summerTiles.put("water_31", summerImage.getSubimage(320, 640, 32, 32));
-            summerTiles.put("rock_01", summerImage.getSubimage(256, 288, 32, 32));
-            summerTiles.put("dirt_01", summerImage.getSubimage(448, 640, 32, 32));
-        }
-
-        // create map image once
-        if (img == null) {
-            img = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
-            Graphics tmpG = img.getGraphics();
-
+    /** Build the 1024×1024 tile image off the paint path when possible. */
+    synchronized void bake() {
+        ensureSummerTiles();
+        if (img != null) return;
+        BufferedImage baked = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
+        Graphics tmpG = baked.getGraphics();
+        try {
             for (int i = 0; (i + 1) * MapFragment.cellWidth <= width; i++) {
                 for (int j = 0; (j + 1) * MapFragment.cellHeight <= height; j++) {
                     tmpG.drawImage(summerTiles.get(getTileKey(i, j)),
-                                i * MapFragment.cellWidth,
-                                j * MapFragment.cellHeight,
-                                null);
+                            i * MapFragment.cellWidth,
+                            j * MapFragment.cellHeight,
+                            null);
                 }
             }
+        } finally {
             tmpG.dispose();
         }
+        img = baked;
+    }
 
+    private static synchronized void ensureSummerTiles() {
+        if (summerTiles.size() > 0) return;
+        BufferedImage summerImage = ClientAssets.summer();
+
+        summerTiles.put("water_dirt_01", summerImage.getSubimage(448, 384, 32, 32));
+        summerTiles.put("water_dirt_02", summerImage.getSubimage(480, 384, 32, 32));
+        summerTiles.put("water_dirt_03", summerImage.getSubimage(0, 416, 32, 32));
+        summerTiles.put("water_dirt_04", summerImage.getSubimage(32, 416, 32, 32));
+        summerTiles.put("water_dirt_05", summerImage.getSubimage(64, 416, 32, 32));
+        summerTiles.put("water_dirt_06", summerImage.getSubimage(96, 416, 32, 32));
+        summerTiles.put("water_dirt_07", summerImage.getSubimage(128, 416, 32, 32));
+        summerTiles.put("water_dirt_08", summerImage.getSubimage(160, 416, 32, 32));
+        summerTiles.put("water_dirt_09", summerImage.getSubimage(192, 416, 32, 32));
+        summerTiles.put("water_dirt_10", summerImage.getSubimage(224, 416, 32, 32));
+        summerTiles.put("water_dirt_11", summerImage.getSubimage(256, 416, 32, 32));
+        summerTiles.put("water_dirt_12", summerImage.getSubimage(288, 416, 32, 32));
+        summerTiles.put("water_dirt_13", summerImage.getSubimage(320, 416, 32, 32));
+        summerTiles.put("water_dirt_14", summerImage.getSubimage(352, 416, 32, 32));
+        summerTiles.put("water_dirt_15", summerImage.getSubimage(384, 416, 32, 32));
+        summerTiles.put("water_dirt_16", summerImage.getSubimage(416, 416, 32, 32));
+        summerTiles.put("water_dirt_17", summerImage.getSubimage(448, 416, 32, 32));
+        summerTiles.put("water_dirt_18", summerImage.getSubimage(480, 416, 32, 32));
+        summerTiles.put("water_dirt_19", summerImage.getSubimage(0, 448, 32, 32));
+        summerTiles.put("water_dirt_20", summerImage.getSubimage(32, 448, 32, 32));
+        summerTiles.put("water_dirt_21", summerImage.getSubimage(64, 448, 32, 32));
+        summerTiles.put("water_dirt_22", summerImage.getSubimage(96, 448, 32, 32));
+        summerTiles.put("water_dirt_23", summerImage.getSubimage(128, 448, 32, 32));
+        summerTiles.put("water_dirt_24", summerImage.getSubimage(160, 448, 32, 32));
+        summerTiles.put("water_dirt_25", summerImage.getSubimage(192, 448, 32, 32));
+        summerTiles.put("water_dirt_26", summerImage.getSubimage(224, 448, 32, 32));
+        summerTiles.put("water_dirt_27", summerImage.getSubimage(256, 448, 32, 32));
+        summerTiles.put("water_dirt_28", summerImage.getSubimage(288, 448, 32, 32));
+        summerTiles.put("water_dirt_29", summerImage.getSubimage(320, 448, 32, 32));
+        summerTiles.put("water_dirt_30", summerImage.getSubimage(352, 448, 32, 32));
+        summerTiles.put("water_dirt_31", summerImage.getSubimage(384, 448, 32, 32));
+        summerTiles.put("water_dirt_32", summerImage.getSubimage(416, 448, 32, 32));
+
+        summerTiles.put("water_29", summerImage.getSubimage(256, 640, 32, 32));
+        summerTiles.put("water_30", summerImage.getSubimage(288, 640, 32, 32));
+        summerTiles.put("water_31", summerImage.getSubimage(320, 640, 32, 32));
+        summerTiles.put("rock_01", summerImage.getSubimage(256, 288, 32, 32));
+        summerTiles.put("dirt_01", summerImage.getSubimage(448, 640, 32, 32));
+    }
+
+    public void draw(Graphics g, int x, int y, Dimension panelDim) {
+        if (img == null) {
+            bake();
+        }
         g.drawImage(img, x, y, null);
 
         if (debugLevel > 1) {

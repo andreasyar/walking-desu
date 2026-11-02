@@ -13,6 +13,13 @@ val movementCheck = tasks.register<JavaExec>("movementCheck") {
 }
 tasks.check { dependsOn(movementCheck) }
 
+val serverTimeCheck = tasks.register<JavaExec>("serverTimeCheck") {
+    group = "verification"
+    classpath = checks.runtimeClasspath
+    mainClass = "wand6.common.ServerTimeCheck"
+}
+tasks.check { dependsOn(serverTimeCheck) }
+
 val inventoryCheck = tasks.register<JavaExec>("inventoryCheck") {
     group = "verification"
     classpath = checks.runtimeClasspath

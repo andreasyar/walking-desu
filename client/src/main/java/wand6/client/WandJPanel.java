@@ -22,25 +22,40 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
     private boolean building;
     private Dimension panelDim = new Dimension(640, 420);
     private int repaintCount;
-    private long lastUpdateFPSTime;
+    private long lastUpdateFPSTimeNs;
+    private long lastPaintNs;
     private int fps;
+    private int maxFrameMs;
+    private int shownMaxFrameMs;
     private Camera camera = new Camera(0, 0);
     Camera camera() { return camera; }
 
     public WandJPanel() {}
 
     @Override
-    public synchronized void paintComponent(Graphics g) {
+    public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        repaintCount++;
-        if (lastUpdateFPSTime == 0L) {
-            lastUpdateFPSTime = System.currentTimeMillis() - 1;
+        long nowNs = System.nanoTime();
+        if (lastPaintNs != 0L) {
+            int frameMs = (int) ((nowNs - lastPaintNs) / 1_000_000L);
+            if (frameMs > maxFrameMs) maxFrameMs = frameMs;
         }
-        if (System.currentTimeMillis() - lastUpdateFPSTime > 1000L) {
+        lastPaintNs = nowNs;
+        repaintCount++;
+        if (lastUpdateFPSTimeNs == 0L) {
+            lastUpdateFPSTimeNs = nowNs - 1;
+        }
+        if (nowNs - lastUpdateFPSTimeNs > 1_000_000_000L) {
             fps = repaintCount;
+            shownMaxFrameMs = maxFrameMs;
             repaintCount = 0;
-            lastUpdateFPSTime = System.currentTimeMillis();
+            maxFrameMs = 0;
+            lastUpdateFPSTimeNs = nowNs;
+            if (shownMaxFrameMs >= 80) {
+                System.out.println("frame hitch maxMs=" + shownMaxFrameMs
+                        + " syncErrMs=" + wand6.common.ServerTime.getInstance().lastErrorMs());
+            }
         }
 
         var player = PlayerManager.getInstance().selfPlayer();
@@ -65,7 +80,8 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
 
     private void drawFps(Graphics g) {
         g.setColor(Color.WHITE);
-        g.drawString(fps + " fps", 10, 60);
+        long syncErr = wand6.common.ServerTime.getInstance().lastErrorMs();
+        g.drawString(fps + " fps  max " + shownMaxFrameMs + "ms  sync " + syncErr + "ms", 10, 60);
     }
 
     @Override

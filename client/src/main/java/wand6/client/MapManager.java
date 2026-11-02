@@ -41,6 +41,8 @@ class MapManager {
     }
     synchronized void addMapFragment(int x, int y, int[][] heights) {
         CMapFragment fragment = new CMapFragment(heights, x, y);
+        // Bake here (message flush), not on first paint mid-walk.
+        fragment.bake();
         fragment.setLoaded(true);
         fragments.put(key(x, y), fragment);
     }

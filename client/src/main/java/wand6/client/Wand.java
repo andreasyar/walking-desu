@@ -34,7 +34,7 @@ public class Wand {
             SwingUtilities.invokeAndWait(() -> {
                 gui[0] = new GUI(connected);
                 gui[0].frame.setVisible(true);
-                gui[0].redraw.start();
+                gui[0].startRedraw();
             });
             inter.run();
             inter.sendMessage(new HelloMessage());
