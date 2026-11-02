@@ -57,6 +57,7 @@ final class PlayerManager {
         if (target != null && target.getLife() == event.life()) { target.setHp(event.hp()); hits.put(target.getId(), new HitEffect(event, target.getCurX(), target.getCurY())); }
     }
     void die(wand6.server.messages.DeathMessage event) {
+        if (selfPlayer != null && event.id() == selfPlayer.getId()) ItemManager.getInstance().cancel();
         var v = players.get(event.id());
         if (v == null || v.player.getLife() != event.life()) return;
         if (v.player.getKind() == Unit.Kind.TOWER) return;
@@ -127,12 +128,13 @@ final class PlayerManager {
     Unit player(long id) { var entry = players.get(id); return entry == null ? null : entry.player; }
     int size() { return (int) count(Unit.Kind.PLAYER); }
     String status() { return status; }
-    void disconnected() { shots.clear(); corpses.clear(); hits.clear(); selected = 0; defenceStatus = null; players.clear(); selfPlayer = null; status = "Соединение закрыто. Закройте окно и подключитесь снова."; }
+    void disconnected() { ItemManager.getInstance().clear(); shots.clear(); corpses.clear(); hits.clear(); selected = 0; defenceStatus = null; players.clear(); selfPlayer = null; status = "Соединение закрыто. Закройте окно и подключитесь снова."; }
     long createPlayer(long id, String name, String spriteSetName) {
         players.put(id, new VisualPlayer(new Player(id, name, spriteSetName)));
         return id;
     }
     long createSelfPlayer(long id, String name, String spriteSetName) {
+        ItemManager.getInstance().clear();
         shots.clear(); corpses.clear(); hits.clear(); selected = 0; defenceStatus = null;
         players.clear();
         createPlayer(id, name, spriteSetName);

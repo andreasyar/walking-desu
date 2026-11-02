@@ -18,6 +18,7 @@ final class VisibleManager {
 
     void update() {
         synchronized (world) {
+            if (world.items != null) world.items.update();
             long now = ServerTime.getInstance().getTimeSinceStart();
             var players = world.snapshot();
             for (Player observer : players) {

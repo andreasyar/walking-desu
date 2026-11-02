@@ -155,3 +155,4 @@ img/canon_hit/e_01.png
 img/canon_hit/e_02.png
 img/canon_hit/e_03.png
 img/canon_hit/e_04.png
+img/coin_stacks_gold.png

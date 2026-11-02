@@ -42,12 +42,12 @@ final class GUI {
         JPanel controls = new JPanel();
         controls.add(message);
         controls.add(send);
-        frame.add(new JLabel("B + клик — башня · ЛКМ — цель/движение · F3 — атака · Esc — отмена · ПКМ — стоп."), BorderLayout.NORTH);
+        frame.add(new JLabel("B + клик — башня · ЛКМ — предмет/цель/движение · F3 — атака · Esc — отмена · ПКМ — стоп."), BorderLayout.NORTH);
         frame.add(panel, BorderLayout.CENTER);
         frame.add(controls, BorderLayout.SOUTH);
         frame.setSize(800, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        redraw = new Timer(40, e -> panel.repaint());
+        redraw = new Timer(40, e -> { ItemManager.getInstance().tick(); panel.repaint(); });
         frame.addWindowListener(new WindowAdapter() {
             @Override public void windowClosing(WindowEvent e) {
                 redraw.stop();

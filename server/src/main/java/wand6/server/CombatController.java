@@ -70,6 +70,7 @@ final class CombatController {
                 if (b.getHp() == 0) {
                     var position = b.getMovement().position(time);
                     visibility.deliver(b.getId(), new DeathMessage(b.getId(), b.getLife(), position.x(), position.y(), time));
+                    if (world.items != null) world.items.died(b);
                     cancelFor(b.getId());
                     if (b.getKind() != Unit.Kind.PLAYER) {
                         world.defence.remove(b.getId(), true);

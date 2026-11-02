@@ -54,7 +54,23 @@ public final class VisualCheck {
             require(manager.corpseCount() == 1,"killed NPC keeps death animation after removal");
             manager.defenceStatus(new wand6.server.messages.TowerDefenceStatusMessage(1,1,0,100,1));
             require(manager.corpseCount() == 0 && manager.size() == 1,"reset clears NPC corpse and preserves player");
+            var items = ItemManager.getInstance();
+            var coin = new wand6.common.GroundItem(new wand6.common.ItemStack(90,wand6.common.ItemStack.Type.GOLD,7),512,512);
+            items.appear(coin); items.appear(coin);
+            require(items.snapshot().size()==1,"duplicate appearance replaces ground model");
+            items.disappear(90); items.disappear(90);
+            require(items.snapshot().isEmpty(),"disappearance idempotent after queued appearance");
+            items.add(coin.stack()); items.add(new wand6.common.ItemStack(90,wand6.common.ItemStack.Type.GOLD,5));
+            require(items.inventory().count(wand6.common.ItemStack.Type.GOLD)==12,"client canonical merge");
+            items.remove(90,2); items.remove(90,10);
+            require(items.inventory().snapshot().isEmpty(),"client partial/full removal");
+            items.appear(coin); items.add(coin.stack());
+            var image = new java.awt.image.BufferedImage(640,420,java.awt.image.BufferedImage.TYPE_INT_RGB);
+            var graphics = image.createGraphics();
+            try { items.draw(graphics,new Camera(200,200)); items.drawInventory(graphics,640); }
+            finally { graphics.dispose(); }
             manager.disconnected();
+            require(items.snapshot().isEmpty() && items.inventory().snapshot().isEmpty(),"disconnect clears ground and inventory");
         });
         try { DirectionalSpriteSet.load("missing_walk"); throw new AssertionError("unknown set accepted"); }
         catch(IllegalArgumentException expected) { }

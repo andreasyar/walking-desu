@@ -152,7 +152,7 @@ public final class MultiplayerCheck {
         long id() throws Exception { return ((WelcomeMessage) await(m -> m instanceof WelcomeMessage, 0)).getId(); }
         synchronized void send(Message message) throws Exception { output.writeObject(message); output.reset(); output.flush(); }
         int mark() { return inbox.size(); }
-        List<Message> since(int mark) { return List.copyOf(inbox.subList(mark, inbox.size())); }
+        List<Message> since(int mark) { var snapshot = List.copyOf(inbox); return snapshot.subList(mark, snapshot.size()); }
         Message await(Predicate<Message> predicate, int mark) throws Exception {
             final Message[] found = new Message[1];
             MultiplayerCheck.await(() -> { for (Message m : since(mark)) if (predicate.test(m)) { found[0] = m; return true; } return false; }, "network message");

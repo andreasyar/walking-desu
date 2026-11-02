@@ -14,6 +14,7 @@ public class Wand {
             }
             // Validate assets before opening sockets or windows.
             ClientAssets.summer();
+            ClientAssets.image("img/coin_stacks_gold.png");
             DirectionalSpriteSet.load("peasant_walk");
             DirectionalSpriteSet.load("peasant_stand");
             for (String state : new String[]{"attack", "death", "bolt"}) DirectionalSpriteSet.load("peasant_" + state);

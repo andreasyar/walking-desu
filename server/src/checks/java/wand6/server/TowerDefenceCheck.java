@@ -17,6 +17,8 @@ public final class TowerDefenceCheck {
     private static void cycles() throws Exception {
         try (JavaServer server = new JavaServer(0)) {
             var world = server.players;
+            var retained = new GroundItem(new ItemStack(IdManager.nextId(),ItemStack.Type.GOLD,17),512,512);
+            server.items.add(retained);
             var time = new AtomicLong(ServerTime.getInstance().getTimeSinceStart());
             var messages = new MessageManager(); messages.init(server, world);
             var defence = new TowerDefenceController(world, server.visibility, messages, server.combat, time::get, new Random(11));
@@ -67,6 +69,7 @@ public final class TowerDefenceCheck {
                     && world.unit(victim.getId()) == null && server.combat.pending() == 0, "reset clears towers/old monsters/flights");
             server.combat.tick();
             require(monsters(world).stream().allMatch(m -> m.getHp() == 20), "stale projectile cannot damage new cycle");
+            require(server.items.snapshot().contains(retained), "full loss-limit reset preserves existing gold");
             require(defence.build(player, 700,400), "rebuild after reset");
             defence.clear();
             require(world.npcs.isEmpty() && server.combat.pending() == 0, "shutdown cleanup");

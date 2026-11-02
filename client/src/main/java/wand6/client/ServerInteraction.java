@@ -120,6 +120,16 @@ final class MessageReceiver {
             MapFragmentMessage m = (MapFragmentMessage) message;
             MapManager.getInstance().addMapFragment(m.getIdX(), m.getIdY(), m.getHmap());
 
+        } else if (message instanceof wand6.server.messages.AppearItemMessage item) {
+            ItemManager.getInstance().appear(item.item());
+        } else if (message instanceof wand6.server.messages.DisappearItemMessage item) {
+            ItemManager.getInstance().disappear(item.id());
+        } else if (message instanceof wand6.server.messages.InventoryAddMessage item) {
+            ItemManager.getInstance().add(item.delta());
+        } else if (message instanceof wand6.server.messages.InventoryRemoveMessage item) {
+            ItemManager.getInstance().remove(item.id(), item.count());
+        } else if (message instanceof wand6.server.messages.PickedUpMessage) {
+            // Inventory changes are carried only by inventory messages.
         } else if (message instanceof wand6.server.messages.AppearEntityMessage entity) {
             PlayerManager.getInstance().appearEntity(entity);
         } else if (message instanceof wand6.server.messages.RemoveEntityMessage entity) {
@@ -145,6 +155,7 @@ final class MessageReceiver {
         } else if (message.getType() == MessageType.MOVE) {
 
             MoveMessage m = (MoveMessage) message;
+            if (PlayerManager.getInstance().selfPlayer() != null && m.getId() == PlayerManager.getInstance().getSelfPlayerId()) ItemManager.getInstance().moved();
             try {
                 PlayerManager.getInstance().movePlayer(m.getId(), m.getBegX(), m.getBegY(), m.getEndX(), m.getEndY(), m.getBegTime());
             } catch (PlayerManagerException ex) {

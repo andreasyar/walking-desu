@@ -21,6 +21,7 @@ public final class JavaServer implements AutoCloseable {
     private final MessageManager messages = new MessageManager();
     final CombatController combat = new CombatController(players, visibility, messages);
     final TowerDefenceController defence;
+    final ItemController items = new ItemController(players, messages);
     private final MapManager maps = new MapManager();
     private final ScheduledExecutorService clock = Executors.newSingleThreadScheduledExecutor(r ->
             new Thread(r, "wand6-world-clock"));
@@ -44,6 +45,7 @@ public final class JavaServer implements AutoCloseable {
         visibility.init(messages, players);
         players.init(visibility);
         players.combat = combat;
+        players.items = items;
         players.defence = defence;
         System.out.println("WAND6_SERVER_PORT=" + port());
     }
@@ -96,6 +98,7 @@ public final class JavaServer implements AutoCloseable {
             for (ClientInteraction client : clients) client.close();
             defence.clear();
             combat.clear();
+            items.clear();
             clock.shutdownNow();
         }
     }

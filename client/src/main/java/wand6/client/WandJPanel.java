@@ -53,9 +53,11 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         panelDim = getSize();
         camera = Camera.follow(position.x(), position.y(), panelDim.width, panelDim.height);
         MapManager.getInstance().drawMap(g, panelDim, camera);
+        ItemManager.getInstance().draw(g, camera);
         PlayerManager.getInstance().drawPlayers(g, camera, time);
         PlayerManager.getInstance().drawEffects(g, camera, time);
         PlayerManager.getInstance().drawDefenceStatus(g);
+        ItemManager.getInstance().drawInventory(g, getWidth());
         if (building) g.drawString("Укажите место для башни (Esc — отмена)", 12, 80);
     }
 
@@ -64,6 +66,7 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
         this.requestFocus();
         if (PlayerManager.getInstance().selfPlayer() == null) return;
         if (javax.swing.SwingUtilities.isRightMouseButton(e)) {
+            ItemManager.getInstance().cancel();
             try { MessageManager.sendStopRequest(); }
             catch (MessageManagerException ex) { System.err.println(ex.getMessage()); }
             return;
@@ -74,9 +77,11 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
                 && clickY <= wand6.common.MapFragment.maxY) {
             try {
                 var players = PlayerManager.getInstance();
+                ItemManager.getInstance().cancel();
                 if (building) {
                     MessageManager.sendBuildTower((int) clickX, (int) clickY); building = false; repaint(); return;
                 }
+                if (ItemManager.getInstance().click((int) clickX, (int) clickY)) { players.unselect(); return; }
                 players.selectAt((int) clickX, (int) clickY);
                 if (players.selected() == 0) MessageManager.sendMoveRequest((int) clickX, (int) clickY);
             } catch (MessageManagerException ex) {
@@ -138,8 +143,8 @@ public class WandJPanel extends JPanel implements KeyListener, MouseListener, Co
 
     @Override
     public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_B) { building = true; repaint(); }
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) { building = false; repaint(); }
+        if (e.getKeyCode() == KeyEvent.VK_B) { ItemManager.getInstance().cancel(); building = true; repaint(); }
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) { ItemManager.getInstance().cancel(); building = false; repaint(); }
         if (e.getKeyCode() == KeyEvent.VK_F3) {
             try {
                 long target = PlayerManager.getInstance().selected();
