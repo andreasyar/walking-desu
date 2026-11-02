@@ -26,7 +26,7 @@ def await_condition(condition, description, processes=(), timeout=20):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--assets', type=Path, required=True)
-    parser.add_argument('--version', default='4.2.0-rc1')
+    parser.add_argument('--version', default='4.2.0')
     parser.add_argument('--first', choices=('one', 'two'), default='one', help='Which named client logs in first')
     args = parser.parse_args()
     if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
